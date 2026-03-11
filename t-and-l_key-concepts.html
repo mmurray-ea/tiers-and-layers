@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiers &amp; Layers &mdash; Key Concepts</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:     #0d0d14;
+  --paper:   #f4f2ed;
+  --rule:    #d8d4cb;
+  --blue:    #1a4b8c;
+  --blue-lt: #e8eef7;
+  --teal:    #0e6b72;
+  --teal-lt: #e4f3f4;
+  --gold:    #b07d1a;
+  --gold-lt: #faf3e0;
+  --rust:    #a83228;
+  --rust-lt: #faebea;
+  --green:   #2a6b3a;
+  --green-lt:#e8f4eb;
+  --plum:    #5c2d7a;
+  --plum-lt: #f0eaf7;
+  --new:     #c0392b;
+  --white:   #ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'IBM Plex Sans',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  font-size:13px;
+  line-height:1.6;
+}
+
+/* -- MASTHEAD -- */
+.masthead{
+  background:var(--ink);
+  color:var(--paper);
+  padding:36px 48px 28px;
+  position:relative;
+  overflow:hidden;
+}
+.masthead::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(
+    90deg,
+    transparent,transparent 80px,
+    rgba(255,255,255,0.018) 80px,rgba(255,255,255,0.018) 81px
+  );
+  pointer-events:none;
+}
+.masthead-top{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:18px;
+}
+.masthead-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:4px;
+  color:rgba(255,255,255,0.4);
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.masthead-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(32px,5vw,58px);
+  letter-spacing:3px;
+  line-height:0.95;
+  color:var(--paper);
+}
+.masthead-title span{
+  color:#e8a020;
+}
+.masthead-badge{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;letter-spacing:3px;
+  color:rgba(255,255,255,0.35);
+  text-transform:uppercase;
+  text-align:right;
+  line-height:1.8;
+}
+.masthead-sub{
+  font-size:12px;
+  color:rgba(255,255,255,0.55);
+  letter-spacing:1px;
+  max-width:700px;
+  border-top:1px solid rgba(255,255,255,0.1);
+  padding-top:14px;
+  margin-top:4px;
+}
+
+/* -- PAGE WRAPPER -- */
+.page{max-width:1200px;margin:0 auto;padding:36px 40px 60px;}
+
+/* -- SECTION TITLE -- */
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;letter-spacing:3px;
+  color:var(--ink);
+  margin-bottom:4px;
+  padding-bottom:8px;
+  border-bottom:2px solid var(--ink);
+  display:flex;align-items:baseline;gap:12px;
+}
+.section-title .stag{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:2px;
+  color:rgba(0,0,0,0.35);
+  font-weight:400;
+}
+.section-intro{
+  font-size:12px;color:#555;
+  margin-bottom:20px;
+  max-width:860px;
+  margin-top:6px;
+}
+
+/* -- TIER FLOW DIAGRAM -- */
+.flow-wrap{
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:6px;
+  padding:20px 24px;
+  margin-bottom:32px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.flow-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;letter-spacing:3px;
+  color:#aaa;text-transform:uppercase;
+  margin-bottom:12px;
+}
+.flow{
+  display:flex;align-items:center;gap:0;
+  flex-wrap:wrap;
+}
+.flow-tier{
+  display:flex;flex-direction:column;align-items:center;
+  flex:1;min-width:100px;
+}
+.flow-box{
+  width:100%;text-align:center;
+  padding:8px 6px;
+  border-radius:4px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:1px;
+  font-weight:500;
+  text-transform:uppercase;
+  border:1px solid;
+}
+.flow-sub{
+  font-size:7.5px;color:#888;
+  text-align:center;margin-top:5px;
+  letter-spacing:0.3px;
+  line-height:1.4;
+}
+.flow-arrow{
+  color:#aaa;font-size:18px;
+  padding:0 4px;
+  flex-shrink:0;
+  margin-top:-12px;
+}
+.fb-pres { background:#fef9ec; border-color:#e8a020; color:#5a3e00; }
+.fb-prod { background:#fef9ec; border-color:#e8a020; color:#5a3e00; }
+.fb-ai   { background:#fceef0; border-color:#c0392b; color:#7a1428; }
+.fb-svc  { background:#e8eef7; border-color:#1a4b8c; color:#0d2a5a; }
+.fb-rk   { background:#e8f4eb; border-color:#2a6b3a; color:#1a4020; }
+.flow-group-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:7px;letter-spacing:2px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:2px;
+  margin-top:5px;
+}
+.fgl-consumer{background:rgba(232,160,32,0.15);color:#7a5000;}
+.fgl-producer{background:rgba(44,107,58,0.12);color:#1a4020;}
+.fgl-ainew{background:rgba(192,57,43,0.12);color:#7a1428;}
+
+/* -- BENEFITS GRID -- */
+.benefits-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:14px;
+  margin-bottom:36px;
+}
+.benefit-card{
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:6px;
+  padding:16px 18px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  border-top:3px solid;
+  transition:box-shadow 0.15s;
+}
+.benefit-card:hover{box-shadow:0 4px 14px rgba(0,0,0,0.09);}
+.benefit-card.bc-blue  {border-top-color:var(--blue);}
+.benefit-card.bc-teal  {border-top-color:var(--teal);}
+.benefit-card.bc-gold  {border-top-color:var(--gold);}
+.benefit-card.bc-rust  {border-top-color:var(--rust);}
+.benefit-card.bc-green {border-top-color:var(--green);}
+.benefit-card.bc-plum  {border-top-color:var(--plum);}
+.bc-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:15px;letter-spacing:2px;
+  margin-bottom:6px;
+}
+.bc-blue  .bc-title{color:var(--blue);}
+.bc-teal  .bc-title{color:var(--teal);}
+.bc-gold  .bc-title{color:var(--gold);}
+.bc-rust  .bc-title{color:var(--rust);}
+.bc-green .bc-title{color:var(--green);}
+.bc-plum  .bc-title{color:var(--plum);}
+.bc-body{font-size:11.5px;color:#444;line-height:1.55;}
+
+/* -- PRINCIPLES -- */
+.principles-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:14px;
+  margin-bottom:36px;
+}
+.principle{
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:6px;
+  padding:16px 18px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  display:flex;gap:14px;
+}
+.p-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:32px;line-height:1;
+  color:var(--rule);
+  flex-shrink:0;
+  width:28px;
+}
+.p-body{}
+.p-title{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-weight:600;font-size:12px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  margin-bottom:5px;
+}
+.p-blue  .p-num{color:rgba(26,75,140,0.2);}  .p-blue  .p-title{color:var(--blue);}
+.p-teal  .p-num{color:rgba(14,107,114,0.2);} .p-teal  .p-title{color:var(--teal);}
+.p-gold  .p-num{color:rgba(176,125,26,0.2);} .p-gold  .p-title{color:var(--gold);}
+.p-rust  .p-num{color:rgba(168,50,40,0.2);}  .p-rust  .p-title{color:var(--rust);}
+.p-green .p-num{color:rgba(42,107,58,0.2);}  .p-green .p-title{color:var(--green);}
+.p-plum  .p-num{color:rgba(92,45,122,0.2);}  .p-plum  .p-title{color:var(--plum);}
+.p-desc{font-size:11.5px;color:#444;line-height:1.55;}
+
+/* -- ROLES SECTION -- */
+.roles-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+  gap:16px;
+  margin-bottom:36px;
+}
+.role-card{
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:6px;
+  overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  transition:box-shadow 0.15s;
+}
+.role-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.role-header{
+  padding:12px 18px;
+  display:flex;align-items:center;gap:12px;
+}
+.role-icon{
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+}
+.role-title-wrap{}
+.role-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:16px;letter-spacing:2px;
+}
+.role-subtitle{
+  font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;
+  opacity:0.6;
+  font-family:'IBM Plex Mono',monospace;
+}
+.role-body{padding:0 18px 16px;}
+.role-bullets{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;}
+.role-bullets li{
+  font-size:11.5px;color:#333;
+  padding:5px 8px 5px 24px;
+  position:relative;
+  border-radius:3px;
+  background:rgba(0,0,0,0.015);
+  line-height:1.4;
+}
+.role-bullets li::before{
+  content:'';
+  position:absolute;left:9px;top:11px;
+  width:6px;height:6px;border-radius:50%;
+}
+
+/* role color themes */
+.rc-cio    .role-header{background:var(--blue);    color:#fff;}
+.rc-cio    .role-icon  {background:rgba(255,255,255,0.15);}
+.rc-cio    .role-bullets li::before{background:var(--blue);}
+
+.rc-ea     .role-header{background:var(--teal);    color:#fff;}
+.rc-ea     .role-icon  {background:rgba(255,255,255,0.15);}
+.rc-ea     .role-bullets li::before{background:var(--teal);}
+
+.rc-sa     .role-header{background:#2a5f9e;        color:#fff;}
+.rc-sa     .role-icon  {background:rgba(255,255,255,0.15);}
+.rc-sa     .role-bullets li::before{background:#2a5f9e;}
+
+.rc-sec    .role-header{background:var(--rust);    color:#fff;}
+.rc-sec    .role-icon  {background:rgba(255,255,255,0.15);}
+.rc-sec    .role-bullets li::before{background:var(--rust);}
+
+.rc-da     .role-header{background:var(--green);   color:#fff;}
+.rc-da     .role-icon  {background:rgba(255,255,255,0.15);}
+.rc-da     .role-bullets li::before{background:var(--green);}
+
+.rc-ta     .role-header{background:var(--plum);    color:#fff;}
+.rc-ta     .role-icon  {background:rgba(255,255,255,0.15);}
+.rc-ta     .role-bullets li::before{background:var(--plum);}
+
+/* -- DIVIDER -- */
+.divider{
+  border:none;
+  border-top:1px solid var(--rule);
+  margin:32px 0;
+}
+
+/* -- FOOTER -- */
+.footer{
+  border-top:2px solid var(--ink);
+  padding-top:16px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:8px;
+}
+.footer-center{flex:1;text-align:center;}
+.footer-left{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:2px;
+  color:#aaa;text-transform:uppercase;
+}
+.footer-right{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:2px;
+  color:#aaa;text-transform:uppercase;
+}
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-top">
+    <div>
+      <div class="masthead-label">Enterprise Architecture &middot; Reference Model Companion</div>
+      <div class="masthead-title">TIERS &amp; LAYERS<br><span>KEY CONCEPTS</span></div>
+    </div>
+    <div class="masthead-badge">
+      TOGAF Aligned<br>
+      SAFe Compatible<br>
+      AI Era Extended<br>
+      &copy; 2026
+    </div>
+  </div>
+  <div class="masthead-sub">
+    A companion guide to the Tiers &amp; Layers Reference Model &mdash; explaining the foundational principles,
+    enterprise benefits, and role-specific value for technology leadership and architecture practitioners.
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- TIER FLOW                                       -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <div class="section-title">Model Overview <span class="stag">Tier Flow &amp; Data Direction</span></div>
+  <p class="section-intro">The model defines five tiers arranged in a deliberate Consumer-to-Producer flow. Requests originate at the Consumer side and travel through to authoritative data on the Producer side. The AI / Intelligence Tier is a Producer-side tier, positioned to receive input from the Product Tier and produce results before engaging the Service Tier.</p>
+
+  <div class="flow-wrap">
+    <div class="flow-label">Request flow &rarr; Consumer side to Producer side</div>
+    <div class="flow">
+      <div class="flow-tier">
+        <div class="flow-box fb-pres">Presentation</div>
+        <div class="flow-sub">Device &amp; Channel<br>UX Rendering</div>
+        <div class="flow-group-label fgl-consumer">Consumer</div>
+      </div>
+      <div class="flow-arrow">&#8250;</div>
+      <div class="flow-tier">
+        <div class="flow-box fb-prod">Product</div>
+        <div class="flow-sub">Interaction<br>Auth &amp; Coarse AuthZ</div>
+        <div class="flow-group-label fgl-consumer">Consumer</div>
+      </div>
+      <div class="flow-arrow">&#8250;</div>
+      <div class="flow-tier">
+        <div class="flow-box fb-ai">AI / Intelligence</div>
+        <div class="flow-sub">Inference &middot; RAG<br>Agents &middot; Models</div>
+        <div class="flow-group-label fgl-ainew">Producer &mdash; NEW</div>
+      </div>
+      <div class="flow-arrow">&#8250;</div>
+      <div class="flow-tier">
+        <div class="flow-box fb-svc">Service</div>
+        <div class="flow-sub">Integration<br>Routing &amp; Protocol</div>
+        <div class="flow-group-label fgl-producer">Producer</div>
+      </div>
+      <div class="flow-arrow">&#8250;</div>
+      <div class="flow-tier">
+        <div class="flow-box fb-rk">Recordkeeping</div>
+        <div class="flow-sub">SoR &middot; Business Logic<br>Fine-Grained AuthZ</div>
+        <div class="flow-group-label fgl-producer">Producer</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- SEPARATION PRINCIPLES                           -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <div class="section-title">Key Separation of Responsibility Principles <span class="stag">Foundational Rules</span></div>
+  <p class="section-intro">These principles are the non-negotiable rules that give the model its power. Violating them degrades data integrity, creates security gaps, and undermines the agility the model is designed to provide.</p>
+
+  <div class="principles-grid">
+
+    <div class="principle p-green">
+      <div class="p-num">01</div>
+      <div class="p-body">
+        <div class="p-title">Systems of Record</div>
+        <div class="p-desc">All authoritative data lives exclusively in the Recordkeeping Tier. No other tier maintains its own copy of business data. The Feature Store, Vector DB, and Data Lakehouse are the AI-era extensions of this principle &mdash; the AI Tier produces results but does not own data.</div>
+      </div>
+    </div>
+
+    <div class="principle p-blue">
+      <div class="p-num">02</div>
+      <div class="p-body">
+        <div class="p-title">Business Logic</div>
+        <div class="p-desc">Business rules, validation, and transaction logic reside solely in the Recordkeeping Tier. The Product Tier handles presentation logic only. The Service Tier routes &mdash; it does not decide. The AI Tier orchestrates &mdash; it does not own business rules.</div>
+      </div>
+    </div>
+
+    <div class="principle p-teal">
+      <div class="p-num">03</div>
+      <div class="p-body">
+        <div class="p-title">Security Separation</div>
+        <div class="p-desc">Product Tier: user authentication and coarse-grained authorization (feature / product access). Recordkeeping Tier: fine-grained / data-level authorization (row, field, record). Service Tier relays credentials only. AI Tier enforces model-level guardrails and prompt injection defense.</div>
+      </div>
+    </div>
+
+    <div class="principle p-gold">
+      <div class="p-num">04</div>
+      <div class="p-body">
+        <div class="p-title">Logging Separation</div>
+        <div class="p-desc">Product Tier logs user interactions (what did the user do?). Recordkeeping Tier logs transactions and data changes (what changed, when, by whom?). AI Tier logs model operational data. Systems-level logging (performance, error, event) belongs in the Platform Layer exclusively.</div>
+      </div>
+    </div>
+
+    <div class="principle p-rust">
+      <div class="p-num">05</div>
+      <div class="p-body">
+        <div class="p-title">Infrastructure Layer = Shared Libraries</div>
+        <div class="p-desc">The Infrastructure Layer provides domain-agnostic shared libraries (JIL pattern) consumed by all tiers uniformly. Cross-cutting technical utilities live here: logging libs, security libs, i18n frameworks, config clients, MLOps pipeline, and AI governance frameworks. No business logic belongs in any layer.</div>
+      </div>
+    </div>
+
+    <div class="principle p-plum">
+      <div class="p-num">06</div>
+      <div class="p-body">
+        <div class="p-title">AI Tier Placement</div>
+        <div class="p-desc">The AI / Intelligence Tier is a Producer-side tier, sitting between the Product Tier and the Service Tier. It receives requests from Product, produces results via inference / RAG / agent orchestration, then calls downstream services via the Service Tier. Its authoritative data stores reside in the Recordkeeping Tier.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- ENTERPRISE BENEFITS                             -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <div class="section-title">Enterprise Benefits <span class="stag">Value to EA &amp; IT Organization</span></div>
+  <p class="section-intro">The Tiers &amp; Layers model delivers measurable architectural and organizational value. These benefits apply across the full IT organization and compound over time as the model matures and adoption deepens.</p>
+
+  <div class="benefits-grid">
+
+    <div class="benefit-card bc-blue">
+      <div class="bc-title">Agility &amp; Independent Deployability</div>
+      <div class="bc-body">Clear tier boundaries enable each tier to evolve, scale, and deploy independently. Teams can release changes to the Product Tier without touching Recordkeeping, reducing regression risk and accelerating delivery cycles. AI capabilities can be introduced or swapped without disrupting existing tiers.</div>
+    </div>
+
+    <div class="benefit-card bc-green">
+      <div class="bc-title">Data Integrity &amp; Single Source of Truth</div>
+      <div class="bc-body">The Systems of Record principle guarantees one authoritative version of every business entity. Eliminates data drift, reconciliation overhead, and the "which system is correct?" problem that plagues organizations without a defined recordkeeping boundary.</div>
+    </div>
+
+    <div class="benefit-card bc-teal">
+      <div class="bc-title">Security by Design</div>
+      <div class="bc-body">Authentication, coarse-grained authorization, and fine-grained data authorization are assigned to specific tiers by design &mdash; not left to individual development teams to figure out. This eliminates authorization gaps, reduces attack surface, and simplifies compliance audits.</div>
+    </div>
+
+    <div class="benefit-card bc-rust">
+      <div class="bc-title">Integration Simplicity</div>
+      <div class="bc-body">The Service Tier provides a well-defined integration boundary. External systems, third-party APIs, and AI models all connect through a single layer, preventing point-to-point integration sprawl and making the integration topology understandable and governable.</div>
+    </div>
+
+    <div class="benefit-card bc-gold">
+      <div class="bc-title">Governance &amp; Standards Enforcement</div>
+      <div class="bc-body">The model provides an unambiguous framework for governing where capabilities belong. Architecture reviews, solution approvals, and design standards can all reference a single shared model, reducing debate and accelerating decision-making across teams and programs.</div>
+    </div>
+
+    <div class="benefit-card bc-plum">
+      <div class="bc-title">AI Readiness Without Disruption</div>
+      <div class="bc-body">The AI / Intelligence Tier is a first-class architectural construct that slots into the existing model. Organizations can introduce LLMs, RAG pipelines, and agent orchestration without restructuring their existing tiers or compromising the principles that protect data integrity and security.</div>
+    </div>
+
+    <div class="benefit-card bc-blue">
+      <div class="bc-title">Onboarding &amp; Knowledge Transfer</div>
+      <div class="bc-body">A single shared reference model dramatically reduces onboarding time for new architects, developers, and technology leaders. "Where does this belong?" has a clear answer, reducing architectural debt caused by well-intentioned but inconsistent design decisions.</div>
+    </div>
+
+    <div class="benefit-card bc-green">
+      <div class="bc-title">Observability &amp; Auditability</div>
+      <div class="bc-body">Logging responsibilities assigned by tier means every event has a defined owner. User activity, business transactions, AI inference events, and system metrics each have a specific home. This makes audit trails complete, compliance reporting straightforward, and incident investigation faster.</div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- ROLE-SPECIFIC VALUE                             -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <div class="section-title">Value by Role <span class="stag">What This Model Means for You</span></div>
+  <p class="section-intro">The model speaks differently to each architecture and leadership discipline. Below is the specific value proposition for each stakeholder role.</p>
+
+  <div class="roles-grid">
+
+    <!-- CIO -->
+    <div class="role-card rc-cio">
+      <div class="role-header">
+        <div class="role-icon">&#9670;</div>
+        <div class="role-title-wrap">
+          <div class="role-title">Chief Information Officer</div>
+          <div class="role-subtitle">Strategic &amp; Investment Value</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <ul class="role-bullets">
+          <li>Provides a single, durable architectural language shared across all technology teams and programs</li>
+          <li>Reduces the cost and risk of AI adoption by defining exactly where AI capabilities fit without disrupting existing investments</li>
+          <li>Accelerates delivery by eliminating "where does this belong?" debates at the team level</li>
+          <li>Supports regulatory compliance by making security boundaries and audit logging explicit and enforceable</li>
+          <li>Enables portfolio-level governance: solutions can be evaluated against a consistent standard</li>
+          <li>Demonstrates IT maturity to business stakeholders with a clear, communicable architecture framework</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ENTERPRISE ARCHITECT -->
+    <div class="role-card rc-ea">
+      <div class="role-header">
+        <div class="role-icon">&#9632;</div>
+        <div class="role-title-wrap">
+          <div class="role-title">Enterprise Architect</div>
+          <div class="role-subtitle">Framework &amp; Governance Value</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <ul class="role-bullets">
+          <li>Provides a TOGAF-aligned, SAFe-compatible reference model that spans the full application portfolio</li>
+          <li>The Consumer / Producer distinction gives a principled basis for evaluating any proposed capability or integration</li>
+          <li>AI Tier is a governed construct, not an ad-hoc addition &mdash; prevents AI sprawl across tiers</li>
+          <li>Infrastructure Layer clearly defines what belongs in shared services vs. what is tier-specific</li>
+          <li>Separation principles serve directly as architecture review criteria and design guardrails</li>
+          <li>Supports capability mapping, value stream analysis, and application rationalization against a stable model</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SOLUTION ARCHITECT -->
+    <div class="role-card rc-sa">
+      <div class="role-header">
+        <div class="role-icon">&#9670;</div>
+        <div class="role-title-wrap">
+          <div class="role-title">Solution Architect</div>
+          <div class="role-subtitle">Design &amp; Delivery Value</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <ul class="role-bullets">
+          <li>Eliminates ambiguity about where business logic, integration, and data access belong in solution designs</li>
+          <li>Tier boundaries define natural API contracts between components, reducing integration friction</li>
+          <li>AI / Intelligence Tier provides a clear template for designing LLM, RAG, and agent-based features</li>
+          <li>Logging separation guidance ensures solution designs have complete observability without over-engineering</li>
+          <li>Shared Infrastructure Layer means common concerns (auth, logging, config) are solved once and reused</li>
+          <li>Enables faster design reviews: reviewers and designers share the same reference framework</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SECURITY ARCHITECT -->
+    <div class="role-card rc-sec">
+      <div class="role-header">
+        <div class="role-icon">&#9632;</div>
+        <div class="role-title-wrap">
+          <div class="role-title">Security Architect</div>
+          <div class="role-subtitle">Risk &amp; Control Value</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <ul class="role-bullets">
+          <li>Authentication, coarse-grained AuthZ, and fine-grained data AuthZ are assigned to specific tiers &mdash; no gaps, no duplication</li>
+          <li>AI Tier has a defined security responsibility: model-level access control, prompt injection defense, and output filtering</li>
+          <li>Audit logging responsibilities are tier-specific, making compliance evidence collection straightforward</li>
+          <li>Service Tier credential pass-through pattern prevents authorization logic from leaking into integration code</li>
+          <li>Infrastructure Layer hosts shared security libraries, ensuring consistent encryption and token validation across all tiers</li>
+          <li>Zero-trust and defense-in-depth principles map directly onto the tier security hierarchy</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DATA ARCHITECT -->
+    <div class="role-card rc-da">
+      <div class="role-header">
+        <div class="role-icon">&#9670;</div>
+        <div class="role-title-wrap">
+          <div class="role-title">Data Architect</div>
+          <div class="role-subtitle">Data Integrity &amp; Lineage Value</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <ul class="role-bullets">
+          <li>Systems of Record principle eliminates data duplication and ensures a single authoritative source for every business entity</li>
+          <li>AI-era data stores (Feature Store, Vector DB, Data Lakehouse, Embedding Store) are placed as first-class SoR extensions in the Recordkeeping Tier</li>
+          <li>Training data lineage and AI data access audit are explicit Recordkeeping Tier responsibilities</li>
+          <li>Consumer-side data (channel, session, clickstream) is clearly separated from authoritative Producer-side data</li>
+          <li>Data Sub-Layer provides a defined location for data classification within the application architecture</li>
+          <li>Supports data governance: every data store has a tier owner, making data stewardship assignments unambiguous</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TECHNOLOGY ARCHITECT -->
+    <div class="role-card rc-ta">
+      <div class="role-header">
+        <div class="role-icon">&#9632;</div>
+        <div class="role-title-wrap">
+          <div class="role-title">Technology Architect</div>
+          <div class="role-subtitle">Platform &amp; Infrastructure Value</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <ul class="role-bullets">
+          <li>Infrastructure, Environment, and Platform Layers map directly to the technology stack each tier application depends on</li>
+          <li>Shared libraries (JIL pattern) in the Infrastructure Layer provide the technical rationale for platform investment in common services</li>
+          <li>AI-era Environment Layer additions (GPU / TPU clusters, ML platforms, Vector DB platforms) have a defined home</li>
+          <li>Systems-level logging is explicitly the Platform Layer's responsibility, not individual application tiers</li>
+          <li>Cloud AI services (SageMaker, Azure OpenAI, Vertex AI) are positioned in the Platform Layer as infrastructure, not application components</li>
+          <li>MLOps / CI-CD pipeline is a shared Infrastructure Layer service, enabling consistent AI delivery tooling across all teams</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">Tiers &amp; Layers &mdash; Key Concepts &middot; Companion to Reference Model</div>
+    <div class="footer-center" style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:#aaa;text-transform:uppercase;text-align:center;">
+      &copy; 2026 Mark Murray &middot; All Rights Reserved &middot; Release 1.0 &middot; March 2026
+    </div>
+    <div class="footer-right">TOGAF Aligned &middot; SAFe Compatible &middot; AI Era Extended</div>
+  </div>
+
+</div><!-- end page -->
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiers &amp; Layers - Responsibilities</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow:#e8a020; --blue:#2e75b6; --green:#3a7d44; --purple:#6a3d9a;
+    --teal:#1a7a82; --new:#e94560; --gray:#5a5a6a;
+    --infra:#2c7a2c; --env:#7a5c2c; --platform:#2c2c7a;
+    --bg:#eef1f6; --white:#ffffff; --border:#c8cdd8; --text:#1a1a2e;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Share Tech Mono',monospace; background:var(--bg); padding:20px; color:var(--text); font-size:11px; }
+
+  .header { text-align:center; margin-bottom:14px; background:var(--white); border-radius:8px; border:1px solid var(--border); padding:14px 20px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .header .eyebrow { font-size:9px; letter-spacing:4px; color:var(--blue); margin-bottom:5px; text-transform:uppercase; }
+  .header h1 { font-family:'Cinzel',serif; font-size:clamp(14px,2.2vw,21px); font-weight:700; color:var(--text); letter-spacing:2px; margin-bottom:4px; }
+  .header .sub { font-size:9px; color:#888; letter-spacing:2px; }
+  .legend-row { display:flex; justify-content:center; gap:16px; margin-top:10px; flex-wrap:wrap; }
+  .li { display:flex; align-items:center; gap:5px; font-size:9px; color:#555; }
+  .ld { width:10px; height:10px; border-radius:2px; }
+
+  .outer { max-width:1400px; margin:0 auto; }
+  .main { background:var(--white); border:1px solid var(--border); border-radius:8px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,.08); animation:fadeIn .5s ease both; }
+
+  /* 6-column grid: Pres | Prod | [DIV] | AI | Svc | RK */
+  .grp { display:grid; grid-template-columns:20px 1fr 1fr 2px 1fr 1fr 1fr; background:var(--text); }
+  .grp-consumer { grid-column:2/4; text-align:center; padding:5px; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,.55); text-transform:uppercase; border-right:2px solid rgba(255,255,255,.12); }
+  .grp-producer { grid-column:5/8; text-align:center; padding:5px; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,.55); text-transform:uppercase; }
+  .grp-div { background:rgba(255,255,255,.08); }
+
+  .ths { display:grid; grid-template-columns:20px 1fr 1fr 2px 1fr 1fr 1fr; background:#14142a; color:#fff; font-size:9px; }
+  .th { padding:7px 8px; text-align:center; border-right:1px solid rgba(255,255,255,.07); text-transform:uppercase; letter-spacing:1px; }
+  .th-consumer { background:rgba(46,117,182,.32); }
+  .th-producer { background:rgba(58,125,68,.32); }
+  .th-new      { background:rgba(233,69,96,.42); }
+  .th-div      { background:rgba(255,255,255,.08); padding:0; }
+  .th-sub      { font-size:7px; opacity:.6; margin-top:2px; letter-spacing:.5px; }
+  .new-badge   { font-size:6px; background:rgba(255,255,255,.2); padding:1px 4px; border-radius:2px; margin-left:3px; }
+
+  .sublayer-wrap { display:grid; grid-template-columns:20px 1fr; border-bottom:2px solid var(--border); }
+  .sublayer-label { writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg); font-size:8px; letter-spacing:3px; text-transform:uppercase; font-weight:bold; display:flex; align-items:center; justify-content:center; padding:6px 4px; white-space:nowrap; }
+  .sl-logic { background:rgba(232,160,32,.12); color:#7a5800; border-right:2px solid rgba(232,160,32,.4); }
+  .sl-data  { background:rgba(46,117,182,.08); color:var(--blue); border-right:2px solid rgba(46,117,182,.25); }
+
+  /* tier-row: Pres | Prod | [DIV] | AI | Svc | RK */
+  .tier-row { display:grid; grid-template-columns:1fr 1fr 2px 1fr 1fr 1fr; border-bottom:1px solid var(--border); }
+  .tier-row:last-child { border-bottom:none; }
+
+  .cell { padding:9px; border-right:1px solid var(--border); display:flex; flex-direction:column; gap:4px; }
+  .cell:last-child { border-right:none; }
+  .cell-div { padding:0; background:rgba(0,0,0,.04); }
+  .cell-new { background:rgba(233,69,96,.025); }
+  .cell-label { font-size:7px; letter-spacing:2px; color:#aaa; text-transform:uppercase; margin-bottom:3px; padding-bottom:3px; border-bottom:1px dashed #e0e0e8; }
+
+  .item { font-size:8.5px; padding:3px 7px; border-radius:3px; border:1px solid; line-height:1.35; cursor:default; transition:transform .1s,box-shadow .1s; }
+  .item:hover { transform:translateY(-1px); box-shadow:0 2px 6px rgba(0,0,0,.1); }
+  .item.y  { background:rgba(232,160,32,.12); border-color:rgba(232,160,32,.55); color:#5a3e00; }
+  .item.b  { background:rgba(46,117,182,.10); border-color:rgba(46,117,182,.40); color:#1a3d70; }
+  .item.g  { background:rgba(58,125,68,.10);  border-color:rgba(58,125,68,.40);  color:#1a4e22; }
+  .item.p  { background:rgba(106,61,154,.10); border-color:rgba(106,61,154,.38); color:#3a1a60; }
+  .item.t  { background:rgba(26,122,130,.10); border-color:rgba(26,122,130,.38); color:#093e48; }
+  .item.gr { background:rgba(90,90,106,.08);  border-color:rgba(90,90,106,.28);  color:#383848; }
+  .item.n  { background:rgba(233,69,96,.09);  border-color:rgba(233,69,96,.42);  color:#7a1428; }
+  .item.inf{ background:rgba(44,122,44,.10);  border-color:rgba(44,122,44,.45);  color:#1a4a1a; }
+  .nb { display:inline-block; background:var(--new); color:#fff; font-size:6px; padding:1px 3px; border-radius:2px; margin-left:4px; letter-spacing:.3px; font-weight:bold; vertical-align:middle; }
+  .na { opacity:.35; font-style:italic; }
+
+  .note-band { padding:4px 10px; font-size:8px; font-style:italic; letter-spacing:.3px; }
+  .note-band.blue  { background:rgba(46,117,182,.04); border-top:1px dashed rgba(46,117,182,.2); color:#778; }
+  .note-band.warn  { background:rgba(233,69,96,.04);  border-top:1px dashed rgba(233,69,96,.2);  color:#a03040; }
+  .note-band.green { background:rgba(44,122,44,.04);  border-top:1px dashed rgba(44,122,44,.25); color:#1a5a20; }
+
+  .data-section { border-bottom:1px solid var(--border); padding:8px 10px; }
+  .data-section:last-child { border-bottom:none; }
+  .data-cols { display:grid; grid-template-columns:1fr 2px 1fr; }
+  .data-col { padding:0 8px; display:flex; flex-direction:column; gap:4px; }
+  .data-col:first-child { padding-left:0; }
+  .data-col:last-child  { padding-right:0; }
+  .data-div { background:rgba(0,0,0,.04); }
+  .data-row-label { font-size:8px; letter-spacing:2px; color:#888; text-transform:uppercase; margin-bottom:5px; font-weight:bold; }
+  .items-row { display:flex; gap:5px; flex-wrap:wrap; }
+
+  .bl { border-top:1px solid var(--border); font-size:9px; }
+  .bl-header { display:flex; align-items:center; gap:10px; padding:7px 14px; }
+  .bl-label { font-size:8px; letter-spacing:2px; text-transform:uppercase; font-weight:bold; white-space:nowrap; min-width:130px; }
+  .bl-desc  { font-size:9px; color:#555; flex:1; }
+  .bl-items { padding:0 14px 8px 14px; display:flex; gap:5px; flex-wrap:wrap; }
+  .bl-infra    { background:rgba(44,122,44,.06); }  .bl-infra    .bl-label { color:var(--infra); }
+  .bl-env      { background:rgba(122,92,44,.06); }  .bl-env      .bl-label { color:var(--env); }
+  .bl-platform { background:rgba(44,44,122,.06); }  .bl-platform .bl-label { color:var(--platform); }
+
+  .principles { margin-top:12px; background:var(--white); border:1px solid var(--border); border-radius:8px; padding:12px 16px; box-shadow:0 2px 6px rgba(0,0,0,.05); }
+  .principles-title { font-size:9px; letter-spacing:3px; color:var(--blue); text-transform:uppercase; margin-bottom:10px; font-weight:bold; }
+  .principles-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:8px; }
+  .pc { border-radius:5px; padding:8px 10px; border-left:3px solid; background:rgba(0,0,0,.02); }
+  .pc .pc-title { font-size:8px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+  .pc .pc-body  { font-size:8px; color:#555; line-height:1.5; }
+  .pc-sor  { border-color:var(--green);  } .pc-sor  .pc-title { color:var(--green); }
+  .pc-biz  { border-color:var(--blue);   } .pc-biz  .pc-title { color:var(--blue); }
+  .pc-sec  { border-color:var(--teal);   } .pc-sec  .pc-title { color:var(--teal); }
+  .pc-log  { border-color:var(--yellow); } .pc-log  .pc-title { color:#7a5800; }
+  .pc-lay  { border-color:var(--infra);  } .pc-lay  .pc-title { color:var(--infra); }
+  .pc-ai   { border-color:var(--new);    } .pc-ai   .pc-title { color:var(--new); }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .footer { text-align:center; margin-top:10px; font-size:8px; color:#aaa; letter-spacing:2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="eyebrow">Enterprise Architecture &middot; AI-Modernized Reference Model</div>
+  <h1>TIERS &amp; LAYERS &mdash; RESPONSIBILITIES</h1>
+  <div class="sub">SEPARATION OF CONCERNS ENFORCED &middot; AI ERA EXTENSIONS &middot; 2026</div>
+  <div class="legend-row">
+    <div class="li"><div class="ld" style="background:rgba(232,160,32,.5)"></div>Presentation / Product (Original)</div>
+    <div class="li"><div class="ld" style="background:rgba(46,117,182,.5)"></div>Service Tier (Original)</div>
+    <div class="li"><div class="ld" style="background:rgba(58,125,68,.5)"></div>Recordkeeping (Original)</div>
+    <div class="li"><div class="ld" style="background:rgba(26,122,130,.5)"></div>Security (Original)</div>
+    <div class="li"><div class="ld" style="background:rgba(44,122,44,.5)"></div>Infrastructure / Shared Lib</div>
+    <div class="li"><div class="ld" style="background:rgba(233,69,96,.5)"></div>NEW &mdash; AI-Era Addition</div>
+  </div>
+</div>
+
+<div class="outer">
+<div class="main">
+
+  <!-- GROUP HEADERS: Consumer=Pres+Prod | Producer=AI+Svc+RK -->
+  <div class="grp">
+    <div></div>
+    <div class="grp-consumer">Consumer</div>
+    <div class="grp-div"></div>
+    <div class="grp-producer">Producer</div>
+  </div>
+
+  <!-- TIER HEADERS -->
+  <div class="ths">
+    <div class="th"></div>
+    <div class="th th-consumer">Presentation Tier<div class="th-sub">Device &middot; Channel &middot; UX Rendering</div></div>
+    <div class="th th-consumer">Product Tier<div class="th-sub">Interaction &middot; Auth &middot; Coarse AuthZ &middot; UI Logging</div></div>
+    <div class="th th-div"></div>
+    <div class="th th-new">AI / Intelligence Tier <span class="new-badge">NEW</span><div class="th-sub">Models &middot; Agents &middot; Inference &middot; RAG</div></div>
+    <div class="th th-producer">Service Tier<div class="th-sub">Integration &middot; Routing &middot; Protocol</div></div>
+    <div class="th th-producer">Recordkeeping Tier<div class="th-sub">SoR &middot; Business Logic &middot; Fine-Grained AuthZ &middot; Txn Logging</div></div>
+  </div>
+
+  <!-- LOGIC SUB-LAYER -->
+  <div class="sublayer-wrap">
+    <div class="sublayer-label sl-logic">Logic Sub-Layer</div>
+    <div>
+
+      <!-- PRESENTATION & APPEARANCE -->
+      <div class="tier-row">
+        <div class="cell">
+          <div class="cell-label">Presentation</div>
+          <div class="item y">Device-Specific Rendering</div>
+          <div class="item y">Globalization / Localization</div>
+          <div class="item y">Accessibility (A11y)</div>
+          <div class="item n">Conversational / Chat UI <span class="nb">NEW</span></div>
+          <div class="item n">Copilot &amp; AI Widget Rendering <span class="nb">NEW</span></div>
+          <div class="item n">AI-Generated Content Display <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">User Interaction &amp; Appearance</div>
+          <div class="item y">User Interaction &amp; Appearance</div>
+          <div class="item y">Producer Interaction (UI)</div>
+          <div class="item y">Globalization (UI)</div>
+          <div class="item n">Natural Language Input Handling <span class="nb">NEW</span></div>
+          <div class="item n">AI Response Streaming / Display <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell-div"></div>
+        <div class="cell cell-new">
+          <div class="cell-label" style="color:var(--new)">AI Logic</div>
+          <div class="item n">LLM / Foundation Model Serving <span class="nb">NEW</span></div>
+          <div class="item n">Inference Engine <span class="nb">NEW</span></div>
+          <div class="item n">RAG Pipeline <span class="nb">NEW</span></div>
+          <div class="item n">Agent Orchestration <span class="nb">NEW</span></div>
+          <div class="item n">Prompt Mgmt &amp; Versioning <span class="nb">NEW</span></div>
+          <div class="item n">Fine-Tuning Pipeline <span class="nb">NEW</span></div>
+          <div class="item n">Model Registry <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Service Routing</div>
+          <div class="item b">Service Access</div>
+          <div class="item b">Recordkeeper Interaction</div>
+          <div class="item b">Protocol Translation</div>
+          <div class="item b">Reliable Messaging / File Transfer</div>
+          <div class="item n">AI API Gateway <span class="nb">NEW</span></div>
+          <div class="item n">Event Streaming (Kafka/Kinesis) <span class="nb">NEW</span></div>
+          <div class="item n">Model Endpoint Routing <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Business Logic &amp; SoR Access</div>
+          <div class="item g">Access to Information</div>
+          <div class="item g">Transaction Processing</div>
+          <div class="item g">Online / Batch Processing</div>
+          <div class="item g">Data Integrity Enforcement</div>
+          <div class="item g">Recordkeeper Interaction Logic</div>
+          <div class="item g">Reporting &amp; Analytics Interaction</div>
+          <div class="item n">AI-Enriched Record Processing <span class="nb">NEW</span></div>
+          <div class="item n">Feature Store Access <span class="nb">NEW</span></div>
+          <div class="item n">Real-Time Streaming Ingestion <span class="nb">NEW</span></div>
+          <div class="item n">Training Data Lineage &amp; SoR <span class="nb">NEW</span></div>
+        </div>
+      </div>
+      <div class="note-band warn">&#9873; Business logic and data validation rules reside exclusively in the Recordkeeping Tier. The AI Tier orchestrates and reasons &mdash; it does not own business rules or data.</div>
+
+      <!-- SECURITY / AUTHORIZATION -->
+      <div class="tier-row">
+        <div class="cell">
+          <div class="cell-label">Auth &mdash; N/A</div>
+          <div class="item gr na">No auth responsibility</div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Authentication &amp; Coarse-Grained AuthZ</div>
+          <div class="item t">User Authentication (who are you?)</div>
+          <div class="item t">Coarse-Grained AuthZ (product / feature access)</div>
+          <div class="item t">Session Establishment</div>
+          <div class="item n">AI Session Identity &amp; Trust Token <span class="nb">NEW</span></div>
+          <div class="item n">Copilot Access Control (coarse) <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell-div"></div>
+        <div class="cell cell-new">
+          <div class="cell-label" style="color:var(--new)">AI Model Security</div>
+          <div class="item n">Model-Level Access Control <span class="nb">NEW</span></div>
+          <div class="item n">Prompt Injection Detection <span class="nb">NEW</span></div>
+          <div class="item n">Output Filtering / Guardrails <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Auth &mdash; Pass-Through Only</div>
+          <div class="item b">Token / Credential Forwarding</div>
+          <div class="item b">Service-to-Service Auth</div>
+          <div class="item n">AI Service Auth Token Relay <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Fine-Grained / Data-Level AuthZ</div>
+          <div class="item g">Fine-Grained AuthZ (row / field level)</div>
+          <div class="item g">Data-Level Access Enforcement</div>
+          <div class="item g">Producer Identity Verification</div>
+          <div class="item n">AI Model Output Data AuthZ <span class="nb">NEW</span></div>
+          <div class="item n">Feature Store Access Control <span class="nb">NEW</span></div>
+        </div>
+      </div>
+      <div class="note-band blue">&#9873; Security split: Product Tier = authentication + coarse-grained AuthZ. Recordkeeping Tier = fine-grained / data-level AuthZ. Service Tier relays credentials only. AI Tier enforces model-level guardrails.</div>
+
+      <!-- LOGGING -->
+      <div class="tier-row">
+        <div class="cell">
+          <div class="cell-label">Logging &mdash; N/A</div>
+          <div class="item gr na">No logging responsibility</div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">User Interaction Logging</div>
+          <div class="item y">User Activity Logging (clicks, navigation)</div>
+          <div class="item y">Session Event Logging</div>
+          <div class="item y">UI Error Logging</div>
+          <div class="item n">AI Copilot Interaction Logging <span class="nb">NEW</span></div>
+          <div class="item n">Prompt Input / Response Logging <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell-div"></div>
+        <div class="cell cell-new">
+          <div class="cell-label" style="color:var(--new)">AI Operational Logging</div>
+          <div class="item n">Model Inference Logging <span class="nb">NEW</span></div>
+          <div class="item n">Model Drift &amp; Performance Monitoring <span class="nb">NEW</span></div>
+          <div class="item n">Hallucination / Quality Flagging <span class="nb">NEW</span></div>
+          <div class="item n">Experiment Tracking <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Integration Logging</div>
+          <div class="item b">Service Call Logging</div>
+          <div class="item b">Integration Error Logging</div>
+          <div class="item n">AI API Call Logging <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Transaction / Audit Logging</div>
+          <div class="item g">Transaction Audit Logging</div>
+          <div class="item g">Batch Process Logging</div>
+          <div class="item g">Data Access Audit Trail</div>
+          <div class="item n">AI-Driven Transaction Audit <span class="nb">NEW</span></div>
+          <div class="item n">Training Data Access Audit <span class="nb">NEW</span></div>
+        </div>
+      </div>
+      <div class="note-band blue">&#9873; Logging split: Product Tier = user interaction logs. Recordkeeping Tier = transaction / audit logs. AI Tier = model operational logs. Systems-level logging belongs in the Platform Layer only.</div>
+
+      <!-- CONFIGURATION -->
+      <div class="tier-row">
+        <div class="cell">
+          <div class="cell-label">Config &mdash; N/A</div>
+          <div class="item gr na">No config responsibility</div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Consumer-Side Configuration</div>
+          <div class="item y">Consumer UI Configuration</div>
+          <div class="item y">Feature Flags (UX)</div>
+          <div class="item n">AI Preference Profiles <span class="nb">NEW</span></div>
+          <div class="item n">Copilot Personalization Config <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell-div"></div>
+        <div class="cell cell-new">
+          <div class="cell-label" style="color:var(--new)">AI Model Configuration</div>
+          <div class="item n">Model Hyperparameter Config <span class="nb">NEW</span></div>
+          <div class="item n">Prompt Template Management <span class="nb">NEW</span></div>
+          <div class="item n">RAG Retrieval Config <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Service Config</div>
+          <div class="item b">Integration Endpoint Config</div>
+          <div class="item b">Message Routing Config</div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Producer-Side Configuration</div>
+          <div class="item g">Producer / Recordkeeper Config</div>
+          <div class="item g">Business Rule Configuration</div>
+          <div class="item n">Feature Store Config <span class="nb">NEW</span></div>
+          <div class="item n">Data Schema &amp; Lineage Config <span class="nb">NEW</span></div>
+        </div>
+      </div>
+
+      <!-- REPORTING -->
+      <div class="tier-row" style="border-bottom:none">
+        <div class="cell">
+          <div class="cell-label">N/A</div>
+          <div class="item gr na">No reporting</div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Consumer-Facing Reports</div>
+          <div class="item y">Consumer-Facing Dashboards</div>
+          <div class="item n">AI-Generated Consumer Insights <span class="nb">NEW</span></div>
+          <div class="item n">Personalized Report Rendering <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell-div"></div>
+        <div class="cell cell-new">
+          <div class="cell-label" style="color:var(--new)">AI Performance Reporting</div>
+          <div class="item n">Model Performance Dashboards <span class="nb">NEW</span></div>
+          <div class="item n">A/B Model Testing Reports <span class="nb">NEW</span></div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">N/A</div>
+          <div class="item gr na">No reporting</div>
+        </div>
+        <div class="cell">
+          <div class="cell-label">Authoritative Reporting &amp; Analytics (SoR)</div>
+          <div class="item p">Reporting &amp; Analytics</div>
+          <div class="item p">Data Warehouse / Mart</div>
+          <div class="item n">Data Lakehouse (AI-era SoR) <span class="nb">NEW</span></div>
+          <div class="item n">Predictive / AI-Augmented Analytics <span class="nb">NEW</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- end logic sublayer -->
+
+  <!-- DATA SUB-LAYER -->
+  <div class="sublayer-wrap" style="border-bottom:2px solid var(--border)">
+    <div class="sublayer-label sl-data">Application Layer &mdash; Data Sub-Layer</div>
+    <div>
+      <div class="data-section">
+        <div class="data-cols">
+          <div class="data-col">
+            <div class="data-row-label" style="color:var(--blue)">Consumer &mdash; Channel / Content / Session Data</div>
+            <div class="items-row">
+              <div class="item b" style="font-size:8px">Channel Data</div>
+              <div class="item b" style="font-size:8px">Content Data</div>
+              <div class="item b" style="font-size:8px">Session Data</div>
+              <div class="item n" style="font-size:8px">Interaction / Clickstream Data <span class="nb">NEW</span></div>
+              <div class="item n" style="font-size:8px">Copilot Context Data <span class="nb">NEW</span></div>
+            </div>
+          </div>
+          <div class="data-div"></div>
+          <div class="data-col">
+            <div class="data-row-label" style="color:var(--green)">Producer &mdash; Authoritative Systems of Record</div>
+            <div class="items-row">
+              <div class="item g" style="font-size:8px">Recordkeeping Data (SoR)</div>
+              <div class="item p" style="font-size:8px">Data Warehouse / Mart</div>
+              <div class="item n" style="font-size:8px">Data Lakehouse (AI-era SoR) <span class="nb">NEW</span></div>
+              <div class="item n" style="font-size:8px">Feature Store (ML SoR) <span class="nb">NEW</span></div>
+              <div class="item n" style="font-size:8px">Vector Database <span class="nb">NEW</span></div>
+              <div class="item n" style="font-size:8px">Embedding Store <span class="nb">NEW</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="note-band green" style="margin-top:6px">&#9873; All Producer-side data stores are authoritative Systems of Record. Feature Store, Vector DB, and Data Lakehouse are AI-era SoR extensions &mdash; no other tier maintains its own copy of business data.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFRASTRUCTURE LAYER -->
+  <div class="bl bl-infra">
+    <div class="bl-header">
+      <div class="bl-label">Infrastructure Layer</div>
+      <div class="bl-desc"><strong>Domain-Agnostic Shared Libraries</strong> &mdash; consumed by every tier's applications via the Java I-Layer (JIL) pattern. No business logic resides here; these are technical utilities shared uniformly across all tiers.</div>
+    </div>
+    <div class="bl-items">
+      <div class="item inf" style="font-size:8px">Common Logging Libraries</div>
+      <div class="item inf" style="font-size:8px">Shared Security / Encryption Libs</div>
+      <div class="item inf" style="font-size:8px">Session Management Libraries</div>
+      <div class="item inf" style="font-size:8px">Globalization / i18n Framework</div>
+      <div class="item inf" style="font-size:8px">Configuration Service Client</div>
+      <div class="item inf" style="font-size:8px">Common Auth Token Validation</div>
+      <div class="item inf" style="font-size:8px">Connection Pooling Libraries</div>
+      <div class="item inf" style="font-size:8px">Service Client Stubs</div>
+      <div class="item inf" style="font-size:8px">Container Orchestration (Kubernetes)</div>
+      <div class="item inf" style="font-size:8px">Service Mesh (Istio)</div>
+      <div class="item n" style="font-size:8px">MLOps / CI-CD Shared Pipeline <span class="nb">NEW</span></div>
+      <div class="item n" style="font-size:8px">AI Observability Libraries <span class="nb">NEW</span></div>
+      <div class="item n" style="font-size:8px">Shared Prompt Injection Defense Lib <span class="nb">NEW</span></div>
+      <div class="item n" style="font-size:8px">AI Ethics &amp; Bias Evaluation Framework <span class="nb">NEW</span></div>
+      <div class="item n" style="font-size:8px">Model Governance Policy Engine <span class="nb">NEW</span></div>
+      <div class="item n" style="font-size:8px">Data Privacy / GDPR Compliance Libs <span class="nb">NEW</span></div>
+    </div>
+    <div class="note-band green">&#9873; Shared technical libraries (JIL pattern) consumed by all tiers. No business logic belongs here.</div>
+  </div>
+
+  <!-- ENVIRONMENT LAYER -->
+  <div class="bl bl-env">
+    <div class="bl-header">
+      <div class="bl-label">Environment Layer</div>
+      <div class="bl-desc"><strong>Vendor-Provided Platform Services</strong> &mdash; App Servers &middot; RDBMS &middot; Message Brokers &middot; NoSQL Stores &middot; Identity Providers &middot; API Management</div>
+    </div>
+    <div class="bl-items">
+      <div class="item gr" style="font-size:8px">Application Servers</div>
+      <div class="item gr" style="font-size:8px">Relational Databases</div>
+      <div class="item gr" style="font-size:8px">Message Brokers</div>
+      <div class="item gr" style="font-size:8px">Identity Providers (IdP)</div>
+      <div class="item n" style="font-size:8px">GPU / TPU Compute Clusters <span class="nb">NEW</span></div>
+      <div class="item n" style="font-size:8px">Vector DB Platform (Pinecone / Weaviate) <span class="nb">NEW</span></div>
+      <div class="item n" style="font-size:8px">ML Platform (MLflow / Kubeflow) <span class="nb">NEW</span></div>
+    </div>
+  </div>
+
+  <!-- PLATFORM LAYER -->
+  <div class="bl bl-platform">
+    <div class="bl-header">
+      <div class="bl-label">Platform Layer</div>
+      <div class="bl-desc"><strong>Hardware &amp; OS</strong> &mdash; Physical/virtual hardware &middot; Operating Systems &middot; Network infrastructure &middot; System Management &middot; Cloud / Hybrid / On-Prem IaaS</div>
+    </div>
+    <div class="bl-items">
+      <div class="item gr" style="font-size:8px">Hardware</div>
+      <div class="item gr" style="font-size:8px">Operating Systems</div>
+      <div class="item gr" style="font-size:8px">Network &amp; System Management</div>
+      <div class="item gr" style="font-size:8px">Performance / Error / Event Logging (Systems)</div>
+      <div class="item n" style="font-size:8px">Cloud AI Services (SageMaker / Azure OpenAI / Vertex) <span class="nb">NEW</span></div>
+      <div class="item n" style="font-size:8px">GPU Infrastructure Monitoring <span class="nb">NEW</span></div>
+    </div>
+    <div class="note-band blue">&#9873; Systems-level logging (Performance, Error/Trace, Event) belongs here &mdash; not in application tiers.</div>
+  </div>
+
+</div><!-- end main -->
+
+
+</div><!-- end outer -->
+
+<div class="footer">
+  TOGAF-ALIGNED &middot; SAFe-COMPATIBLE &middot; SEPARATION OF CONCERNS ENFORCED &middot; AI EXTENSIONS &middot; SEE COMPANION: TIERS &amp; LAYERS KEY CONCEPTS<br style="margin-top:4px">
+  <span style="color:var(--new)">&#9632;</span> RED = AI-Era &nbsp;|&nbsp;
+  <span style="color:var(--yellow)">&#9632;</span> YELLOW = Presentation/Product &nbsp;|&nbsp;
+  <span style="color:var(--blue)">&#9632;</span> BLUE = Service &nbsp;|&nbsp;
+  <span style="color:var(--green)">&#9632;</span> GREEN = Recordkeeping &nbsp;|&nbsp;
+  <span style="color:var(--teal)">&#9632;</span> TEAL = Security &nbsp;|&nbsp;
+  <span style="color:var(--infra)">&#9632;</span> DARK GREEN = Infrastructure / Shared Lib
+  <br style="margin-top:8px">
+  <span style="color:#aaa">&copy; 2026 Mark Murray &middot; All Rights Reserved &nbsp;|&nbsp; Release 1.0 &nbsp;|&nbsp; March 2026</span>
+</div>
+
+</body>
+</html>
