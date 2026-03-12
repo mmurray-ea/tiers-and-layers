@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiers &amp; Layers - Component Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:       #0f0f18;
+  --ink-soft:  #3a3a4a;
+  --paper:     #f7f6f2;
+  --rule:      #e2dfd8;
+  --rule-soft: #eeece8;
+  --white:     #ffffff;
+
+  --pres:   #b07d1a;
+  --pres-bg:#fdf6e3;
+  --pres-bd:#e8c96a;
+
+  --prod:   #1a5c8c;
+  --prod-bg:#e8f0f8;
+  --prod-bd:#7aafd4;
+
+  --ai:     #a83228;
+  --ai-bg:  #faeceb;
+  --ai-bd:  #e08880;
+
+  --svc:    #2a6b8c;
+  --svc-bg: #e6f2f6;
+  --svc-bd: #7abfd4;
+
+  --rk:     #2a6b3a;
+  --rk-bg:  #e8f4ec;
+  --rk-bd:  #7abf8a;
+
+  --infra:  #4a3a7a;
+  --infra-bg:#f0ecf8;
+  --infra-bd:#a898d4;
+
+  --sidebar-w: 220px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  font-size:13px;
+  line-height:1.6;
+  display:flex;
+  min-height:100vh;
+}
+
+/* -- SIDEBAR -- */
+.sidebar{
+  width:var(--sidebar-w);
+  min-width:var(--sidebar-w);
+  background:var(--ink);
+  color:rgba(255,255,255,0.7);
+  padding:0;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  flex-shrink:0;
+}
+.sidebar-brand{
+  padding:24px 20px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.sidebar-brand-title{
+  font-family:'DM Serif Display',serif;
+  font-size:16px;
+  color:var(--white);
+  line-height:1.2;
+  margin-bottom:4px;
+}
+.sidebar-brand-sub{
+  font-family:'DM Mono',monospace;
+  font-size:8px;
+  letter-spacing:2px;
+  color:rgba(255,255,255,0.35);
+  text-transform:uppercase;
+}
+.sidebar-section-label{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:3px;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.25);
+  padding:16px 20px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 20px;
+  cursor:pointer;
+  transition:background 0.15s;
+  text-decoration:none;
+  color:rgba(255,255,255,0.6);
+  font-size:12px;
+  font-weight:500;
+  border-left:3px solid transparent;
+}
+.nav-item:hover{
+  background:rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.9);
+}
+.nav-item.active{
+  color:var(--white);
+  border-left-color:currentColor;
+  background:rgba(255,255,255,0.07);
+}
+.nav-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.nav-count{
+  margin-left:auto;
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  color:rgba(255,255,255,0.25);
+}
+.sidebar-filter-label{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:3px;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.25);
+  padding:16px 20px 6px;
+  border-top:1px solid rgba(255,255,255,0.06);
+  margin-top:8px;
+}
+.filter-btn{
+  display:block;width:100%;
+  padding:7px 20px;
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:500;
+  color:rgba(255,255,255,0.5);
+  background:none;border:none;cursor:pointer;
+  text-align:left;
+  transition:color 0.15s;
+}
+.filter-btn:hover,.filter-btn.on{color:rgba(255,255,255,0.9);}
+.filter-btn.on{color:#e8c96a;}
+
+/* -- MAIN -- */
+.main{flex:1;padding:36px 40px 60px;max-width:960px;}
+
+/* -- PAGE HEADER -- */
+.page-header{margin-bottom:36px;}
+.page-eyebrow{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:4px;
+  color:#aaa;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.page-title{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(28px,4vw,42px);
+  line-height:1.1;
+  color:var(--ink);
+  margin-bottom:10px;
+}
+.page-title em{
+  font-style:italic;
+  color:var(--ai);
+}
+.page-desc{
+  font-size:13px;color:var(--ink-soft);
+  max-width:680px;line-height:1.65;
+  border-left:3px solid var(--rule);
+  padding-left:14px;
+}
+
+/* -- SEARCH -- */
+.search-wrap{
+  margin-bottom:28px;
+  position:relative;
+}
+.search-input{
+  width:100%;
+  padding:10px 16px 10px 40px;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  border:1px solid var(--rule);
+  border-radius:6px;
+  background:var(--white);
+  color:var(--ink);
+  outline:none;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.search-input:focus{
+  border-color:#aaa;
+  box-shadow:0 0 0 3px rgba(0,0,0,0.05);
+}
+.search-icon{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:#bbb;font-size:14px;pointer-events:none;
+}
+.result-count{
+  font-family:'DM Mono',monospace;
+  font-size:10px;color:#aaa;
+  margin-top:6px;letter-spacing:1px;
+}
+
+/* -- SECTION -- */
+.section{margin-bottom:44px;}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:14px;
+  padding-bottom:10px;
+  border-bottom:2px solid var(--ink);
+}
+.section-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.section-title{
+  font-family:'DM Serif Display',serif;
+  font-size:20px;
+  color:var(--ink);
+}
+.section-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:2px;
+  color:#aaa;text-transform:uppercase;
+  margin-left:auto;
+}
+.section-intro{
+  font-size:12px;color:var(--ink-soft);
+  margin-bottom:16px;
+  max-width:760px;
+  line-height:1.6;
+}
+.section-tag{
+  display:inline-block;
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;
+  padding:2px 8px;border-radius:3px;
+  margin-bottom:12px;
+  font-weight:500;
+}
+
+/* -- COMPONENT GRID -- */
+.component-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:10px;
+}
+.component-card{
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:6px;
+  padding:14px 16px;
+  border-top:3px solid;
+  transition:box-shadow 0.15s,transform 0.1s;
+  position:relative;
+}
+.component-card:hover{
+  box-shadow:0 4px 16px rgba(0,0,0,0.08);
+  transform:translateY(-1px);
+}
+.cc-new-badge{
+  position:absolute;top:10px;right:10px;
+  font-family:'DM Mono',monospace;
+  font-size:7px;letter-spacing:1px;
+  background:var(--ai);color:#fff;
+  padding:2px 5px;border-radius:2px;
+  font-weight:500;
+}
+.cc-name{
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;font-size:12px;
+  margin-bottom:6px;
+  padding-right:36px;
+  line-height:1.3;
+}
+.cc-what,.cc-does,.cc-why{
+  font-size:11.5px;line-height:1.5;
+  color:#444;
+  margin-bottom:4px;
+  display:flex;gap:6px;
+}
+.cc-what:last-child,.cc-does:last-child,.cc-why:last-child{margin-bottom:0;}
+.cc-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;
+  font-weight:500;
+  flex-shrink:0;
+  margin-top:1px;
+  min-width:32px;
+}
+
+/* tier color themes for cards */
+.tier-pres  .component-card{border-top-color:var(--pres);}
+.tier-pres  .cc-label{color:var(--pres);}
+.tier-prod  .component-card{border-top-color:var(--prod);}
+.tier-prod  .cc-label{color:var(--prod);}
+.tier-ai    .component-card{border-top-color:var(--ai);}
+.tier-ai    .cc-label{color:var(--ai);}
+.tier-svc   .component-card{border-top-color:var(--svc);}
+.tier-svc   .cc-label{color:var(--svc);}
+.tier-rk    .component-card{border-top-color:var(--rk);}
+.tier-rk    .cc-label{color:var(--rk);}
+.tier-infra .component-card{border-top-color:var(--infra);}
+.tier-infra .cc-label{color:var(--infra);}
+
+/* section tag colors */
+.tag-pres  {background:var(--pres-bg);color:var(--pres);border:1px solid var(--pres-bd);}
+.tag-prod  {background:var(--prod-bg);color:var(--prod);border:1px solid var(--prod-bd);}
+.tag-ai    {background:var(--ai-bg);  color:var(--ai);  border:1px solid var(--ai-bd);}
+.tag-svc   {background:var(--svc-bg); color:var(--svc); border:1px solid var(--svc-bd);}
+.tag-rk    {background:var(--rk-bg);  color:var(--rk);  border:1px solid var(--rk-bd);}
+.tag-infra {background:var(--infra-bg);color:var(--infra);border:1px solid var(--infra-bd);}
+
+/* -- HIDDEN STATE -- */
+.component-card.hidden{display:none;}
+.section.all-hidden{display:none;}
+
+/* -- FOOTER -- */
+.page-footer{
+  border-top:2px solid var(--ink);
+  padding-top:16px;
+  margin-top:40px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:8px;
+}
+.pf-left,.pf-right{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:2px;
+  color:#aaa;text-transform:uppercase;
+}
+
+/* -- ANIMATIONS -- */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(12px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.section{animation:fadeUp 0.4s ease both;}
+.section:nth-child(1){animation-delay:0.05s;}
+.section:nth-child(2){animation-delay:0.10s;}
+.section:nth-child(3){animation-delay:0.15s;}
+.section:nth-child(4){animation-delay:0.20s;}
+.section:nth-child(5){animation-delay:0.25s;}
+.section:nth-child(6){animation-delay:0.30s;}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-title">Tiers &amp; Layers<br>Component Reference</div>
+    <div class="sidebar-brand-sub">ea-frameworks.com</div>
+  </div>
+
+  <div class="sidebar-section-label">Jump to Tier</div>
+  <a class="nav-item active" href="#pres">
+    <div class="nav-dot" style="background:var(--pres)"></div>
+    Presentation
+    <span class="nav-count">6</span>
+  </a>
+  <a class="nav-item" href="#prod">
+    <div class="nav-dot" style="background:var(--prod)"></div>
+    Product
+    <span class="nav-count">9</span>
+  </a>
+  <a class="nav-item" href="#ai">
+    <div class="nav-dot" style="background:var(--ai)"></div>
+    AI / Intelligence
+    <span class="nav-count">10</span>
+  </a>
+  <a class="nav-item" href="#svc">
+    <div class="nav-dot" style="background:var(--svc)"></div>
+    Service
+    <span class="nav-count">7</span>
+  </a>
+  <a class="nav-item" href="#rk">
+    <div class="nav-dot" style="background:var(--rk)"></div>
+    Recordkeeping
+    <span class="nav-count">10</span>
+  </a>
+  <a class="nav-item" href="#infra">
+    <div class="nav-dot" style="background:var(--infra)"></div>
+    Infrastructure
+    <span class="nav-count">10</span>
+  </a>
+
+  <div class="sidebar-filter-label">Filter</div>
+  <button class="filter-btn on" onclick="filterAll(this)">Show All Components</button>
+  <button class="filter-btn" onclick="filterNew(this)">AI-Era New Only</button>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <div class="page-header">
+    <div class="page-eyebrow">Enterprise Architecture &middot; Reference Model</div>
+    <h1 class="page-title">Component <em>Reference</em></h1>
+    <p class="page-desc">Every component in the Tiers &amp; Layers Responsibilities Model explained: what it is, what it does, and why it is needed. Components are grouped by tier. AI-era additions are marked <strong>NEW</strong>.</p>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">&#9679;</span>
+    <input class="search-input" type="text" placeholder="Search components..." oninput="searchComponents(this.value)" id="searchInput">
+    <div class="result-count" id="resultCount"></div>
+  </div>
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- PRESENTATION TIER              -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <section class="section tier-pres" id="pres">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--pres)"></div>
+      <div class="section-title">Presentation Tier</div>
+      <div class="section-label">Consumer Side</div>
+    </div>
+    <p class="section-intro">The outermost tier responsible for rendering the user interface across all devices and channels. It has no business logic and no data ownership &mdash; it presents and displays only.</p>
+    <div class="section-tag tag-pres">Device &middot; Channel &middot; UX Rendering</div>
+    <div class="component-grid">
+
+      <div class="component-card">
+        <div class="cc-name">Device-Specific Rendering</div>
+        <div class="cc-what"><span class="cc-label">What</span>Adapts the UI layout and behavior for the device type in use (desktop, tablet, mobile, kiosk).</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Applies responsive breakpoints, touch vs. mouse interaction models, and device-appropriate component sizing.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Ensures a consistent, accessible experience regardless of how or where the user accesses the application.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Globalization / Localization</div>
+        <div class="cc-what"><span class="cc-label">What</span>Displays text, dates, currencies, and formats according to the user's locale and language preference.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Loads locale-specific resource bundles and formats all UI strings and values accordingly.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Required for applications serving international users; ensures regulatory and cultural compliance.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Accessibility (A11y)</div>
+        <div class="cc-what"><span class="cc-label">What</span>Ensures the UI meets accessibility standards (WCAG) for users with disabilities.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Provides screen reader support, keyboard navigation, sufficient color contrast, and ARIA attributes.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Legal requirement in most jurisdictions and a quality indicator for all users.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Conversational / Chat UI</div>
+        <div class="cc-what"><span class="cc-label">What</span>A chat-style interface component that renders natural language exchanges between user and AI.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Displays threaded messages, typing indicators, and markdown-formatted AI responses in a conversational layout.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>The primary interface pattern for LLM-backed features; distinct rendering requirements from traditional form-based UIs.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Copilot &amp; AI Widget Rendering</div>
+        <div class="cc-what"><span class="cc-label">What</span>Embeds AI-powered inline assistants, suggestions, and action panels within existing screens.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Renders contextual AI overlays, sidebars, and inline suggestion components alongside core application content.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Enables AI capabilities to augment existing workflows without requiring users to switch to a separate AI interface.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI-Generated Content Display</div>
+        <div class="cc-what"><span class="cc-label">What</span>Renders content that was produced by an AI model, formatted appropriately for the screen context.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Handles streaming text rendering, structured AI output (tables, lists, code blocks), and content provenance indicators.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI output has unique rendering needs (streaming, markdown, disclaimers) that differ from static application data.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- PRODUCT TIER                    -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <section class="section tier-prod" id="prod">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--prod)"></div>
+      <div class="section-title">Product Tier</div>
+      <div class="section-label">Consumer Side</div>
+    </div>
+    <p class="section-intro">Manages user interaction, authentication, coarse-grained authorization, and user activity logging. The boundary between what the user sees and what the back end produces.</p>
+    <div class="section-tag tag-prod">Interaction &middot; Auth &middot; Coarse AuthZ &middot; UI Logging</div>
+    <div class="component-grid">
+
+      <div class="component-card">
+        <div class="cc-name">User Authentication</div>
+        <div class="cc-what"><span class="cc-label">What</span>Verifies the identity of the user attempting to access the application.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Handles login flows, MFA, SSO integration, and session token issuance.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>The first security gate; establishing identity is the prerequisite for all downstream authorization decisions.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Coarse-Grained Authorization</div>
+        <div class="cc-what"><span class="cc-label">What</span>Determines whether the authenticated user is permitted to access a product or feature at a high level.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Enforces role-based access at the product/feature level (e.g., "can this user access the trading module at all?").</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Prevents unauthorized users from reaching the Service and Recordkeeping tiers; reduces back-end load from unauthorized requests.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Session Establishment</div>
+        <div class="cc-what"><span class="cc-label">What</span>Creates and manages the authenticated session after successful login.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Issues session tokens, manages token refresh and expiry, and maintains session state.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Enables stateful interaction without re-authenticating on every request; session security is foundational to application security.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">User Activity Logging</div>
+        <div class="cc-what"><span class="cc-label">What</span>Records what the user did in the UI: clicks, navigation, feature interactions.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Emits interaction events to the logging infrastructure for analytics, UX research, and security review.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Separated from transaction logging by design; user behavior data has different retention, access, and compliance requirements.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Consumer-Facing Dashboards</div>
+        <div class="cc-what"><span class="cc-label">What</span>Displays summarized data and reports to the end user within the product experience.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Renders data retrieved from the Recordkeeping and Reporting tiers in user-facing charts, tables, and summaries.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Users need at-a-glance views of their data; this presentation logic belongs in the Product Tier, not embedded in back-end services.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI Session Identity &amp; Trust Token</div>
+        <div class="cc-what"><span class="cc-label">What</span>Extends the user session to include identity context for AI model requests.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Attaches user identity and permission scope to AI inference requests so the AI Tier can enforce appropriate access.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI requests must carry verified identity to prevent prompt injection attacks that attempt to impersonate other users or elevate privileges.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Copilot Access Control (Coarse)</div>
+        <div class="cc-what"><span class="cc-label">What</span>Determines whether the user is permitted to use AI / copilot features at all.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Checks role and entitlement before exposing AI-powered UI components; hides or disables them for unauthorized users.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI features may have licensing, compliance, or risk considerations that limit their availability to specific user segments.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI Copilot Interaction Logging</div>
+        <div class="cc-what"><span class="cc-label">What</span>Records the user's AI interactions: prompts submitted, responses received, feedback given.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Captures copilot usage events in the user activity log for analytics, compliance review, and UX improvement.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI interaction data requires its own logging category for model performance analysis, abuse detection, and regulatory review.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI-Generated Consumer Insights</div>
+        <div class="cc-what"><span class="cc-label">What</span>Displays AI-produced summaries, recommendations, and insights within the user's dashboard.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Renders personalized AI-generated content (e.g., "Based on your portfolio, consider...") alongside traditional data views.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI-generated insights must be rendered distinctly from authoritative data; users need to distinguish AI-produced content from system-of-record data.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- AI / INTELLIGENCE TIER         -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <section class="section tier-ai" id="ai">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--ai)"></div>
+      <div class="section-title">AI / Intelligence Tier</div>
+      <div class="section-label">Producer Side &mdash; New</div>
+    </div>
+    <p class="section-intro">An entirely new Producer-side tier introduced for the AI era. Positioned between the Product Tier and the Service Tier, it receives requests from Product, produces results via inference and orchestration, and calls downstream services. It does not own business logic or data.</p>
+    <div class="section-tag tag-ai">Models &middot; Agents &middot; Inference &middot; RAG &middot; All New</div>
+    <div class="component-grid">
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">LLM / Foundation Model Serving</div>
+        <div class="cc-what"><span class="cc-label">What</span>Hosts and exposes large language models or foundation models for application consumption.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Manages model loading, GPU allocation, request queuing, and response delivery for inference requests.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Centralizing model serving prevents each application team from independently managing expensive model infrastructure.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Inference Engine</div>
+        <div class="cc-what"><span class="cc-label">What</span>The runtime that executes model predictions and generates outputs from inputs.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Handles batching, latency optimization, hardware acceleration (GPU/TPU), and response streaming.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Efficient inference is critical for acceptable latency and cost; a dedicated engine enables tuning that application code cannot achieve.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">RAG Pipeline</div>
+        <div class="cc-what"><span class="cc-label">What</span>Retrieval-Augmented Generation: retrieves relevant documents from a knowledge base and injects them into the model prompt.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Converts queries to embeddings, searches the Vector DB for relevant content, and constructs enriched prompts for the LLM.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Enables LLMs to answer questions grounded in proprietary or current data without requiring expensive model retraining.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Agent Orchestration</div>
+        <div class="cc-what"><span class="cc-label">What</span>Manages multi-step AI workflows where a model autonomously plans and executes sequences of actions.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Coordinates tool calls, memory retrieval, decision branching, and result synthesis across multiple model invocations.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Complex tasks (research, analysis, automation) require coordinated AI actions that go beyond a single prompt-response cycle.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Prompt Mgmt &amp; Versioning</div>
+        <div class="cc-what"><span class="cc-label">What</span>Manages the library of prompt templates used by applications to communicate with LLMs.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Stores, versions, and serves prompt templates; tracks which prompt version was used for each inference for auditability.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Unmanaged prompts become a source of inconsistency and risk; versioning enables controlled changes and rollback.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Fine-Tuning Pipeline</div>
+        <div class="cc-what"><span class="cc-label">What</span>Adapts a pre-trained foundation model on domain-specific data to improve its performance for specialized tasks.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Orchestrates training data preparation, model training runs, evaluation, and promotion to the model registry.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>General-purpose models often underperform on specialized domains; fine-tuning improves accuracy without building models from scratch.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Model Registry</div>
+        <div class="cc-what"><span class="cc-label">What</span>A versioned catalog of all trained and approved models available for deployment.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Stores model artifacts, metadata, performance metrics, and approval status; governs which model versions are in production.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Without a registry, model versions are untracked, rollbacks are risky, and governance is impossible.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Model-Level Access Control</div>
+        <div class="cc-what"><span class="cc-label">What</span>Enforces which users, roles, or services are permitted to invoke specific models or model capabilities.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Validates the identity token from the Product Tier and applies model-level entitlement rules before serving inference.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Different models carry different risk and cost profiles; access must be controlled to prevent misuse and cost overruns.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Prompt Injection Detection</div>
+        <div class="cc-what"><span class="cc-label">What</span>Detects and blocks malicious inputs designed to manipulate the AI model into ignoring its instructions.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Scans incoming prompts for injection patterns, jailbreak attempts, and indirect injection from retrieved content.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Prompt injection is a primary AI security threat; undetected attacks can cause data leakage, privilege escalation, or harmful outputs.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Output Filtering / Guardrails</div>
+        <div class="cc-what"><span class="cc-label">What</span>Reviews model outputs before delivery to detect harmful, biased, or policy-violating content.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Applies content classifiers, toxicity filters, and business policy rules to all model responses before they reach the Product Tier.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>LLMs can produce unexpected outputs; guardrails are the last line of defense before AI content reaches users.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- SERVICE TIER                    -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <section class="section tier-svc" id="svc">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--svc)"></div>
+      <div class="section-title">Service Tier</div>
+      <div class="section-label">Producer Side</div>
+    </div>
+    <p class="section-intro">The integration and routing tier. Routes requests to Recordkeeping, translates protocols, and provides reliable messaging. It does not own business logic &mdash; it moves and transforms, it does not decide.</p>
+    <div class="section-tag tag-svc">Integration &middot; Routing &middot; Protocol</div>
+    <div class="component-grid">
+
+      <div class="component-card">
+        <div class="cc-name">Service Access</div>
+        <div class="cc-what"><span class="cc-label">What</span>The entry point through which consumer-side tiers invoke back-end capabilities.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Exposes service contracts (APIs), enforces service boundaries, and routes calls to the appropriate Recordkeeping service.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>A defined service access layer prevents consumer tiers from calling Recordkeeping directly, maintaining the separation of concerns.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Protocol Translation</div>
+        <div class="cc-what"><span class="cc-label">What</span>Converts between different communication protocols (REST, SOAP, MQ, gRPC, FTP) at the integration layer.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Transforms message formats and transport protocols so that consumer tiers and Recordkeeping systems can communicate regardless of their native protocols.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Enterprise systems rarely speak the same protocol; translation here prevents format coupling between tiers.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Reliable Messaging / File Transfer</div>
+        <div class="cc-what"><span class="cc-label">What</span>Provides guaranteed, ordered delivery of messages and files between systems.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Uses message queues (MQ, Kafka) and managed file transfer to ensure no message is lost even if downstream systems are temporarily unavailable.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Critical for transactional integrity; without reliable messaging, network failures cause data loss or double-processing.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Token / Credential Forwarding</div>
+        <div class="cc-what"><span class="cc-label">What</span>Passes the authenticated user's identity token downstream to the Recordkeeping Tier.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Propagates identity context through service calls so fine-grained authorization can be enforced at the data layer.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>The Recordkeeping Tier needs to know who is making the request to enforce row/field-level access; the Service Tier must not strip this context.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI API Gateway</div>
+        <div class="cc-what"><span class="cc-label">What</span>A specialized gateway managing traffic to and from external AI model providers and internal AI services.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Handles rate limiting, cost management, failover between model providers, and request logging for all AI API traffic.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI API calls are expensive and latency-sensitive; a dedicated gateway provides cost control, resilience, and observability that general API gateways lack.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Event Streaming</div>
+        <div class="cc-what"><span class="cc-label">What</span>Real-time event distribution infrastructure (Kafka, Kinesis) enabling streaming data flows between tiers.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Publishes and subscribes to event streams, enabling real-time data ingestion, AI model triggers, and event-driven architectures.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI and ML workloads often require real-time data; batch-oriented integration patterns are insufficient for streaming inference and feature computation.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Model Endpoint Routing</div>
+        <div class="cc-what"><span class="cc-label">What</span>Routes inference requests to the appropriate model endpoint based on request type, user context, or load.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Performs intelligent routing between model versions, A/B test groups, and regional model deployments.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Multiple model versions and deployment targets require dynamic routing to support canary releases and traffic splitting without application code changes.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- RECORDKEEPING TIER              -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <section class="section tier-rk" id="rk">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--rk)"></div>
+      <div class="section-title">Recordkeeping Tier</div>
+      <div class="section-label">Producer Side &mdash; System of Record</div>
+    </div>
+    <p class="section-intro">The authoritative tier. Owns all business logic, all systems of record, fine-grained data authorization, and transaction audit logging. Nothing in this tier is duplicated in any other tier.</p>
+    <div class="section-tag tag-rk">SoR &middot; Business Logic &middot; Fine-Grained AuthZ &middot; Txn Logging</div>
+    <div class="component-grid">
+
+      <div class="component-card">
+        <div class="cc-name">Transaction Processing</div>
+        <div class="cc-what"><span class="cc-label">What</span>Executes business transactions: the core operations that change the state of authoritative data.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Applies business rules, validates inputs against domain logic, and commits or rolls back state changes atomically.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Business logic must be centralized here to ensure consistent rule enforcement regardless of which product or channel initiated the transaction.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Data Integrity Enforcement</div>
+        <div class="cc-what"><span class="cc-label">What</span>Ensures all data written to the system of record meets defined business and referential integrity rules.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Validates constraints, enforces referential integrity, and rejects any data that violates the canonical data model.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Data integrity must be enforced at the point of record, not in calling systems, to guarantee the SoR is always consistent.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Fine-Grained Authorization</div>
+        <div class="cc-what"><span class="cc-label">What</span>Enforces data-level access control: which specific rows, fields, or records the authenticated user may read or write.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Evaluates the user's identity token against data-level entitlement rules before returning or modifying any record.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Coarse-grained feature access in the Product Tier is insufficient for data privacy; record-level control must be enforced at the data source.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Transaction Audit Logging</div>
+        <div class="cc-what"><span class="cc-label">What</span>Creates an immutable record of every data change: what changed, when, by whom, and from which system.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Writes audit entries for every create, update, and delete operation against the system of record.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Required for regulatory compliance, fraud investigation, and operational incident resolution; must be at the data layer to be authoritative.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Reporting &amp; Analytics</div>
+        <div class="cc-what"><span class="cc-label">What</span>Provides structured access to authoritative data for reporting and analytical consumption.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Exposes read-optimized views of SoR data via data warehouses, data marts, and reporting APIs.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Reports must be derived from the authoritative data source to be trustworthy; ad-hoc reporting against consumer-tier data produces unreliable results.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Feature Store</div>
+        <div class="cc-what"><span class="cc-label">What</span>A centralized repository of pre-computed ML features: the system of record for machine learning input data.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Stores, versions, and serves feature vectors for both model training and real-time inference; ensures training-serving consistency.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Without a feature store, teams independently recompute the same features inconsistently, causing training/serving skew and duplicated effort.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Vector Database</div>
+        <div class="cc-what"><span class="cc-label">What</span>A specialized database that stores and retrieves high-dimensional vector embeddings by semantic similarity.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Indexes document and data embeddings; performs approximate nearest-neighbor search for RAG and semantic retrieval use cases.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Traditional databases cannot perform semantic search; a vector DB is the authoritative store for the AI tier's retrieval knowledge base.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Data Lakehouse</div>
+        <div class="cc-what"><span class="cc-label">What</span>A modern data architecture combining the scale of a data lake with the governance of a data warehouse.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Stores structured and unstructured data at scale with ACID transaction support, schema enforcement, and direct ML training access.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI workloads require access to large, diverse datasets that traditional data warehouses cannot efficiently serve; the Lakehouse is the AI-era SoR for analytical and training data.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI-Driven Transaction Audit</div>
+        <div class="cc-what"><span class="cc-label">What</span>Extends transaction audit logging to capture AI-influenced data changes and the model decisions that drove them.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Records which model, which prompt version, and which inference result contributed to a data change for full explainability.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Regulatory explainability requirements (e.g., GDPR right-to-explanation) demand that AI-driven decisions be traceable back to their model and data inputs.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI Model Output Data AuthZ</div>
+        <div class="cc-what"><span class="cc-label">What</span>Enforces data-level authorization on records that AI models retrieve or reference during inference.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Validates that AI-generated responses do not surface data the requesting user is not entitled to see, even if retrieved by the RAG pipeline.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>RAG pipelines can inadvertently retrieve and expose sensitive records; data authorization must be enforced at the Recordkeeping level for all access, including AI-driven access.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <!-- INFRASTRUCTURE LAYER           -->
+  <!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+  <section class="section tier-infra" id="infra">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--infra)"></div>
+      <div class="section-title">Infrastructure Layer</div>
+      <div class="section-label">Shared Across All Tiers</div>
+    </div>
+    <p class="section-intro">Domain-agnostic shared libraries and platform services consumed uniformly by every tier's applications via the JIL (Java I-Layer) pattern. No business logic belongs here. These are technical utilities &mdash; the plumbing every tier relies on.</p>
+    <div class="section-tag tag-infra">Shared Libraries &middot; JIL Pattern &middot; Cross-Tier</div>
+    <div class="component-grid">
+
+      <div class="component-card">
+        <div class="cc-name">Common Logging Libraries</div>
+        <div class="cc-what"><span class="cc-label">What</span>Shared logging framework used by every tier to emit structured log events.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Provides a consistent logging API, log format, and routing to the central logging infrastructure regardless of which tier emits the event.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Inconsistent logging formats across tiers make log aggregation, searching, and alerting unreliable; a shared library enforces consistency.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Shared Security / Encryption Libs</div>
+        <div class="cc-what"><span class="cc-label">What</span>Common cryptographic utilities used by all tiers for data encryption, token signing, and secure communication.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Provides vetted, up-to-date implementations of encryption algorithms, key management interfaces, and TLS configuration.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Security vulnerabilities in cryptographic code are catastrophic; all tiers must use the same reviewed library rather than independent implementations.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Configuration Service Client</div>
+        <div class="cc-what"><span class="cc-label">What</span>Shared client library for reading application configuration from a central configuration service.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Abstracts configuration retrieval (feature flags, connection strings, environment settings) behind a uniform API used by all tiers.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Centralizing configuration management prevents environment-specific values from being hardcoded; enables runtime configuration changes without redeployment.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Service Client Stubs</div>
+        <div class="cc-what"><span class="cc-label">What</span>Pre-built client libraries that each tier uses to call shared back-end services consistently.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Encapsulates service endpoints, retry logic, circuit breakers, and serialization so consuming tiers don't implement these independently.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Avoids duplicated integration code across tiers; when a service changes, only the stub needs updating.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Container Orchestration (Kubernetes)</div>
+        <div class="cc-what"><span class="cc-label">What</span>The platform that schedules, scales, and manages containerized application workloads across all tiers.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Automates deployment, scaling, self-healing, and service discovery for all tier applications running as containers.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Modern distributed applications require automated lifecycle management; Kubernetes provides the operational foundation for all tier deployments.</div>
+      </div>
+
+      <div class="component-card">
+        <div class="cc-name">Service Mesh (Istio)</div>
+        <div class="cc-what"><span class="cc-label">What</span>Infrastructure layer that manages secure service-to-service communication, observability, and traffic control.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Provides mutual TLS between services, traffic shaping, distributed tracing, and load balancing without application code changes.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Security and observability concerns for inter-service communication should not be embedded in application code; the mesh handles them uniformly.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">MLOps / CI-CD Shared Pipeline</div>
+        <div class="cc-what"><span class="cc-label">What</span>A shared continuous integration and delivery pipeline adapted for ML model development and deployment.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Automates model training, testing, evaluation, approval gates, and deployment to the model registry and serving infrastructure.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Without a shared MLOps pipeline, every team builds its own, creating inconsistent quality gates and governance gaps for AI models entering production.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI Observability Libraries</div>
+        <div class="cc-what"><span class="cc-label">What</span>Shared instrumentation libraries that emit AI-specific telemetry: token usage, latency, model version, and quality signals.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Instruments model calls across all tiers to produce consistent AI performance metrics, cost tracking, and anomaly signals.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Standard observability tools don't capture AI-specific signals; a shared library ensures all teams emit comparable, aggregatable AI telemetry.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">AI Ethics &amp; Bias Evaluation Framework</div>
+        <div class="cc-what"><span class="cc-label">What</span>A shared toolkit for evaluating AI models and outputs for bias, fairness, and ethical compliance.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Provides standard bias metrics, fairness tests, and demographic parity checks that any team can run against their models as part of the MLOps pipeline.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>Ethics and bias evaluation must be systematic and consistent across all AI initiatives; a shared framework prevents each team from defining its own (or skipping it).</div>
+      </div>
+
+      <div class="component-card">
+        <span class="cc-new-badge">NEW</span>
+        <div class="cc-name">Model Governance Policy Engine</div>
+        <div class="cc-what"><span class="cc-label">What</span>Enforces enterprise policies governing which models can be deployed, to which environments, under what conditions.</div>
+        <div class="cc-does"><span class="cc-label">Does</span>Evaluates models against a policy ruleset (risk classification, explainability requirements, performance thresholds) before permitting promotion to production.</div>
+        <div class="cc-why"><span class="cc-label">Why</span>AI models carry unique operational and regulatory risks; governance enforcement at the infrastructure layer prevents non-compliant models from reaching production.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <div class="pf-left">Tiers &amp; Layers &mdash; Component Reference &middot; ea-frameworks.com</div>
+    <div class="pf-right">&copy; 2026 Mark Murray &middot; All Rights Reserved &middot; Release 1.0 &middot; March 2026</div>
+  </div>
+
+</main>
+
+<script>
+// Sidebar active state on scroll
+const sections = document.querySelectorAll('.section');
+const navItems = document.querySelectorAll('.nav-item');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 80) current = s.id;
+  });
+  navItems.forEach(n => {
+    n.classList.toggle('active', n.getAttribute('href') === '#' + current);
+  });
+});
+
+// Search
+function searchComponents(q) {
+  q = q.toLowerCase().trim();
+  let visible = 0;
+  document.querySelectorAll('.component-card').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const match = !q || text.includes(q);
+    card.classList.toggle('hidden', !match);
+    if (match) visible++;
+  });
+  document.querySelectorAll('.section').forEach(sec => {
+    const anyVisible = [...sec.querySelectorAll('.component-card')].some(c => !c.classList.contains('hidden'));
+    sec.classList.toggle('all-hidden', !anyVisible);
+  });
+  const rc = document.getElementById('resultCount');
+  rc.textContent = q ? visible + ' component' + (visible !== 1 ? 's' : '') + ' matching "' + q + '"' : '';
+}
+
+// Filter buttons
+function filterAll(btn) {
+  document.querySelectorAll('.component-card').forEach(c => c.classList.remove('hidden'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('all-hidden'));
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('searchInput').value = '';
+  document.getElementById('resultCount').textContent = '';
+}
+
+function filterNew(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.component-card').forEach(c => {
+    const isNew = c.querySelector('.cc-new-badge');
+    c.classList.toggle('hidden', !isNew);
+  });
+  document.querySelectorAll('.section').forEach(sec => {
+    const anyVisible = [...sec.querySelectorAll('.component-card')].some(c => !c.classList.contains('hidden'));
+    sec.classList.toggle('all-hidden', !anyVisible);
+  });
+  const total = document.querySelectorAll('.cc-new-badge').length;
+  document.getElementById('resultCount').textContent = total + ' AI-era new components';
+  document.getElementById('searchInput').value = '';
+}
+</script>
+
+</body>
+</html>
