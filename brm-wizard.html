@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRM Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal:   #0F6E56; --teal-l: #E1F5EE; --teal-m: #1D9E75;
+    --blue:   #185FA5; --blue-l: #E6F1FB; --blue-m: #378ADD;
+    --amber:  #854F0B; --amber-l: #FAEEDA; --amber-m: #BA7517;
+    --green:  #3B6D11; --green-l: #EAF3DE; --green-m: #639922;
+    --purple: #534AB7; --purple-l: #EEEDFE; --purple-m: #7F77DD;
+    --coral:  #993C1D; --coral-l: #FAECE7; --coral-m: #D85A30;
+    --gray:   #444441; --gray-l: #F1EFE8; --gray-m: #888780;
+    --ink: #1a1917;
+    --paper: #faf9f6;
+    --card: #ffffff;
+    --border: #e2e0d8;
+    --muted: #6b6960;
+    --radius: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: white;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-logo {
+    width: 32px; height: 32px; background: var(--teal-m);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif; font-size: 18px; color: white;
+  }
+  .header-title { font-family: 'DM Serif Display', serif; font-size: 18px; letter-spacing: -0.3px; }
+  .header-sub { font-size: 12px; opacity: 0.55; margin-top: 1px; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap { background: #2a2927; height: 3px; }
+  .progress-bar {
+    height: 3px; background: var(--teal-m);
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* ── STEP INDICATOR ── */
+  .step-indicator {
+    display: flex; gap: 6px; align-items: center;
+    padding: 16px 32px 0;
+    flex-wrap: wrap;
+  }
+  .step-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+    border: 1.5px solid var(--border);
+    color: var(--muted); background: white;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .step-dot.active { background: var(--ink); color: white; border-color: var(--ink); }
+  .step-dot.done { background: var(--teal-l); color: var(--teal); border-color: var(--teal-m); }
+  .step-connector { width: 20px; height: 1px; background: var(--border); }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; padding: 32px; max-width: 760px; margin: 0 auto; width: 100%; }
+
+  /* ── SCREEN ── */
+  .screen { display: none; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .screen-step { font-size: 11px; font-weight: 600; color: var(--teal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .screen-q {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px; line-height: 1.3;
+    color: var(--ink); margin-bottom: 8px;
+  }
+  .screen-hint { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+
+  /* ── CHIP SELECTOR ── */
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .chip {
+    padding: 8px 14px; border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: 13px; font-weight: 400; color: var(--ink);
+    background: white; cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--gray-m); background: var(--gray-l); }
+  .chip.selected { border-color: currentColor; font-weight: 500; }
+  .chip.selected.teal  { color: var(--teal);   background: var(--teal-l);   border-color: var(--teal-m); }
+  .chip.selected.blue  { color: var(--blue);   background: var(--blue-l);   border-color: var(--blue-m); }
+  .chip.selected.amber { color: var(--amber);  background: var(--amber-l);  border-color: var(--amber-m); }
+  .chip.selected.green { color: var(--green);  background: var(--green-l);  border-color: var(--green-m); }
+  .chip.selected.purple{ color: var(--purple); background: var(--purple-l); border-color: var(--purple-m); }
+
+  /* ── ADD CUSTOM ── */
+  .add-custom { display: flex; gap: 8px; margin-bottom: 8px; }
+  .add-custom input {
+    flex: 1; padding: 9px 14px; border-radius: 8px;
+    border: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; outline: none; background: white;
+    transition: border-color 0.15s;
+  }
+  .add-custom input:focus { border-color: var(--teal-m); }
+  .add-custom input::placeholder { color: var(--muted); }
+  .btn-add {
+    padding: 9px 16px; border-radius: 8px;
+    background: var(--ink); color: white; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-add:hover { opacity: 0.85; }
+
+  /* ── SKIP NOTE ── */
+  .skip-note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* ── NAV BUTTONS ── */
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .btn-back {
+    padding: 10px 20px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: white;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .btn-back:hover { border-color: var(--gray-m); color: var(--ink); }
+  .btn-next {
+    padding: 11px 28px; border-radius: 8px;
+    background: var(--ink); color: white; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-next:hover { background: #2e2d2b; }
+  .btn-next.build { background: var(--teal); }
+  .btn-next.build:hover { background: var(--teal-m); }
+  .btn-skip { font-size: 13px; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; }
+  .btn-skip:hover { color: var(--ink); }
+
+  /* ── REVIEW SCREEN ── */
+  .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .review-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+  }
+  .review-card-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px; }
+  .review-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .review-tag {
+    font-size: 11px; padding: 3px 9px; border-radius: 12px;
+    font-weight: 500;
+  }
+
+  /* ── BRM OUTPUT ── */
+  #brm-output { display: none; }
+  #brm-output.active { display: block; animation: fadeIn 0.4s ease; }
+
+  .brm-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .brm-title { font-family: 'DM Serif Display', serif; font-size: 22px; }
+  .brm-actions { display: flex; gap: 8px; }
+  .btn-edit {
+    padding: 8px 16px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: white;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    color: var(--ink); cursor: pointer;
+  }
+  .btn-edit:hover { background: var(--gray-l); }
+
+  /* ── SVG BRM DIAGRAM ── */
+  .brm-diagram-wrap {
+    background: white; border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; overflow-x: auto;
+  }
+  #brm-svg { width: 100%; }
+
+  /* ── TIER COLORS for SVG ── */
+  .t-user   { fill: var(--teal-l);   stroke: var(--teal-m); }
+  .t-ch     { fill: var(--blue-l);   stroke: var(--blue-m); }
+  .t-core   { fill: var(--amber-l);  stroke: var(--amber-m); }
+  .t-shared { fill: var(--green-l);  stroke: var(--green-m); }
+  .t-info   { fill: var(--purple-l); stroke: var(--purple-m); }
+  .t-inf-pill { fill: var(--coral-l); stroke: var(--coral-m); }
+
+  .tier-hdr-user   { fill: var(--teal-l);   stroke: var(--teal);   }
+  .tier-hdr-ch     { fill: var(--blue-l);   stroke: var(--blue);   }
+  .tier-hdr-cap    { fill: var(--amber-l);  stroke: var(--amber);  }
+  .tier-hdr-info   { fill: var(--purple-l); stroke: var(--purple); }
+
+  .lbl-user   { fill: var(--teal);   font-weight: 600; }
+  .lbl-ch     { fill: var(--blue);   font-weight: 600; }
+  .lbl-core   { fill: var(--amber);  font-weight: 600; }
+  .lbl-shared { fill: var(--green);  font-weight: 600; }
+  .lbl-info   { fill: var(--purple); font-weight: 600; }
+  .lbl-infl   { fill: var(--coral);  font-weight: 600; }
+
+  .node-lbl { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; }
+  .sec-lbl  { font-family: 'DM Sans', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .tier-lbl { font-family: 'DM Serif Display', serif; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">B</div>
+    <div>
+      <div class="header-title">BRM Builder</div>
+      <div class="header-sub">Business Reference Model · Guided Setup</div>
+    </div>
+  </div>
+</div>
+<div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:14%"></div></div>
+
+<div style="padding: 0 32px;">
+  <div class="step-indicator" id="step-indicator"></div>
+</div>
+
+<div class="main">
+
+  <!-- ══ SCREEN 1: Customer Types ══ -->
+  <div class="screen active" id="screen-1">
+    <div class="screen-step">Step 1 of 7 · Users</div>
+    <div class="screen-q">Who are the customers that interact with your business?</div>
+    <div class="screen-hint">Select all that apply — or add your own. These are the people who buy from you or benefit from what you do.</div>
+    <div class="chip-grid" id="chips-customers">
+      <div class="chip teal selected" data-val="In-store shopper">In-store shopper</div>
+      <div class="chip teal" data-val="Online customer">Online customer</div>
+      <div class="chip teal" data-val="Known prospect">Known prospect</div>
+      <div class="chip teal" data-val="Unknown prospect">Unknown prospect</div>
+      <div class="chip teal" data-val="Loyalty member">Loyalty member</div>
+      <div class="chip teal" data-val="Wholesale buyer">Wholesale buyer</div>
+      <div class="chip teal" data-val="Corporate account">Corporate account</div>
+      <div class="chip teal" data-val="Mobile app user">Mobile app user</div>
+    </div>
+    <div class="add-custom">
+      <input id="custom-customers" type="text" placeholder="Add a customer type…">
+      <button class="btn-add" onclick="addCustom('chips-customers','custom-customers','teal')">Add</button>
+    </div>
+    <div class="skip-note">Not sure? You can skip and add details later.</div>
+    <div class="nav">
+      <span></span>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="btn-skip" onclick="goTo(2)">Skip for now</button>
+        <button class="btn-next" onclick="goTo(2)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 2: Employee Types ══ -->
+  <div class="screen" id="screen-2">
+    <div class="screen-step">Step 2 of 7 · Users</div>
+    <div class="screen-q">What types of employees or workers does your business have?</div>
+    <div class="screen-hint">Think about the different roles across your organization — from the front line to the back office.</div>
+    <div class="chip-grid" id="chips-employees">
+      <div class="chip blue selected" data-val="Store associate">Store associate</div>
+      <div class="chip blue selected" data-val="Store manager">Store manager</div>
+      <div class="chip blue" data-val="Warehouse associate">Warehouse associate</div>
+      <div class="chip blue" data-val="Buyer">Buyer</div>
+      <div class="chip blue" data-val="Back-office associate">Back-office associate</div>
+      <div class="chip blue" data-val="Corporate associate">Corporate associate</div>
+      <div class="chip blue" data-val="Field representative">Field representative</div>
+      <div class="chip blue" data-val="Executive / leadership">Executive / leadership</div>
+      <div class="chip blue" data-val="Contractor">Contractor</div>
+    </div>
+    <div class="add-custom">
+      <input id="custom-employees" type="text" placeholder="Add an employee type…">
+      <button class="btn-add" onclick="addCustom('chips-employees','custom-employees','blue')">Add</button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(1)">← Back</button>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="btn-skip" onclick="goTo(3)">Skip for now</button>
+        <button class="btn-next" onclick="goTo(3)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 3: Business Relationships ══ -->
+  <div class="screen" id="screen-3">
+    <div class="screen-step">Step 3 of 7 · Users</div>
+    <div class="screen-q">What other companies or organizations does your business interact with?</div>
+    <div class="screen-hint">Think about the outside organizations that help your business run — suppliers, regulators, partners, and service providers.</div>
+    <div class="chip-grid" id="chips-businesses">
+      <div class="chip amber selected" data-val="Vendors / suppliers">Vendors / suppliers</div>
+      <div class="chip amber" data-val="Freight carriers">Freight carriers</div>
+      <div class="chip amber" data-val="Business partners">Business partners</div>
+      <div class="chip amber" data-val="Regulatory agencies">Regulatory agencies</div>
+      <div class="chip amber" data-val="Service providers">Service providers</div>
+      <div class="chip amber" data-val="Auditors">Auditors</div>
+      <div class="chip amber" data-val="Agents / brokers">Agents / brokers</div>
+      <div class="chip amber" data-val="Consolidators">Consolidators</div>
+      <div class="chip amber" data-val="Freight forwarders">Freight forwarders</div>
+    </div>
+    <div class="add-custom">
+      <input id="custom-businesses" type="text" placeholder="Add a business relationship…">
+      <button class="btn-add" onclick="addCustom('chips-businesses','custom-businesses','amber')">Add</button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(2)">← Back</button>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="btn-skip" onclick="goTo(4)">Skip for now</button>
+        <button class="btn-next" onclick="goTo(4)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 4: Channels ══ -->
+  <div class="screen" id="screen-4">
+    <div class="screen-step">Step 4 of 7 · Channels</div>
+    <div class="screen-q">How do people interact with your business — what are the touchpoints?</div>
+    <div class="screen-hint">Select every way customers, employees, or partners connect with your company.</div>
+    <div class="chip-grid" id="chips-channels">
+      <div class="chip blue selected" data-val="Website">Website</div>
+      <div class="chip blue selected" data-val="Physical store">Physical store</div>
+      <div class="chip blue" data-val="Mobile app">Mobile app</div>
+      <div class="chip blue" data-val="Telephone / voice">Telephone / voice</div>
+      <div class="chip blue" data-val="Chat / messaging">Chat / messaging</div>
+      <div class="chip blue" data-val="Email">Email</div>
+      <div class="chip blue" data-val="Desktop application">Desktop application</div>
+      <div class="chip blue" data-val="Corporate office">Corporate office</div>
+      <div class="chip blue" data-val="Buying office">Buying office</div>
+      <div class="chip blue" data-val="Distribution center">Distribution center</div>
+      <div class="chip blue" data-val="B2B / system-to-system">B2B / system-to-system</div>
+      <div class="chip blue" data-val="Mail / parcel">Mail / parcel</div>
+    </div>
+    <div class="add-custom">
+      <input id="custom-channels" type="text" placeholder="Add a channel…">
+      <button class="btn-add" onclick="addCustom('chips-channels','custom-channels','blue')">Add</button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(3)">← Back</button>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="btn-skip" onclick="goTo(5)">Skip for now</button>
+        <button class="btn-next" onclick="goTo(5)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 5: Core Capabilities ══ -->
+  <div class="screen" id="screen-5">
+    <div class="screen-step">Step 5 of 7 · Capabilities</div>
+    <div class="screen-q">What are the primary things your business does to deliver value?</div>
+    <div class="screen-hint">Think about the main activities that keep the business running — not departments, but what the business <em>actually does</em>. These are your core capabilities.</div>
+    <div class="chip-grid" id="chips-core">
+      <div class="chip amber selected" data-val="Plan">Plan</div>
+      <div class="chip amber selected" data-val="Buy">Buy</div>
+      <div class="chip amber selected" data-val="Ship">Ship</div>
+      <div class="chip amber selected" data-val="Sell">Sell</div>
+      <div class="chip amber" data-val="Manufacture">Manufacture</div>
+      <div class="chip amber" data-val="Develop">Develop</div>
+      <div class="chip amber" data-val="Market">Market</div>
+      <div class="chip amber" data-val="Service customers">Service customers</div>
+      <div class="chip amber" data-val="Lend">Lend</div>
+      <div class="chip amber" data-val="Insure">Insure</div>
+      <div class="chip amber" data-val="Advise">Advise</div>
+    </div>
+    <div class="add-custom">
+      <input id="custom-core" type="text" placeholder="Add a core capability…">
+      <button class="btn-add" onclick="addCustom('chips-core','custom-core','amber')">Add</button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(4)">← Back</button>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="btn-skip" onclick="goTo(6)">Skip for now</button>
+        <button class="btn-next" onclick="goTo(6)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 6: Shared Capabilities ══ -->
+  <div class="screen" id="screen-6">
+    <div class="screen-step">Step 6 of 7 · Capabilities</div>
+    <div class="screen-q">What support functions keep the business running behind the scenes?</div>
+    <div class="screen-hint">These are the shared services that every part of the business depends on — the things that keep the lights on and the company operating.</div>
+    <div class="chip-grid" id="chips-shared">
+      <div class="chip green selected" data-val="Finance & accounting">Finance &amp; accounting</div>
+      <div class="chip green selected" data-val="Human resources">Human resources</div>
+      <div class="chip green selected" data-val="Legal">Legal</div>
+      <div class="chip green selected" data-val="IT & technology">IT &amp; technology</div>
+      <div class="chip green" data-val="Risk & compliance">Risk &amp; compliance</div>
+      <div class="chip green" data-val="Procurement">Procurement</div>
+      <div class="chip green" data-val="Strategy & planning">Strategy &amp; planning</div>
+      <div class="chip green" data-val="Real estate & facilities">Real estate &amp; facilities</div>
+      <div class="chip green" data-val="Marketing">Marketing</div>
+      <div class="chip green" data-val="Loss prevention">Loss prevention</div>
+    </div>
+    <div class="add-custom">
+      <input id="custom-shared" type="text" placeholder="Add a support function…">
+      <button class="btn-add" onclick="addCustom('chips-shared','custom-shared','green')">Add</button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(5)">← Back</button>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="btn-skip" onclick="goTo(7)">Skip for now</button>
+        <button class="btn-next" onclick="goTo(7)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 7: Information ══ -->
+  <div class="screen" id="screen-7">
+    <div class="screen-step">Step 7 of 7 · Information</div>
+    <div class="screen-q">What are the key things your business needs to know and keep track of?</div>
+    <div class="screen-hint">These are the important records your business depends on — the things you'd be lost without. Think of them as your most essential information assets.</div>
+    <div class="chip-grid" id="chips-info">
+      <div class="chip purple selected" data-val="Customer">Customer</div>
+      <div class="chip purple selected" data-val="Employee">Employee</div>
+      <div class="chip purple selected" data-val="Product / merchandise">Product / merchandise</div>
+      <div class="chip purple selected" data-val="Vendor">Vendor</div>
+      <div class="chip purple" data-val="Organization">Organization</div>
+      <div class="chip purple" data-val="Location">Location</div>
+      <div class="chip purple" data-val="Financial data">Financial data</div>
+      <div class="chip purple" data-val="Calendar / schedules">Calendar / schedules</div>
+      <div class="chip purple" data-val="Inventory">Inventory</div>
+      <div class="chip purple" data-val="Transactions">Transactions</div>
+    </div>
+    <div class="add-custom">
+      <input id="custom-info" type="text" placeholder="Add an information type…">
+      <button class="btn-add" onclick="addCustom('chips-info','custom-info','purple')">Add</button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(6)">← Back</button>
+      <button class="btn-next build" onclick="goToReview()">Review answers →</button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 8: REVIEW ══ -->
+  <div class="screen" id="screen-review">
+    <div class="screen-step">Review · Almost done</div>
+    <div class="screen-q">Here's what you've told us about your business.</div>
+    <div class="screen-hint">Take a moment to review. You can go back to change anything before we build your model.</div>
+    <div class="review-grid" id="review-content"></div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(7)">← Back</button>
+      <button class="btn-next build" onclick="buildBRM()">Build my BRM →</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ══ BRM OUTPUT ══ -->
+<div id="brm-output">
+  <div style="padding: 24px 32px; max-width: 900px; margin: 0 auto;">
+    <div class="brm-header">
+      <div>
+        <div class="brm-title">Your Business Reference Model</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Level 1 · Generated from interview responses</div>
+      </div>
+      <div class="brm-actions">
+        <button class="btn-edit" onclick="restartWizard()">← Edit answers</button>
+      </div>
+    </div>
+    <div class="brm-diagram-wrap">
+      <svg id="brm-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div style="margin-top:16px;padding:14px 16px;background:var(--teal-l);border-radius:var(--radius);border:1px solid var(--teal-m)">
+      <div style="font-size:12px;font-weight:600;color:var(--teal);margin-bottom:4px;">Next steps</div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.6;">Your Level 1 BRM is ready. You can now add detail to any node — headcount, costs, health scores, maturity levels, and technology mappings — to build out a full overlay view.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const steps = [
+  { id:'customers',  label:'Customers',    color:'teal'  },
+  { id:'employees',  label:'Employees',    color:'blue'  },
+  { id:'businesses', label:'Businesses',   color:'amber' },
+  { id:'channels',   label:'Channels',     color:'blue'  },
+  { id:'core',       label:'Core caps',    color:'amber' },
+  { id:'shared',     label:'Shared caps',  color:'green' },
+  { id:'info',       label:'Information',  color:'purple'},
+];
+
+let currentScreen = 1;
+
+// ── STEP INDICATOR ──
+function renderStepDots() {
+  const wrap = document.getElementById('step-indicator');
+  wrap.innerHTML = '';
+  steps.forEach((s,i) => {
+    if (i > 0) {
+      const conn = document.createElement('div');
+      conn.className = 'step-connector';
+      wrap.appendChild(conn);
+    }
+    const dot = document.createElement('div');
+    const n = i+1;
+    dot.className = 'step-dot' + (n === currentScreen ? ' active' : (n < currentScreen ? ' done' : ''));
+    dot.textContent = n < currentScreen ? '✓' : n;
+    dot.onclick = () => { if (n <= currentScreen) goTo(n); };
+    wrap.appendChild(dot);
+  });
+}
+
+// ── NAVIGATION ──
+function goTo(n) {
+  document.getElementById('screen-' + currentScreen).classList.remove('active');
+  currentScreen = n;
+  document.getElementById('screen-' + n).classList.add('active');
+  const pct = Math.round((n / 8) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  renderStepDots();
+  window.scrollTo(0,0);
+}
+
+function goToReview() {
+  buildReview();
+  document.getElementById('screen-7').classList.remove('active');
+  document.getElementById('screen-review').classList.add('active');
+  currentScreen = 8;
+  document.getElementById('progress-bar').style.width = '100%';
+  renderStepDots();
+  window.scrollTo(0,0);
+}
+
+// ── CHIP TOGGLE ──
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  chip.classList.toggle('selected');
+});
+
+// ── ADD CUSTOM ──
+function addCustom(gridId, inputId, color) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) return;
+  const grid = document.getElementById(gridId);
+  const chip = document.createElement('div');
+  chip.className = 'chip ' + color + ' selected';
+  chip.dataset.val = val;
+  chip.textContent = val;
+  grid.appendChild(chip);
+  input.value = '';
+  input.focus();
+}
+
+document.querySelectorAll('.add-custom input').forEach(inp => {
+  inp.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const btn = inp.nextElementSibling;
+    if (btn) btn.click();
+  });
+});
+
+// ── COLLECT SELECTED ──
+function getSelected(gridId) {
+  return Array.from(document.querySelectorAll('#' + gridId + ' .chip.selected'))
+    .map(c => c.dataset.val);
+}
+
+// ── REVIEW ──
+const reviewDefs = [
+  { id:'chips-customers',  label:'Customer types',          color:'teal',   bg:'#E1F5EE', fg:'#0F6E56' },
+  { id:'chips-employees',  label:'Employee types',          color:'blue',   bg:'#E6F1FB', fg:'#185FA5' },
+  { id:'chips-businesses', label:'Business relationships',  color:'amber',  bg:'#FAEEDA', fg:'#854F0B' },
+  { id:'chips-channels',   label:'Channels',                color:'blue',   bg:'#E6F1FB', fg:'#185FA5' },
+  { id:'chips-core',       label:'Core capabilities',       color:'amber',  bg:'#FAEEDA', fg:'#854F0B' },
+  { id:'chips-shared',     label:'Shared capabilities',     color:'green',  bg:'#EAF3DE', fg:'#3B6D11' },
+  { id:'chips-info',       label:'Information assets',      color:'purple', bg:'#EEEDFE', fg:'#534AB7' },
+];
+
+function buildReview() {
+  const wrap = document.getElementById('review-content');
+  wrap.innerHTML = '';
+  reviewDefs.forEach(def => {
+    const items = getSelected(def.id);
+    const card = document.createElement('div');
+    card.className = 'review-card';
+    card.innerHTML = `<div class="review-card-label">${def.label}</div><div class="review-tags">${
+      items.length
+        ? items.map(i => `<span class="review-tag" style="background:${def.bg};color:${def.fg}">${i}</span>`).join('')
+        : '<span style="font-size:12px;color:var(--muted);font-style:italic">None selected</span>'
+    }</div>`;
+    wrap.appendChild(card);
+  });
+}
+
+// ── BUILD BRM SVG ──
+function buildBRM() {
+  const data = {
+    customers:  getSelected('chips-customers'),
+    employees:  getSelected('chips-employees'),
+    businesses: getSelected('chips-businesses'),
+    channels:   getSelected('chips-channels'),
+    core:       getSelected('chips-core'),
+    shared:     getSelected('chips-shared'),
+    info:       getSelected('chips-info'),
+  };
+
+  document.getElementById('screen-review').classList.remove('active');
+  document.querySelector('.main').style.display = 'none';
+  document.querySelector('.step-indicator').style.display = 'none';
+
+  const output = document.getElementById('brm-output');
+  output.classList.add('active');
+  window.scrollTo(0,0);
+
+  renderBRMSvg(data);
+}
+
+function restartWizard() {
+  document.getElementById('brm-output').classList.remove('active');
+  document.querySelector('.main').style.display = '';
+  document.querySelector('.step-indicator').style.display = '';
+  goTo(1);
+}
+
+// ── SVG RENDERER ──
+function renderBRMSvg(data) {
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('brm-svg');
+  svg.innerHTML = '';
+
+  const colors = {
+    user:   { fill:'#E1F5EE', stroke:'#1D9E75', text:'#0F6E56', hdr:'#0F6E56' },
+    ch:     { fill:'#E6F1FB', stroke:'#378ADD', text:'#185FA5', hdr:'#185FA5' },
+    core:   { fill:'#FAEEDA', stroke:'#EF9F27', text:'#854F0B', hdr:'#854F0B' },
+    shared: { fill:'#EAF3DE', stroke:'#97C459', text:'#3B6D11', hdr:'#3B6D11' },
+    info:   { fill:'#EEEDFE', stroke:'#AFA9EC', text:'#534AB7', hdr:'#534AB7' },
+    infl:   { fill:'#FAECE7', stroke:'#F0997B', text:'#993C1D', hdr:'#993C1D' },
+    frame:  { fill:'none',    stroke:'#c8c6bc' },
+  };
+
+  function el(tag, attrs={}, text='') {
+    const e = document.createElementNS(SVG_NS, tag);
+    Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k,v));
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  function rect(x,y,w,h,r,c) {
+    return el('rect',{x,y,width:w,height:h,rx:r,fill:c.fill,stroke:c.stroke,'stroke-width':'0.8'});
+  }
+
+  function text(x,y,txt,opts={}) {
+    const t = el('text', {
+      x, y,
+      'text-anchor': opts.anchor||'middle',
+      'dominant-baseline': 'central',
+      'font-family': opts.serif ? "'DM Serif Display',serif" : "'DM Sans',sans-serif",
+      'font-size': opts.size||11,
+      'font-weight': opts.weight||400,
+      fill: opts.fill||'#1a1917',
+    }, txt);
+    return t;
+  }
+
+  function wrapText(txt, maxChars) {
+    if (txt.length <= maxChars) return [txt];
+    const words = txt.split(' ');
+    const lines = [];
+    let cur = '';
+    words.forEach(w => {
+      if ((cur+' '+w).trim().length > maxChars) { lines.push(cur.trim()); cur = w; }
+      else cur = (cur+' '+w).trim();
+    });
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  function nodeBox(x,y,w,h,label,c) {
+    const g = el('g');
+    g.appendChild(rect(x,y,w,h,6,c));
+    const lines = wrapText(label, Math.floor(w/6.5));
+    const lineH = 14;
+    const totalH = lines.length * lineH;
+    const startY = y + h/2 - totalH/2 + lineH/2;
+    lines.forEach((ln,i) => {
+      g.appendChild(text(x+w/2, startY+i*lineH, ln, {size:11,weight:500,fill:c.text}));
+    });
+    return g;
+  }
+
+  function tierHeader(x,y,w,label,trm,c) {
+    const g = el('g');
+    g.appendChild(rect(x,y,w,28,6,{fill:c.fill,stroke:c.stroke}));
+    g.appendChild(text(x+w/2, y+10, label, {size:12,weight:600,fill:c.hdr,serif:true}));
+    g.appendChild(text(x+w/2, y+22, trm,   {size:8, weight:400,fill:c.hdr}));
+    return g;
+  }
+
+  // ── LAYOUT CONSTANTS ──
+  const PAD = 6;
+  const NODE_H = 34;
+  const NODE_GAP = 5;
+  const COL_W_USER = 116;
+  const COL_W_CH   = 120;
+  const COL_W_CAP  = 0; // dynamic
+  const COL_W_INFO = 108;
+  const TOTAL_W = 860;
+  const CAP_W = TOTAL_W - COL_W_USER - COL_W_CH - COL_W_INFO - 4*PAD;
+
+  // X positions
+  const X_USER = PAD;
+  const X_CH   = X_USER + COL_W_USER + PAD;
+  const X_CAP  = X_CH + COL_W_CH + PAD;
+  const X_INFO = X_CAP + CAP_W + PAD;
+
+  // ── INFLUENCES (top pills) ──
+  const influences = ['Competition','Environment','Technology','Habits','Assumptions','Core values'];
+  const inflY = 8;
+  const pillW = 90; const pillH = 20; const pillGap = 6;
+  const inflTotalW = influences.length * pillW + (influences.length-1)*pillGap;
+  const inflStartX = X_CAP + (CAP_W - inflTotalW)/2;
+
+  const inflGroup = el('g');
+  const inflLabel = text(X_CAP + CAP_W/2, inflY-2, 'Influences', {size:9,weight:600,fill:'#993C1D'});
+  inflGroup.appendChild(inflLabel);
+  influences.forEach((inf,i) => {
+    const px = inflStartX + i*(pillW+pillGap);
+    const g = el('g');
+    g.appendChild(el('rect',{x:px,y:inflY+4,width:pillW,height:pillH,rx:10,fill:colors.infl.fill,stroke:colors.infl.stroke,'stroke-width':'0.8'}));
+    g.appendChild(text(px+pillW/2,inflY+14,inf,{size:9,weight:500,fill:colors.infl.text}));
+    inflGroup.appendChild(g);
+  });
+
+  // ── LAYOUT Y ──
+  const HDR_H = 28;
+  const TOP_Y = 40; // below influences
+  let maxUserH, maxChH, coreH, sharedH, capH, infoH;
+
+  // User groups
+  const userGroups = [
+    { label:'External customers', items: data.customers, c: colors.user },
+    { label:'Employees',          items: data.employees, c: {fill:'#E6F1FB',stroke:'#378ADD',text:'#185FA5',hdr:'#185FA5'} },
+    { label:'Businesses',         items: data.businesses,c: {fill:'#FAEEDA',stroke:'#EF9F27',text:'#854F0B',hdr:'#854F0B'} },
+  ];
+
+  function groupHeight(items) {
+    return 26 + (items.length || 1) * (NODE_H + NODE_GAP) + NODE_GAP;
+  }
+
+  // Compute heights
+  const userGroupHeights = userGroups.map(g => groupHeight(g.items));
+  maxUserH = userGroupHeights.reduce((a,b)=>a+b+PAD,0) + PAD;
+
+  maxChH = HDR_H + PAD + data.channels.length * (NODE_H + NODE_GAP) + NODE_GAP;
+
+  // Core / shared
+  const CORE_NODE_W = (CAP_W - 3*PAD) / 2;
+  const coreRows = Math.ceil((data.core.length||1)/2);
+  const sharedRows = Math.ceil((data.shared.length||1)/2);
+  coreH   = 18 + PAD + coreRows*(NODE_H+NODE_GAP) + NODE_GAP + 6;
+  sharedH = 18 + PAD + sharedRows*(NODE_H+NODE_GAP) + NODE_GAP + 6;
+  capH    = HDR_H + PAD + coreH + PAD + sharedH + PAD;
+
+  infoH = HDR_H + PAD + data.info.length*(NODE_H+NODE_GAP) + NODE_GAP;
+
+  const FRAME_H = Math.max(maxUserH, maxChH, capH, infoH) + HDR_H + PAD*2;
+
+  // Set SVG viewBox
+  const SVG_H = TOP_Y + FRAME_H + 20;
+  svg.setAttribute('viewBox', `0 0 ${TOTAL_W} ${SVG_H}`);
+  svg.setAttribute('height', SVG_H);
+
+  // ── OUTER FRAME ──
+  svg.appendChild(el('rect',{x:PAD,y:TOP_Y,width:TOTAL_W-PAD*2,height:FRAME_H,rx:8,fill:'none',stroke:'#c8c6bc','stroke-width':'0.8'}));
+
+  // ── USER TIER ──
+  svg.appendChild(tierHeader(X_USER, TOP_Y, COL_W_USER, 'User', 'External · not in TRM', colors.user));
+  let uy = TOP_Y + HDR_H + PAD;
+  userGroups.forEach(grp => {
+    const gh = groupHeight(grp.items);
+    const gg = el('g');
+    gg.appendChild(el('rect',{x:X_USER+PAD/2,y:uy,width:COL_W_USER-PAD,height:gh,rx:6,fill:grp.c.fill,stroke:grp.c.stroke,'stroke-width':'0.5','stroke-dasharray':'3 2'}));
+    gg.appendChild(text(X_USER+COL_W_USER/2, uy+12, grp.label, {size:9,weight:600,fill:grp.c.text}));
+    (grp.items.length ? grp.items : ['(none)']).forEach((item,i) => {
+      gg.appendChild(nodeBox(X_USER+PAD, uy+20+i*(NODE_H+NODE_GAP), COL_W_USER-PAD*2, NODE_H, item, grp.c));
+    });
+    svg.appendChild(gg);
+    uy += gh + PAD;
+  });
+
+  // ── CHANNEL TIER ──
+  svg.appendChild(tierHeader(X_CH, TOP_Y, COL_W_CH, 'Channel', '→ Presentation + Product', colors.ch));
+  let chy = TOP_Y + HDR_H + PAD;
+  (data.channels.length ? data.channels : ['(none)']).forEach(ch => {
+    svg.appendChild(nodeBox(X_CH+PAD/2, chy, COL_W_CH-PAD, NODE_H, ch, colors.ch));
+    chy += NODE_H + NODE_GAP;
+  });
+
+  // ── CAPABILITY TIER ──
+  svg.appendChild(tierHeader(X_CAP, TOP_Y, CAP_W, 'Capability', '→ Service + Recordkeeping', colors.core));
+
+  // Vertical divider line
+  svg.appendChild(el('line',{x1:X_CAP,y1:TOP_Y+HDR_H,x2:X_CAP,y2:TOP_Y+FRAME_H,stroke:'#c8c6bc','stroke-width':'0.5'}));
+  svg.appendChild(el('line',{x1:X_CAP+CAP_W,y1:TOP_Y+HDR_H,x2:X_CAP+CAP_W,y2:TOP_Y+FRAME_H,stroke:'#c8c6bc','stroke-width':'0.5'}));
+
+  let capy = TOP_Y + HDR_H + PAD;
+
+  // Core section
+  svg.appendChild(el('rect',{x:X_CAP+PAD/2,y:capy,width:CAP_W-PAD,height:coreH,rx:6,fill:'none',stroke:colors.core.stroke,'stroke-width':'0.5'}));
+  svg.appendChild(text(X_CAP+CAP_W/2, capy+9, 'Core', {size:9,weight:600,fill:colors.core.text}));
+  let cy = capy + 18 + PAD;
+  const coreItems = data.core.length ? data.core : ['(none)'];
+  coreItems.forEach((cap,i) => {
+    const col = i%2; const row = Math.floor(i/2);
+    const cx = X_CAP + PAD + col*(CORE_NODE_W+PAD);
+    svg.appendChild(nodeBox(cx, cy+row*(NODE_H+NODE_GAP), CORE_NODE_W, NODE_H, cap, colors.core));
+  });
+  capy += coreH + PAD*2;
+
+  // Horizontal divider
+  svg.appendChild(el('line',{x1:X_CAP+PAD/2,y1:capy-PAD,x2:X_CAP+CAP_W-PAD/2,y2:capy-PAD,stroke:'#c8c6bc','stroke-width':'0.6'}));
+
+  // Shared section
+  svg.appendChild(el('rect',{x:X_CAP+PAD/2,y:capy,width:CAP_W-PAD,height:sharedH,rx:6,fill:'none',stroke:colors.shared.stroke,'stroke-width':'0.5'}));
+  svg.appendChild(text(X_CAP+CAP_W/2, capy+9, 'Shared', {size:9,weight:600,fill:colors.shared.text}));
+  let sy = capy + 18 + PAD;
+  const sharedItems = data.shared.length ? data.shared : ['(none)'];
+  sharedItems.forEach((cap,i) => {
+    const col = i%2; const row = Math.floor(i/2);
+    const sx = X_CAP + PAD + col*(CORE_NODE_W+PAD);
+    svg.appendChild(nodeBox(sx, sy+row*(NODE_H+NODE_GAP), CORE_NODE_W, NODE_H, cap, colors.shared));
+  });
+
+  // ── INFORMATION TIER ──
+  svg.appendChild(tierHeader(X_INFO, TOP_Y, COL_W_INFO, 'Information', '→ Reporting & Analytics*', colors.info));
+  let iy = TOP_Y + HDR_H + PAD;
+  (data.info.length ? data.info : ['(none)']).forEach(inf => {
+    svg.appendChild(nodeBox(X_INFO+PAD/2, iy, COL_W_INFO-PAD, NODE_H, inf, colors.info));
+    iy += NODE_H + NODE_GAP;
+  });
+
+  // ── INFLUENCES (draw on top) ──
+  svg.appendChild(inflGroup);
+
+  // Vertical dividers between tiers (inside frame)
+  [[X_CH,TOP_Y],[X_CAP,TOP_Y],[X_INFO,TOP_Y]].forEach(([x,y]) => {
+    svg.appendChild(el('line',{x1:x,y1:y,x2:x,y2:y+FRAME_H,stroke:'#d8d6ce','stroke-width':'0.5'}));
+  });
+
+  // footnote
+  const fn = text(X_INFO+COL_W_INFO/2, TOP_Y+FRAME_H+12, '* Pending TRM work item TRM-WI-001', {size:8,weight:400,fill:'#999'});
+  svg.appendChild(fn);
+}
+
+// ── INIT ──
+renderStepDots();
+</script>
+</body>
+</html>
