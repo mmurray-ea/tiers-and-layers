@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EA Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1917;--paper:#f8f7f4;--card:#ffffff;--muted:#6b6960;
+  --border:#e2e0d8;--border-strong:#c8c6bc;
+  --teal:#0F6E56;--teal-l:#E1F5EE;--teal-m:#1D9E75;--teal-d:#085041;
+  --blue:#185FA5;--blue-l:#E6F1FB;--blue-m:#378ADD;
+  --amber:#854F0B;--amber-l:#FAEEDA;--amber-m:#EF9F27;
+  --green:#3B6D11;--green-l:#EAF3DE;--green-m:#639922;
+  --purple:#534AB7;--purple-l:#EEEDFE;--purple-m:#7F77DD;
+  --coral:#993C1D;--coral-l:#FAECE7;--coral-m:#D85A30;
+  --red:#A32D2D;--red-l:#FCEBEB;
+  --rule-color:#1F4E79;--rule-bg:#E6F1FB;
+  --guide-color:#3B6D11;--guide-bg:#EAF3DE;
+  --prin-color:#534AB7;--prin-bg:#EEEDFE;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+
+/* ── HEADER ── */
+.app-header{background:var(--ink);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:32px;height:32px;background:var(--teal-m);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Libre Baskerville',serif;font-size:16px;color:#fff;font-weight:700}
+.brand-name{font-family:'Libre Baskerville',serif;font-size:16px;color:#fff;letter-spacing:-0.2px}
+.brand-sub{font-size:11px;color:rgba(255,255,255,0.45);margin-top:1px}
+.header-nav{display:flex;gap:4px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:none;background:none;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .15s}
+.nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,0.12);color:#fff}
+
+/* ── LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden;height:calc(100vh - 56px)}
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:16px 0;flex-shrink:0;overflow-y:auto}
+.sidebar-section{margin-bottom:8px}
+.sidebar-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;padding:8px 16px 4px}
+.sidebar-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--muted);cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.sidebar-item:hover{background:var(--paper);color:var(--ink)}
+.sidebar-item.active{background:var(--teal-l);color:var(--teal);border-left-color:var(--teal);font-weight:500}
+.sidebar-item .dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0}
+.sidebar-item.done .dot{background:var(--teal-m)}
+.sidebar-item.active .dot{background:var(--teal)}
+.main{flex:1;overflow-y:auto;padding:28px}
+.main-inner{max-width:860px;margin:0 auto}
+
+/* ── PHASE HEADER ── */
+.phase-header{margin-bottom:24px}
+.phase-tag{display:inline-block;font-size:10px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.phase-title{font-family:'Libre Baskerville',serif;font-size:26px;color:var(--ink);margin-bottom:6px;line-height:1.3}
+.phase-desc{font-size:14px;color:var(--muted);line-height:1.6;max-width:640px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+
+/* ── CHIP GRID ── */
+.chip-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{padding:6px 12px;border-radius:16px;border:1.5px solid var(--border);font-size:12px;font-weight:400;color:var(--ink);background:var(--card);cursor:pointer;transition:all .15s;user-select:none}
+.chip:hover{border-color:var(--border-strong);background:var(--paper)}
+.chip.sel-teal{border-color:var(--teal-m);background:var(--teal-l);color:var(--teal);font-weight:500}
+.chip.sel-blue{border-color:var(--blue-m);background:var(--blue-l);color:var(--blue);font-weight:500}
+.chip.sel-amber{border-color:var(--amber-m);background:var(--amber-l);color:var(--amber);font-weight:500}
+.chip.sel-green{border-color:var(--green-m);background:var(--green-l);color:var(--green);font-weight:500}
+.chip.sel-purple{border-color:var(--purple-m);background:var(--purple-l);color:var(--purple);font-weight:500}
+.chip.sel-coral{border-color:var(--coral-m);background:var(--coral-l);color:var(--coral);font-weight:500}
+
+/* ── ADD CUSTOM ── */
+.add-row{display:flex;gap:8px;margin-top:8px}
+.add-row input{flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--paper);outline:none;transition:border-color .15s}
+.add-row input:focus{border-color:var(--teal-m)}
+.add-row input::placeholder{color:var(--muted)}
+.btn-add{padding:8px 14px;border-radius:var(--radius);background:var(--ink);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;white-space:nowrap}
+.btn-add:hover{opacity:.85}
+
+/* ── POSTURE TAGS ── */
+.posture-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.posture-tag{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .15s}
+.pt-diff{background:var(--coral-l);color:var(--coral);border-color:var(--coral-m)}
+.pt-core{background:var(--amber-l);color:var(--amber);border-color:var(--amber-m)}
+.pt-shared{background:var(--green-l);color:var(--green);border-color:var(--green-m)}
+.pt-inactive{background:var(--paper);color:var(--muted);border-color:var(--border)}
+
+/* ── SYSTEM ENTRY ── */
+.system-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.system-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--paper)}
+.system-name{font-size:13px;font-weight:500;flex:1}
+.system-tier{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--purple-l);color:var(--purple)}
+.system-remove{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0 4px}
+.system-remove:hover{color:var(--red)}
+
+/* ── GOVERNANCE ── */
+.gov-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.gov-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;transition:background .15s}
+.gov-header:hover{background:var(--paper)}
+.gov-type{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0}
+.gt-rule{background:var(--rule-bg);color:var(--rule-color)}
+.gt-guide{background:var(--guide-bg);color:var(--guide-color)}
+.gt-prin{background:var(--prin-bg);color:var(--prin-color)}
+.gov-text{font-size:13px;flex:1;line-height:1.4}
+.gov-scope{font-size:11px;color:var(--muted);flex-shrink:0}
+.gov-enforcement{flex-shrink:0}
+.enf-hard{width:10px;height:10px;border-radius:50%;background:#E24B4A}
+.enf-soft{width:10px;height:10px;border-radius:50%;background:#EF9F27}
+.enf-adv{width:10px;height:10px;border-radius:50%;background:#639922}
+.gov-toggle{font-size:18px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.gov-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border);background:var(--paper)}
+.gov-body.open{display:block}
+.gov-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.gov-field label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px}
+.gov-field select,.gov-field input[type=text]{width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;background:var(--card)}
+.gov-implication{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5;padding:8px 10px;background:var(--card);border-radius:6px;border-left:3px solid var(--border-strong)}
+.gov-active-toggle{display:flex;align-items:center;gap:8px;margin-top:10px}
+.toggle-sw{position:relative;width:36px;height:20px;background:var(--border);border-radius:10px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle-sw.on{background:var(--teal-m)}
+.toggle-sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle-sw.on::after{transform:translateX(16px)}
+
+/* ── BRM DIAGRAM ── */
+.brm-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;overflow-x:auto}
+.violation-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;background:var(--red-l);color:var(--red);margin-left:8px}
+
+/* ── NAV FOOTER ── */
+.phase-nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}
+.btn-back-nav{padding:9px 20px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--card);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--muted);cursor:pointer}
+.btn-back-nav:hover{border-color:var(--border-strong);color:var(--ink)}
+.btn-next-nav{padding:10px 24px;border-radius:var(--radius);background:var(--ink);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
+.btn-next-nav:hover{background:#2e2d2b}
+.btn-next-nav.primary{background:var(--teal)}
+.btn-next-nav.primary:hover{background:var(--teal-m)}
+
+/* ── TABLES ── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:8px 12px;background:var(--paper);border-bottom:2px solid var(--border);font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--paper)}
+
+/* ── ALERT ── */
+.alert{padding:12px 16px;border-radius:var(--radius);font-size:13px;margin-bottom:16px;line-height:1.5}
+.alert-info{background:var(--blue-l);border-left:4px solid var(--blue-m);color:var(--blue)}
+.alert-warn{background:var(--amber-l);border-left:4px solid var(--amber-m);color:var(--amber)}
+.alert-success{background:var(--teal-l);border-left:4px solid var(--teal-m);color:var(--teal)}
+
+/* ── PROGRESS ── */
+.progress-strip{height:3px;background:var(--border);border-radius:2px;margin-bottom:24px}
+.progress-fill{height:3px;background:var(--teal-m);border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+/* ── SCREENS ── */
+.screen{display:none}.screen.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}}
+
+/* ── SECTION DIVIDER ── */
+.sec-divider{display:flex;align-items:center;gap:10px;margin:20px 0 12px}
+.sec-divider span{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap}
+.sec-divider::before,.sec-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-divider::before{display:none}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="brand">
+    <div class="brand-mark">EA</div>
+    <div>
+      <div class="brand-name">EA Intelligence Platform</div>
+      <div class="brand-sub">Governance by Design</div>
+    </div>
+  </div>
+  <div class="header-nav">
+    <button class="nav-btn active" onclick="showTab('builder')">Model Builder</button>
+    <button class="nav-btn" onclick="showTab('governance')">Governance Library</button>
+    <button class="nav-btn" onclick="showTab('diagram')">BRM View</button>
+    <button class="nav-btn" onclick="showTab('trm')">TRM View</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Phase 0 — Motivation</div>
+      <div class="sidebar-item" id="nav-0" onclick="goPhase(0)"><div class="dot"></div>Business drivers</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Phase 1 — Business Model</div>
+      <div class="sidebar-item active" id="nav-1" onclick="goPhase(1)"><div class="dot"></div>User populations</div>
+      <div class="sidebar-item" id="nav-2" onclick="goPhase(2)"><div class="dot"></div>Channels</div>
+      <div class="sidebar-item" id="nav-3" onclick="goPhase(3)"><div class="dot"></div>Capabilities</div>
+      <div class="sidebar-item" id="nav-4" onclick="goPhase(4)"><div class="dot"></div>Business objects</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Phase 2 — Technical Model</div>
+      <div class="sidebar-item" id="nav-5" onclick="goPhase(5)"><div class="dot"></div>Systems of record</div>
+      <div class="sidebar-item" id="nav-6" onclick="goPhase(6)"><div class="dot"></div>Channel solutions</div>
+      <div class="sidebar-item" id="nav-7" onclick="goPhase(7)"><div class="dot"></div>Business services</div>
+      <div class="sidebar-item" id="nav-8" onclick="goPhase(8)"><div class="dot"></div>Infrastructure</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-area">
+    <div class="main-inner">
+
+      <!-- ══ MODEL BUILDER TAB ══ -->
+      <div id="tab-builder">
+
+        <!-- PHASE 0 — MOTIVATION -->
+        <div class="screen active" id="screen-0">
+          <div class="progress-strip"><div class="progress-fill" style="width:5%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 0 · Optional</div>
+            <div class="phase-title">Business Drivers</div>
+            <div class="phase-desc">Capture the motivation behind the business. This context improves the quality of capability differentiation in Phase 1 — particularly distinguishing differentiating from operational capabilities.</div>
+          </div>
+          <div class="alert alert-info">This phase is optional. You may skip to Phase 1 at any time and return here later.</div>
+          <div class="card">
+            <div class="card-title">Mission</div>
+            <div class="card-sub">What does your organization do every day to pursue its vision?</div>
+            <textarea id="mission" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;background:var(--paper)" placeholder="e.g. We source and sell brand-name merchandise at off-price value to deliver great value to customers every day…"></textarea>
+          </div>
+          <div class="card">
+            <div class="card-title">Vision</div>
+            <div class="card-sub">Where is the organization going?</div>
+            <textarea id="vision" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;background:var(--paper)" placeholder="e.g. To be a global off-price value company…"></textarea>
+          </div>
+          <div class="card">
+            <div class="card-title">Top Goals</div>
+            <div class="card-sub">What are the 2–3 most important goals for the next 1–3 years?</div>
+            <div id="goals-list" class="chip-grid"></div>
+            <div class="add-row"><input id="goal-input" type="text" placeholder="Add a goal…"><button class="btn-add" onclick="addGoal()">Add</button></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Key Strategies</div>
+            <div class="card-sub">What are the primary strategies being pursued to achieve those goals?</div>
+            <div id="strats-list" class="chip-grid"></div>
+            <div class="add-row"><input id="strat-input" type="text" placeholder="Add a strategy…"><button class="btn-add" onclick="addStrat()">Add</button></div>
+          </div>
+          <div class="phase-nav">
+            <span></span>
+            <button class="btn-next-nav primary" onclick="goPhase(1)">Next: User populations →</button>
+          </div>
+        </div>
+
+        <!-- PHASE 1a — USERS -->
+        <div class="screen" id="screen-1">
+          <div class="progress-strip"><div class="progress-fill" style="width:20%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 1 · BRM · Step 1 of 4</div>
+            <div class="phase-title">User Populations</div>
+            <div class="phase-desc">Identify who interacts with your business. User types drive security model requirements and channel design — get these right first.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">External customers</div>
+            <div class="card-sub">People who buy from or benefit from your business</div>
+            <div class="chip-grid" id="chips-customers">
+              <div class="chip sel-teal" data-val="In-store shopper">In-store shopper</div>
+              <div class="chip" data-val="Online customer">Online customer</div>
+              <div class="chip" data-val="Known prospect">Known prospect</div>
+              <div class="chip" data-val="Unknown prospect">Unknown prospect</div>
+              <div class="chip" data-val="Loyalty member">Loyalty member</div>
+              <div class="chip" data-val="Wholesale buyer">Wholesale buyer</div>
+            </div>
+            <div class="add-row"><input id="cust-in" type="text" placeholder="Add customer type…"><button class="btn-add" onclick="addChip('chips-customers','cust-in','sel-teal')">Add</button></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Employees</div>
+            <div class="card-sub">Internal workforce — drives internal channel and security requirements</div>
+            <div class="chip-grid" id="chips-employees">
+              <div class="chip sel-blue" data-val="Store associate">Store associate</div>
+              <div class="chip sel-blue" data-val="Store manager">Store manager</div>
+              <div class="chip" data-val="Warehouse associate">Warehouse associate</div>
+              <div class="chip" data-val="Buyer">Buyer</div>
+              <div class="chip" data-val="Corporate associate">Corporate associate</div>
+              <div class="chip" data-val="Executive / leadership">Executive / leadership</div>
+            </div>
+            <div class="add-row"><input id="emp-in" type="text" placeholder="Add employee type…"><button class="btn-add" onclick="addChip('chips-employees','emp-in','sel-blue')">Add</button></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Business entities</div>
+            <div class="card-sub">External organizations that interact with or support the business</div>
+            <div class="chip-grid" id="chips-biz">
+              <div class="chip sel-amber" data-val="Vendors / suppliers">Vendors / suppliers</div>
+              <div class="chip" data-val="Regulatory agencies">Regulatory agencies</div>
+              <div class="chip" data-val="Business partners">Business partners</div>
+              <div class="chip" data-val="Service providers">Service providers</div>
+              <div class="chip" data-val="Freight carriers">Freight carriers</div>
+            </div>
+            <div class="add-row"><input id="biz-in" type="text" placeholder="Add business entity…"><button class="btn-add" onclick="addChip('chips-biz','biz-in','sel-amber')">Add</button></div>
+          </div>
+          <div class="phase-nav">
+            <button class="btn-back-nav" onclick="goPhase(0)">← Back</button>
+            <button class="btn-next-nav primary" onclick="goPhase(2)">Next: Channels →</button>
+          </div>
+        </div>
+
+        <!-- PHASE 1b — CHANNELS -->
+        <div class="screen" id="screen-2">
+          <div class="progress-strip"><div class="progress-fill" style="width:35%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 1 · BRM · Step 2 of 4</div>
+            <div class="phase-title">Channels</div>
+            <div class="phase-desc">How do users interact with your business? Identify all touchpoints — including unusual ones like B2B or EDI that may have distinct architectural implications.</div>
+          </div>
+          <div class="card">
+            <div class="chip-grid" id="chips-channels">
+              <div class="chip sel-teal" data-val="Physical store">Physical store</div>
+              <div class="chip sel-teal" data-val="Website">Website</div>
+              <div class="chip" data-val="Mobile app">Mobile app</div>
+              <div class="chip" data-val="Telephone / voice">Telephone / voice</div>
+              <div class="chip" data-val="Chat / messaging">Chat / messaging</div>
+              <div class="chip" data-val="Email">Email</div>
+              <div class="chip" data-val="Desktop application">Desktop application</div>
+              <div class="chip" data-val="Corporate office">Corporate office</div>
+              <div class="chip" data-val="Distribution center">Distribution center</div>
+              <div class="chip" data-val="B2B / EDI">B2B / EDI</div>
+              <div class="chip" data-val="Mail / parcel">Mail / parcel</div>
+              <div class="chip" data-val="Buying office">Buying office</div>
+            </div>
+            <div class="add-row"><input id="chan-in" type="text" placeholder="Add channel…"><button class="btn-add" onclick="addChip('chips-channels','chan-in','sel-teal')">Add</button></div>
+          </div>
+          <div class="phase-nav">
+            <button class="btn-back-nav" onclick="goPhase(1)">← Back</button>
+            <button class="btn-next-nav primary" onclick="goPhase(3)">Next: Capabilities →</button>
+          </div>
+        </div>
+
+        <!-- PHASE 1c — CAPABILITIES -->
+        <div class="screen" id="screen-3">
+          <div class="progress-strip"><div class="progress-fill" style="width:50%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 1 · BRM · Step 3 of 4</div>
+            <div class="phase-title">Capabilities</div>
+            <div class="phase-desc">What does the business do? Classify each capability as Differentiating, Core operational, or Shared/support. This is the most strategically important question in the entire process.</div>
+          </div>
+          <div class="alert alert-warn">Differentiating capabilities are your competitive advantage — things competitors cannot easily replicate. Be deliberate. Most capabilities are Core or Shared.</div>
+          <div class="card">
+            <div class="card-title">Core capabilities</div>
+            <div class="card-sub">Primary value chain activities. For each, select its strategic posture.</div>
+            <div id="caps-core-list"></div>
+            <div class="add-row"><input id="cap-core-in" type="text" placeholder="Add core capability…"><button class="btn-add" onclick="addCapability('core')">Add</button></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Shared capabilities</div>
+            <div class="card-sub">Cross-cutting support services. These are almost always Shared/support posture.</div>
+            <div class="chip-grid" id="chips-shared">
+              <div class="chip sel-green" data-val="Finance & accounting">Finance & accounting</div>
+              <div class="chip sel-green" data-val="Human resources">Human resources</div>
+              <div class="chip sel-green" data-val="Legal">Legal</div>
+              <div class="chip sel-green" data-val="IT & technology">IT & technology</div>
+              <div class="chip" data-val="Risk & compliance">Risk & compliance</div>
+              <div class="chip" data-val="Strategy & planning">Strategy & planning</div>
+              <div class="chip" data-val="Procurement">Procurement</div>
+              <div class="chip" data-val="Marketing">Marketing</div>
+            </div>
+            <div class="add-row"><input id="shared-in" type="text" placeholder="Add shared capability…"><button class="btn-add" onclick="addChip('chips-shared','shared-in','sel-green')">Add</button></div>
+          </div>
+          <div class="phase-nav">
+            <button class="btn-back-nav" onclick="goPhase(2)">← Back</button>
+            <button class="btn-next-nav primary" onclick="goPhase(4)">Next: Business objects →</button>
+          </div>
+        </div>
+
+        <!-- PHASE 1d — BUSINESS OBJECTS -->
+        <div class="screen" id="screen-4">
+          <div class="progress-strip"><div class="progress-fill" style="width:62%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 1 · BRM · Step 4 of 4</div>
+            <div class="phase-title">Primary Business Objects</div>
+            <div class="phase-desc">What key information does the business need to know and track? These become the Information tier of the BRM and directly identify the systems of record needed in Phase 2.</div>
+          </div>
+          <div class="card">
+            <div class="chip-grid" id="chips-objects">
+              <div class="chip sel-purple" data-val="Customer">Customer</div>
+              <div class="chip sel-purple" data-val="Employee">Employee</div>
+              <div class="chip sel-purple" data-val="Product / merchandise">Product / merchandise</div>
+              <div class="chip sel-purple" data-val="Vendor">Vendor</div>
+              <div class="chip" data-val="Organization">Organization</div>
+              <div class="chip" data-val="Location">Location</div>
+              <div class="chip" data-val="Financial data">Financial data</div>
+              <div class="chip" data-val="Calendar / schedules">Calendar / schedules</div>
+              <div class="chip" data-val="Inventory">Inventory</div>
+              <div class="chip" data-val="Transaction">Transaction</div>
+              <div class="chip" data-val="Prospect">Prospect</div>
+            </div>
+            <div class="add-row"><input id="obj-in" type="text" placeholder="Add business object…"><button class="btn-add" onclick="addChip('chips-objects','obj-in','sel-purple')">Add</button></div>
+          </div>
+          <div class="alert alert-success">BRM is ready to generate. Continue to Phase 2 to identify the technical components that enable the business model.</div>
+          <div class="phase-nav">
+            <button class="btn-back-nav" onclick="goPhase(3)">← Back</button>
+            <button class="btn-next-nav primary" onclick="goPhase(5)">Next: Systems of record →</button>
+          </div>
+        </div>
+
+        <!-- PHASE 2a — SYSTEMS OF RECORD -->
+        <div class="screen" id="screen-5">
+          <div class="progress-strip"><div class="progress-fill" style="width:72%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 2 · TRM · Step 1 of 4</div>
+            <div class="phase-title">Systems of Record</div>
+            <div class="phase-desc">For each business object, identify the one authoritative system that owns it. Each object MUST have exactly one system of record — this is a governed Rule.</div>
+          </div>
+          <div class="alert alert-warn"><strong>Rule:</strong> Each business object MUST have exactly one system of record. Multiple SoR assignments are a governance violation requiring an exception.</div>
+          <div class="card">
+            <div class="card-title">Assign systems of record</div>
+            <div class="card-sub">Enter the system name for each business object identified in Phase 1</div>
+            <table class="data-table">
+              <thead><tr><th>Business object</th><th>System of record</th><th>Tier placement</th><th>Status</th></tr></thead>
+              <tbody id="sor-tbody"></tbody>
+            </table>
+          </div>
+          <div class="phase-nav">
+            <button class="btn-back-nav" onclick="goPhase(4)">← Back</button>
+            <button class="btn-next-nav primary" onclick="goPhase(6)">Next: Channel solutions →</button>
+          </div>
+        </div>
+
+        <!-- PHASE 2b — CHANNEL SOLUTIONS -->
+        <div class="screen" id="screen-6">
+          <div class="progress-strip"><div class="progress-fill" style="width:82%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 2 · TRM · Step 2 of 4</div>
+            <div class="phase-title">Channel Solutions</div>
+            <div class="phase-desc">For each channel, identify the technology solution that implements it. Specify which user types access each channel and which systems of record it connects to.</div>
+          </div>
+          <div class="card">
+            <div id="chan-solutions-list"></div>
+            <div class="add-row" style="margin-top:8px">
+              <input id="chan-sol-in" type="text" placeholder="Add channel solution (e.g. Salesforce Commerce Cloud)…">
+              <button class="btn-add" onclick="addChanSolution()">Add</button>
+            </div>
+          </div>
+          <div class="phase-nav">
+            <button class="btn-back-nav" onclick="goPhase(5)">← Back</button>
+            <button class="btn-next-nav primary" onclick="goPhase(7)">Next: Business services →</button>
+          </div>
+        </div>
+
+        <!-- PHASE 2c — BUSINESS SERVICES -->
+        <div class="screen" id="screen-7">
+          <div class="progress-strip"><div class="progress-fill" style="width:90%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 2 · TRM · Step 3 of 4</div>
+            <div class="phase-title">Business Services</div>
+            <div class="phase-desc">Identify the applications or services that implement each Core capability. These sit in the Service tier and are the bridge between capabilities and systems of record.</div>
+          </div>
+          <div class="alert alert-info"><strong>Rule:</strong> Business logic MUST reside in the Service tier. It MUST NOT reside in the Integration or UI & Interfaces tiers.</div>
+          <div class="card">
+            <div id="svc-list"></div>
+            <div class="add-row" style="margin-top:8px">
+              <input id="svc-name-in" type="text" placeholder="System / application name…">
+              <button class="btn-add" onclick="addService()">Add</button>
+            </div>
+          </div>
+          <div class="phase-nav">
+            <button class="btn-back-nav" onclick="goPhase(6)">← Back</button>
+            <button class="btn-next-nav primary" onclick="goPhase(8)">Next: Infrastructure →</button>
+          </div>
+        </div>
+
+        <!-- PHASE 2d — INFRASTRUCTURE -->
+        <div class="screen" id="screen-8">
+          <div class="progress-strip"><div class="progress-fill" style="width:100%"></div></div>
+          <div class="phase-header">
+            <div class="phase-tag">Phase 2 · TRM · Step 4 of 4</div>
+            <div class="phase-title">Infrastructure Components</div>
+            <div class="phase-desc">Identify the Infrastructure layer components — agents, APIs, protocols — that enable interaction with the Environment layer products identified in previous steps.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Infrastructure layer components</div>
+            <div class="card-sub">For each component, specify the Environment layer product it connects to and which tier it belongs to</div>
+            <div id="infra-list" class="system-list"></div>
+            <div class="add-row">
+              <input id="infra-name" type="text" placeholder="Infrastructure component (e.g. Splunk forwarder agent)…">
+              <button class="btn-add" onclick="addInfra()">Add</button>
+            </div>
+          </div>
+          <div class="alert alert-success">Model population complete. View your BRM and TRM using the tabs above.</div>
+          <div class="phase-nav">
+            <button class="btn-back-nav" onclick="goPhase(7)">← Back</button>
+            <button class="btn-next-nav primary" onclick="showTab('diagram')">View BRM diagram →</button>
+          </div>
+        </div>
+
+      </div><!-- /tab-builder -->
+
+      <!-- ══ GOVERNANCE TAB ══ -->
+      <div id="tab-governance" style="display:none">
+        <div class="phase-header">
+          <div class="phase-tag">Governance Library</div>
+          <div class="phase-title">Principles, Rules & Guidelines</div>
+          <div class="phase-desc">The governance library defines how components are placed and evaluated. Rules use IEEE "must / must not" and are governable — violations require a formal exception. Guidelines use "may / may not" and are advisory only. Principles provide architectural direction.</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <button onclick="filterGov('all')" id="f-all" class="chip sel-teal" style="border-radius:6px">All</button>
+          <button onclick="filterGov('rule')" id="f-rule" class="chip" style="border-radius:6px;background:var(--rule-bg);color:var(--rule-color);border-color:var(--rule-color)">Rules</button>
+          <button onclick="filterGov('guideline')" id="f-guide" class="chip" style="border-radius:6px;background:var(--guide-bg);color:var(--guide-color);border-color:var(--guide-color)">Guidelines</button>
+          <button onclick="filterGov('principle')" id="f-prin" class="chip" style="border-radius:6px;background:var(--prin-bg);color:var(--prin-color);border-color:var(--prin-color)">Principles</button>
+          <button onclick="addCustomGov()" class="btn-add" style="margin-left:auto">+ Add custom</button>
+        </div>
+        <div id="gov-list"></div>
+      </div>
+
+      <!-- ══ BRM TAB ══ -->
+      <div id="tab-diagram" style="display:none">
+        <div class="phase-header">
+          <div class="phase-tag">BRM View</div>
+          <div class="phase-title">Business Reference Model</div>
+          <div class="phase-desc">Generated from your model builder responses. Governance violations are flagged in red.</div>
+        </div>
+        <div id="brm-violations" style="margin-bottom:16px"></div>
+        <div class="brm-wrap">
+          <svg id="brm-svg" width="100%" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+
+      <!-- ══ TRM TAB ══ -->
+      <div id="tab-trm" style="display:none">
+        <div class="phase-header">
+          <div class="phase-tag">TRM View</div>
+          <div class="phase-title">Technical Reference Model</div>
+          <div class="phase-desc">Technology components mapped to TRM tiers. Governance rules evaluated against active library.</div>
+        </div>
+        <div id="trm-content"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let currentPhase = 1;
+let currentTab = 'builder';
+const coreCapabilities = [];
+const infraComponents = [];
+const chanSolutions = [];
+const services = [];
+const goals = [];
+const strats = [];
+
+// ══════════════════════════════════════════
+// GOVERNANCE LIBRARY
+// ══════════════════════════════════════════
+const govLibrary = [
+  // PRINCIPLES
+  { id:'P001', type:'principle', text:'Buy before build — evaluate market solutions before committing to custom development', scope:'Enterprise', enforcement:'advisory', active:true, implication:'When a new capability is proposed, the AI must flag if a commercial solution exists before recommending a custom build.' },
+  { id:'P002', type:'principle', text:'Design global, deliver local — architecture must support global operations while accommodating local requirements', scope:'Enterprise', enforcement:'advisory', active:true, implication:'TRM components must support multi-region deployment. Single-region-only solutions are flagged for review.' },
+  { id:'P003', type:'principle', text:'Re-use before creation — existing capabilities and components must be evaluated before new ones are created', scope:'Enterprise', enforcement:'advisory', active:true, implication:'New component proposals trigger a search of the existing TRM inventory for functional overlap.' },
+  { id:'P004', type:'principle', text:'Focus on value — prioritize investment in differentiating capabilities over commodity ones', scope:'Business Architecture', enforcement:'advisory', active:true, implication:'BRM capability nodes tagged as Differentiating receive priority scoring in investment analysis.' },
+  { id:'P005', type:'principle', text:'Established systems of record — every data domain must have one authoritative source of truth', scope:'Information Architecture', enforcement:'advisory', active:true, implication:'Each Information Tier node must be linked to exactly one Recordkeeping tier system. Zero or multiple links are flagged.' },
+
+  // RULES
+  { id:'R001', type:'rule', text:'Business logic MUST reside in the Service tier. It MUST NOT reside in the Integration, UI & Interfaces, or Data tiers.', scope:'Technology Architecture', enforcement:'hard', active:true, implication:'Any component in the Integration or UI tier that claims business processing responsibility is a governance violation requiring an exception.' },
+  { id:'R002', type:'rule', text:'Each business object MUST have exactly one system of record assigned in the Recordkeeping tier.', scope:'Information Architecture', enforcement:'hard', active:true, implication:'BRM Information tier nodes with zero or multiple SoR assignments are flagged as Rule violations. Exception required before production deployment.' },
+  { id:'R003', type:'rule', text:'The system of record for a data domain MUST reside in the Recordkeeping tier.', scope:'Information Architecture', enforcement:'hard', active:true, implication:'SoR components placed in any tier other than Recordkeeping are a governance violation. No exceptions without architecture review board approval.' },
+  { id:'R004', type:'rule', text:'All inter-tier interactions MUST occur through the Infrastructure layer of the target tier. Direct access to the Environment layer from an external tier is MUST NOT be permitted.', scope:'Technology Architecture', enforcement:'hard', active:true, implication:'Any component that bypasses Infrastructure layer interfaces to access another tier\'s Environment layer directly is flagged as a critical architectural violation.' },
+  { id:'R005', type:'rule', text:'Every channel component MUST authenticate users through the UI & Interfaces Infrastructure layer. Channel components MUST NOT implement their own authentication.', scope:'Security Architecture', enforcement:'hard', active:true, implication:'Channel solutions with embedded authentication that bypass the UI & Interfaces Infrastructure layer are flagged as security rule violations.' },
+  { id:'R006', type:'rule', text:'Integration components MUST NOT contain business logic. Orchestration of business rules MUST be performed in the Service tier.', scope:'Technology Architecture', enforcement:'hard', active:true, implication:'Integration tier components performing conditional business logic are flagged. This is the most common anti-pattern in enterprise integration.' },
+  { id:'R007', type:'rule', text:'A differentiating capability MUST NOT be implemented as a commodity SaaS solution without an architecture exception.', scope:'Business Architecture', enforcement:'soft', active:true, implication:'When a SaaS product is proposed for a Differentiating capability node, a soft flag is raised requiring documented justification.' },
+
+  // GUIDELINES
+  { id:'G001', type:'guideline', text:'Shared capabilities may use SaaS solutions where the capability is not a source of competitive differentiation.', scope:'Business Architecture', enforcement:'advisory', active:true, implication:'SaaS for Shared capabilities is an accepted pattern. No flag is raised.' },
+  { id:'G002', type:'guideline', text:'Event-driven integration may be preferred over point-to-point for cross-capability data exchange.', scope:'Integration', enforcement:'advisory', active:true, implication:'Point-to-point integration patterns between capabilities may generate an advisory recommendation to evaluate event-driven alternatives.' },
+  { id:'G003', type:'guideline', text:'Observability agents may be deployed within the Infrastructure layer of each tier to emit telemetry to the AI/Intelligence tier.', scope:'Technology Architecture', enforcement:'advisory', active:true, implication:'Tiers without observability instrumentation generate an advisory note recommending AI telemetry instrumentation.' },
+  { id:'G004', type:'guideline', text:'Data quality validation may be implemented at the point of ingestion into the Recordkeeping tier rather than downstream.', scope:'Information Architecture', enforcement:'advisory', active:true, implication:'Advisory note generated if data quality logic is found downstream of the Recordkeeping tier.' },
+];
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function goPhase(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  const navEl = document.getElementById('nav-'+n);
+  if(navEl) navEl.classList.add('active');
+  // mark previous as done
+  for(let i=0;i<n;i++){
+    const el=document.getElementById('nav-'+i);
+    if(el){el.classList.add('done');el.classList.remove('active');}
+  }
+  currentPhase = n;
+  if(n===5) renderSorTable();
+  if(n===6) renderChanSolutions();
+  if(n===7) renderServices();
+}
+
+function showTab(tab) {
+  currentTab = tab;
+  ['builder','governance','diagram','trm'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = t===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const idx = ['builder','governance','diagram','trm'].indexOf(tab);
+  document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  // show/hide sidebar
+  document.querySelector('.sidebar').style.display = tab==='builder' ? 'block' : 'none';
+  if(tab==='governance') renderGov('all');
+  if(tab==='diagram') renderBRM();
+  if(tab==='trm') renderTRM();
+}
+
+// ══════════════════════════════════════════
+// CHIP HELPERS
+// ══════════════════════════════════════════
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chip[data-val]');
+  if(!chip) return;
+  const colorClasses = ['sel-teal','sel-blue','sel-amber','sel-green','sel-purple','sel-coral'];
+  const hasColor = colorClasses.some(c => chip.classList.contains(c));
+  if(hasColor){
+    colorClasses.forEach(c => chip.classList.remove(c));
+  } else {
+    // determine default color from parent
+    const grid = chip.closest('.chip-grid');
+    if(!grid) return;
+    const firstSel = grid.querySelector('.chip.sel-teal,.chip.sel-blue,.chip.sel-amber,.chip.sel-green,.chip.sel-purple,.chip.sel-coral');
+    const clr = firstSel ? colorClasses.find(c=>firstSel.classList.contains(c)) : 'sel-teal';
+    chip.classList.add(clr||'sel-teal');
+  }
+});
+
+function addChip(gridId, inputId, colorClass) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if(!val) return;
+  const grid = document.getElementById(gridId);
+  const chip = document.createElement('div');
+  chip.className = 'chip '+colorClass;
+  chip.dataset.val = val;
+  chip.textContent = val;
+  grid.appendChild(chip);
+  input.value='';
+  input.focus();
+}
+
+function getSelected(gridId) {
+  const colorClasses = ['sel-teal','sel-blue','sel-amber','sel-green','sel-purple','sel-coral'];
+  return Array.from(document.querySelectorAll('#'+gridId+' .chip'))
+    .filter(c=>colorClasses.some(cl=>c.classList.contains(cl)))
+    .map(c=>c.dataset.val);
+}
+
+// ══════════════════════════════════════════
+// GOALS & STRATEGIES
+// ══════════════════════════════════════════
+function addGoal(){
+  const input=document.getElementById('goal-input');
+  const val=input.value.trim();if(!val)return;
+  goals.push(val);
+  const chip=document.createElement('div');
+  chip.className='chip sel-teal';chip.dataset.val=val;chip.textContent=val;
+  chip.onclick=()=>{chip.remove();goals.splice(goals.indexOf(val),1)};
+  document.getElementById('goals-list').appendChild(chip);
+  input.value='';
+}
+function addStrat(){
+  const input=document.getElementById('strat-input');
+  const val=input.value.trim();if(!val)return;
+  strats.push(val);
+  const chip=document.createElement('div');
+  chip.className='chip sel-blue';chip.dataset.val=val;chip.textContent=val;
+  chip.onclick=()=>{chip.remove();strats.splice(strats.indexOf(val),1)};
+  document.getElementById('strats-list').appendChild(chip);
+  input.value='';
+}
+document.getElementById('goal-input').addEventListener('keydown',e=>{if(e.key==='Enter')addGoal()});
+document.getElementById('strat-input').addEventListener('keydown',e=>{if(e.key==='Enter')addStrat()});
+
+// ══════════════════════════════════════════
+// CAPABILITIES WITH POSTURE
+// ══════════════════════════════════════════
+function addCapability(group){
+  const input=document.getElementById('cap-core-in');
+  const val=input.value.trim();if(!val)return;
+  coreCapabilities.push({name:val,posture:'core'});
+  renderCapList();
+  input.value='';input.focus();
+}
+function renderCapList(){
+  const list=document.getElementById('caps-core-list');
+  // pre-populate if empty
+  if(coreCapabilities.length===0){
+    ['Plan','Buy','Ship','Sell','Market & promote','Service & retain'].forEach(n=>coreCapabilities.push({name:n,posture:'core'}));
+  }
+  list.innerHTML='';
+  coreCapabilities.forEach((cap,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)';
+    row.innerHTML=`<span style="flex:1;font-size:13px">${cap.name}</span>
+    <div class="posture-row" style="margin:0">
+      <span class="posture-tag ${cap.posture==='diff'?'pt-diff':'pt-inactive'}" onclick="setPosture(${i},'diff')">Differentiating</span>
+      <span class="posture-tag ${cap.posture==='core'?'pt-core':'pt-inactive'}" onclick="setPosture(${i},'core')">Core</span>
+      <span class="posture-tag ${cap.posture==='shared'?'pt-shared':'pt-inactive'}" onclick="setPosture(${i},'shared')">Shared</span>
+    </div>
+    <button onclick="coreCapabilities.splice(${i},1);renderCapList()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px">×</button>`;
+    list.appendChild(row);
+  });
+}
+function setPosture(i,p){coreCapabilities[i].posture=p;renderCapList();}
+
+// ══════════════════════════════════════════
+// SYSTEMS OF RECORD TABLE
+// ══════════════════════════════════════════
+const sorData = {};
+function renderSorTable(){
+  const tbody=document.getElementById('sor-tbody');
+  tbody.innerHTML='';
+  const objs=getSelected('chips-objects');
+  if(objs.length===0){
+    tbody.innerHTML='<tr><td colspan="4" class="empty">No business objects defined. Return to Phase 1 Step 4.</td></tr>';
+    return;
+  }
+  objs.forEach(obj=>{
+    if(!sorData[obj]) sorData[obj]={system:'',tier:'Recordkeeping'};
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-weight:500">${obj}</td>
+      <td><input type="text" value="${sorData[obj].system}" placeholder="System name…" 
+          style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px"
+          onchange="sorData['${obj}'].system=this.value;checkSorRule()"/></td>
+      <td><select onchange="sorData['${obj}'].tier=this.value;checkSorRule()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px">
+        <option ${sorData[obj].tier==='Recordkeeping'?'selected':''}>Recordkeeping</option>
+        <option ${sorData[obj].tier==='Service'?'selected':''}>Service</option>
+        <option ${sorData[obj].tier==='UI & Interfaces'?'selected':''}>UI & Interfaces</option>
+        <option ${sorData[obj].tier==='Data'?'selected':''}>Data</option>
+      </select></td>
+      <td id="sor-status-${obj.replace(/[^a-z]/gi,'_')}"><span style="color:var(--muted);font-size:12px">—</span></td>`;
+    tbody.appendChild(tr);
+  });
+  checkSorRule();
+}
+function checkSorRule(){
+  const objs=getSelected('chips-objects');
+  objs.forEach(obj=>{
+    const d=sorData[obj];
+    const safeId=obj.replace(/[^a-z]/gi,'_');
+    const el=document.getElementById('sor-status-'+safeId);
+    if(!el)return;
+    if(!d||!d.system){el.innerHTML='<span style="color:var(--muted);font-size:11px">Pending</span>';return;}
+    if(d.tier!=='Recordkeeping'){
+      el.innerHTML='<span style="background:var(--red-l);color:var(--red);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">Rule R003 violation</span>';
+    } else {
+      el.innerHTML='<span style="background:var(--teal-l);color:var(--teal);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">Compliant</span>';
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// CHANNEL SOLUTIONS
+// ══════════════════════════════════════════
+function addChanSolution(){
+  const input=document.getElementById('chan-sol-in');
+  const val=input.value.trim();if(!val)return;
+  chanSolutions.push({name:val,channel:'',tier:'UI & Interfaces'});
+  renderChanSolutions();
+  input.value='';input.focus();
+}
+function renderChanSolutions(){
+  const list=document.getElementById('chan-solutions-list');
+  const channels=getSelected('chips-channels');
+  if(chanSolutions.length===0&&channels.length>0){
+    channels.slice(0,3).forEach(c=>chanSolutions.push({name:'',channel:c,tier:'UI & Interfaces'}));
+  }
+  list.innerHTML='';
+  if(chanSolutions.length===0){list.innerHTML='<div class="empty">No channel solutions added yet.</div>';return;}
+  chanSolutions.forEach((sol,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)';
+    row.innerHTML=`
+      <input type="text" value="${sol.name}" placeholder="Solution name (e.g. Salesforce Commerce Cloud)…" 
+        style="flex:2;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px"
+        onchange="chanSolutions[${i}].name=this.value"/>
+      <select style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px" onchange="chanSolutions[${i}].channel=this.value">
+        <option value="">— Channel —</option>
+        ${channels.map(c=>`<option ${sol.channel===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <span class="system-tier">UI & Interfaces</span>
+      <button onclick="chanSolutions.splice(${i},1);renderChanSolutions()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px">×</button>`;
+    list.appendChild(row);
+  });
+}
+
+// ══════════════════════════════════════════
+// BUSINESS SERVICES
+// ══════════════════════════════════════════
+function addService(){
+  const input=document.getElementById('svc-name-in');
+  const val=input.value.trim();if(!val)return;
+  services.push({name:val,capability:'',tier:'Service'});
+  renderServices();
+  input.value='';input.focus();
+}
+function renderServices(){
+  const list=document.getElementById('svc-list');
+  const caps=coreCapabilities.map(c=>c.name);
+  if(services.length===0&&caps.length>0){
+    caps.slice(0,3).forEach(c=>services.push({name:'',capability:c,tier:'Service'}));
+  }
+  list.innerHTML='';
+  if(services.length===0){list.innerHTML='<div class="empty">No business services added yet.</div>';return;}
+  services.forEach((svc,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)';
+    row.innerHTML=`
+      <input type="text" value="${svc.name}" placeholder="Application / service name…"
+        style="flex:2;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px"
+        onchange="services[${i}].name=this.value"/>
+      <select style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px" onchange="services[${i}].capability=this.value">
+        <option value="">— Capability —</option>
+        ${caps.map(c=>`<option ${svc.capability===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <span class="system-tier" style="background:var(--amber-l);color:var(--amber)">Service</span>
+      <button onclick="services.splice(${i},1);renderServices()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px">×</button>`;
+    list.appendChild(row);
+  });
+}
+
+// ══════════════════════════════════════════
+// INFRASTRUCTURE
+// ══════════════════════════════════════════
+function addInfra(){
+  const name=document.getElementById('infra-name').value.trim();
+  if(!name)return;
+  infraComponents.push({name,env:'',tier:'Infrastructure'});
+  renderInfra();
+  document.getElementById('infra-name').value='';
+}
+function renderInfra(){
+  const list=document.getElementById('infra-list');
+  list.innerHTML='';
+  if(infraComponents.length===0){list.innerHTML='<div class="empty">No infrastructure components added yet.</div>';return;}
+  infraComponents.forEach((c,i)=>{
+    const item=document.createElement('div');
+    item.className='system-item';
+    item.innerHTML=`
+      <span class="system-name">${c.name}</span>
+      <input type="text" value="${c.env}" placeholder="Environment product it connects to…"
+        style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif"
+        onchange="infraComponents[${i}].env=this.value"/>
+      <span class="system-tier" style="background:var(--green-l);color:var(--green)">Infrastructure</span>
+      <button class="system-remove" onclick="infraComponents.splice(${i},1);renderInfra()">×</button>`;
+    list.appendChild(item);
+  });
+}
+
+// ══════════════════════════════════════════
+// GOVERNANCE RENDERING
+// ══════════════════════════════════════════
+let govFilter = 'all';
+function filterGov(type){
+  govFilter=type;
+  renderGov(type);
+}
+function renderGov(type){
+  const list=document.getElementById('gov-list');
+  list.innerHTML='';
+  const items=govLibrary.filter(g=>type==='all'||g.type===type);
+  if(items.length===0){list.innerHTML='<div class="empty">No items match this filter.</div>';return;}
+  items.forEach(g=>{
+    const el=document.createElement('div');
+    el.className='gov-item';
+    const typeLabel=g.type==='rule'?'Rule':g.type==='guideline'?'Guideline':'Principle';
+    const typeClass=g.type==='rule'?'gt-rule':g.type==='guideline'?'gt-guide':'gt-prin';
+    const enfDot=g.enforcement==='hard'?'enf-hard':g.enforcement==='soft'?'enf-soft':'enf-adv';
+    const enfLabel=g.enforcement==='hard'?'Hard — exception required':g.enforcement==='soft'?'Soft — warning':'Advisory only';
+    el.innerHTML=`
+      <div class="gov-header" onclick="toggleGovBody(this)">
+        <span class="gov-type ${typeClass}">${typeLabel} ${g.id}</span>
+        <span class="gov-text">${g.text}</span>
+        <span class="gov-scope">${g.scope}</span>
+        <div class="${enfDot} gov-enforcement" title="${enfLabel}"></div>
+        <div class="toggle-sw ${g.active?'on':''}" onclick="event.stopPropagation();toggleGovActive('${g.id}',this)" title="${g.active?'Active':'Inactive'}"></div>
+        <span class="gov-toggle">›</span>
+      </div>
+      <div class="gov-body">
+        <div class="gov-meta">
+          <div class="gov-field">
+            <label>Enforcement level</label>
+            <select onchange="updateGov('${g.id}','enforcement',this.value)">
+              <option value="hard" ${g.enforcement==='hard'?'selected':''}>Hard — exception required</option>
+              <option value="soft" ${g.enforcement==='soft'?'selected':''}>Soft — warning only</option>
+              <option value="advisory" ${g.enforcement==='advisory'?'selected':''}>Advisory — informational</option>
+            </select>
+          </div>
+          <div class="gov-field">
+            <label>Scope</label>
+            <input type="text" value="${g.scope}" onchange="updateGov('${g.id}','scope',this.value)"/>
+          </div>
+        </div>
+        <div class="gov-implication"><strong>Model implication:</strong> ${g.implication}</div>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+function toggleGovBody(header){
+  const body=header.nextElementSibling;
+  const toggle=header.querySelector('.gov-toggle');
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  toggle.style.transform=isOpen?'':'rotate(90deg)';
+}
+function toggleGovActive(id,sw){
+  const g=govLibrary.find(x=>x.id===id);
+  if(!g)return;
+  g.active=!g.active;
+  sw.classList.toggle('on',g.active);
+}
+function updateGov(id,field,val){
+  const g=govLibrary.find(x=>x.id===id);
+  if(g) g[field]=val;
+}
+function addCustomGov(){
+  const id='C'+(govLibrary.length+1).toString().padStart('3','0');
+  const type=prompt('Type (rule/guideline/principle):','rule');
+  if(!type)return;
+  const text=prompt('Enter the governance statement:','');
+  if(!text)return;
+  govLibrary.push({id,type:type.toLowerCase(),text,scope:'Custom',enforcement:type==='rule'?'hard':'advisory',active:true,implication:'Custom — define model implication.'});
+  renderGov(govFilter);
+}
+
+// ══════════════════════════════════════════
+// BRM DIAGRAM
+// ══════════════════════════════════════════
+function renderBRM(){
+  const svg=document.getElementById('brm-svg');
+  const NS='http://www.w3.org/2000/svg';
+  svg.innerHTML='';
+
+  const customers=getSelected('chips-customers');
+  const employees=getSelected('chips-employees');
+  const businesses=getSelected('chips-biz');
+  const channels=getSelected('chips-channels');
+  const shared=getSelected('chips-shared');
+  const objects=getSelected('chips-objects');
+
+  if(coreCapabilities.length===0) renderCapList();
+
+  const colors={
+    user:{fill:'#E1F5EE',stroke:'#1D9E75',text:'#0F6E56'},
+    channel:{fill:'#E6F1FB',stroke:'#378ADD',text:'#185FA5'},
+    core:{fill:'#FAEEDA',stroke:'#EF9F27',text:'#854F0B'},
+    shared:{fill:'#EAF3DE',stroke:'#97C459',text:'#3B6D11'},
+    info:{fill:'#EEEDFE',stroke:'#AFA9EC',text:'#534AB7'},
+    diff:{fill:'#FAECE7',stroke:'#F0997B',text:'#993C1D'},
+  };
+
+  const W=800,PAD=8,NH=32,NG=5;
+  const COL_USER=130,COL_CHAN=130,COL_INFO=110;
+  const COL_CAP=W-COL_USER-COL_CHAN-COL_INFO-4*PAD;
+  const XU=PAD,XCH=XU+COL_USER+PAD,XCAP=XCH+COL_CHAN+PAD,XI=XCAP+COL_CAP+PAD;
+
+  const HDR=28;
+  const userGroups=[
+    {label:'Customers',items:customers,c:colors.user},
+    {label:'Employees',items:employees,c:{fill:'#E6F1FB',stroke:'#378ADD',text:'#185FA5'}},
+    {label:'Businesses',items:businesses,c:{fill:'#FAEEDA',stroke:'#EF9F27',text:'#854F0B'}},
+  ];
+
+  function grpH(items){return 22+(items.length||1)*(NH+NG)+NG;}
+  const userH=userGroups.reduce((a,g)=>a+grpH(g.items)+PAD,0)+PAD;
+  const chanH=HDR+PAD+(channels.length||1)*(NH+NG)+NG;
+  const coreRows=Math.ceil((coreCapabilities.length||1)/2);
+  const sharedRows=Math.ceil((shared.length||1)/2);
+  const coreH=22+PAD+coreRows*(NH+NG)+NG+6;
+  const sharedH=22+PAD+sharedRows*(NH+NG)+NG+6;
+  const capH=HDR+PAD+coreH+PAD+sharedH+PAD;
+  const infoH=HDR+PAD+(objects.length||1)*(NH+NG)+NG;
+  const FRAME_H=Math.max(userH,chanH,capH,infoH)+HDR+PAD*2;
+  const SVG_H=60+FRAME_H+30;
+
+  svg.setAttribute('viewBox',`0 0 ${W} ${SVG_H}`);
+  svg.setAttribute('height',SVG_H);
+
+  function el(tag,attrs={},text=''){
+    const e=document.createElementNS(NS,tag);
+    Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));
+    if(text)e.textContent=text;
+    return e;
+  }
+  function rect(x,y,w,h,r,fill,stroke,sw=0.8){
+    return el('rect',{x,y,width:w,height:h,rx:r,fill,stroke,'stroke-width':sw});
+  }
+  function txt(x,y,t,opts={}){
+    return el('text',{x,y,'text-anchor':opts.anchor||'middle','dominant-baseline':'central',
+      'font-family':'DM Sans,sans-serif','font-size':opts.size||11,'font-weight':opts.weight||400,fill:opts.fill||'#1a1917'},t);
+  }
+  function node(x,y,w,h,label,c,posture=''){
+    const g=el('g');
+    const fill=posture==='diff'?colors.diff.fill:posture==='shared'?colors.shared.fill:c.fill;
+    const stroke=posture==='diff'?colors.diff.stroke:posture==='shared'?colors.shared.stroke:c.stroke;
+    const textC=posture==='diff'?colors.diff.text:posture==='shared'?colors.shared.text:c.text;
+    g.appendChild(rect(x,y,w,h,5,fill,stroke));
+    const words=label.split(' ');
+    if(words.length>3||label.length>18){
+      const mid=Math.ceil(words.length/2);
+      const l1=words.slice(0,mid).join(' ');
+      const l2=words.slice(mid).join(' ');
+      g.appendChild(txt(x+w/2,y+h/2-6,l1,{size:10,weight:500,fill:textC}));
+      g.appendChild(txt(x+w/2,y+h/2+6,l2,{size:10,weight:500,fill:textC}));
+    } else {
+      g.appendChild(txt(x+w/2,y+h/2,label,{size:10,weight:500,fill:textC}));
+    }
+    return g;
+  }
+  function tierHdr(x,y,w,label,trm,c){
+    const g=el('g');
+    g.appendChild(rect(x,y,w,HDR,5,c.fill,c.stroke,1));
+    g.appendChild(txt(x+w/2,y+9,label,{size:11,weight:600,fill:c.text}));
+    g.appendChild(txt(x+w/2,y+21,trm,{size:8,fill:c.text}));
+    return g;
+  }
+
+  // Influences
+  const infs=['Competition','Environment','Technology','Regulation','Habits','Core values'];
+  const pillW=82,pillH=18,pillGap=6;
+  const inflW=infs.length*(pillW+pillGap)-pillGap;
+  const inflX=XCAP+(COL_CAP-inflW)/2;
+  svg.appendChild(txt(W/2,10,'Influences',{size:9,fill:'#993C1D',weight:600}));
+  infs.forEach((inf,i)=>{
+    const px=inflX+i*(pillW+pillGap);
+    const g=el('g');
+    g.appendChild(rect(px,16,pillW,pillH,9,'#FAECE7','#F0997B',0.8));
+    g.appendChild(txt(px+pillW/2,25,inf,{size:8,weight:500,fill:'#993C1D'}));
+    svg.appendChild(g);
+  });
+
+  const TOP=40;
+  // Outer frame
+  svg.appendChild(rect(PAD,TOP,W-PAD*2,FRAME_H,6,'none','#c8c6bc',0.8));
+
+  // Tier headers
+  svg.appendChild(tierHdr(XU,TOP,COL_USER,'User','→ Presentation',colors.user));
+  svg.appendChild(tierHdr(XCH,TOP,COL_CHAN,'Channel','→ Product',colors.channel));
+  svg.appendChild(el('rect',{x:XCAP,y:TOP,width:COL_CAP,height:HDR,rx:5,fill:'#FAEEDA',stroke:'#EF9F27','stroke-width':1}));
+  svg.appendChild(txt(XCAP+COL_CAP/2,TOP+9,'Capability','font-family DM Sans'));
+  svg.appendChild(txt(XCAP+COL_CAP/2,TOP+9,'Capability',{size:11,weight:600,fill:'#854F0B'}));
+  svg.appendChild(txt(XCAP+COL_CAP/2,TOP+21,'→ Service + Recordkeeping',{size:8,fill:'#854F0B'}));
+  svg.appendChild(tierHdr(XI,TOP,COL_INFO,'Information','→ Reporting & Analytics',colors.info));
+
+  // Dividers
+  [[XCH,TOP],[XCAP,TOP],[XI,TOP]].forEach(([x,y])=>{
+    svg.appendChild(el('line',{x1:x,y1:y,x2:x,y2:TOP+FRAME_H,stroke:'#d8d6ce','stroke-width':0.5}));
+  });
+
+  // USER TIER
+  let uy=TOP+HDR+PAD;
+  userGroups.forEach(grp=>{
+    const gh=grpH(grp.items);
+    svg.appendChild(rect(XU+PAD/2,uy,COL_USER-PAD,gh,5,'none',grp.c.stroke,0.5));
+    svg.appendChild(txt(XU+COL_USER/2,uy+10,grp.label,{size:9,weight:600,fill:grp.c.text}));
+    (grp.items.length?grp.items:['(none)']).forEach((item,i)=>{
+      svg.appendChild(node(XU+PAD,uy+18+i*(NH+NG),COL_USER-PAD*2,NH,item,grp.c));
+    });
+    uy+=gh+PAD;
+  });
+
+  // CHANNEL TIER
+  let chy=TOP+HDR+PAD;
+  (channels.length?channels:['(none)']).forEach(ch=>{
+    svg.appendChild(node(XCH+PAD/2,chy,COL_CHAN-PAD,NH,ch,colors.channel));
+    chy+=NH+NG;
+  });
+
+  // CAPABILITY TIER
+  let capy=TOP+HDR+PAD;
+  // Core section
+  svg.appendChild(rect(XCAP+PAD/2,capy,COL_CAP-PAD,coreH,5,'none',colors.core.stroke,0.5));
+  svg.appendChild(txt(XCAP+COL_CAP/2,capy+9,'Core',{size:9,weight:600,fill:colors.core.text}));
+  const nodeW=(COL_CAP-PAD*3)/2;
+  let cy=capy+18+PAD;
+  (coreCapabilities.length?coreCapabilities:[{name:'(none)',posture:'core'}]).forEach((cap,i)=>{
+    const col=i%2,row=Math.floor(i/2);
+    const cx=XCAP+PAD+col*(nodeW+PAD);
+    svg.appendChild(node(cx,cy+row*(NH+NG),nodeW,NH,cap.name,colors.core,cap.posture));
+  });
+  capy+=coreH+PAD;
+  // Horizontal divider
+  svg.appendChild(el('line',{x1:XCAP+PAD/2,y1:capy-PAD/2,x2:XCAP+COL_CAP-PAD/2,y2:capy-PAD/2,stroke:'#c8c6bc','stroke-width':0.6}));
+  // Shared section
+  svg.appendChild(rect(XCAP+PAD/2,capy,COL_CAP-PAD,sharedH,5,'none',colors.shared.stroke,0.5));
+  svg.appendChild(txt(XCAP+COL_CAP/2,capy+9,'Shared',{size:9,weight:600,fill:colors.shared.text}));
+  let sy=capy+18+PAD;
+  (shared.length?shared:['(none)']).forEach((cap,i)=>{
+    const col=i%2,row=Math.floor(i/2);
+    const sx=XCAP+PAD+col*(nodeW+PAD);
+    svg.appendChild(node(sx,sy+row*(NH+NG),nodeW,NH,cap,colors.shared));
+  });
+
+  // INFORMATION TIER
+  let iy=TOP+HDR+PAD;
+  (objects.length?objects:['(none)']).forEach(obj=>{
+    svg.appendChild(node(XI+PAD/2,iy,COL_INFO-PAD,NH,obj,colors.info));
+    iy+=NH+NG;
+  });
+
+  // Legend
+  const ly=TOP+FRAME_H+10;
+  const legend=[
+    {fill:'#FAECE7',stroke:'#F0997B',text:'#993C1D',label:'Differentiating'},
+    {fill:'#FAEEDA',stroke:'#EF9F27',text:'#854F0B',label:'Core operational'},
+    {fill:'#EAF3DE',stroke:'#97C459',text:'#3B6D11',label:'Shared/support'},
+  ];
+  let lx=XCAP;
+  legend.forEach(l=>{
+    svg.appendChild(rect(lx,ly,10,10,2,l.fill,l.stroke,0.8));
+    svg.appendChild(txt(lx+14,ly+5,l.label,{anchor:'start',size:9,fill:l.text}));
+    lx+=100;
+  });
+
+  // Governance violations
+  const violations=[];
+  const objs2=getSelected('chips-objects');
+  objs2.forEach(obj=>{
+    const d=sorData[obj];
+    if(d&&d.system&&d.tier!=='Recordkeeping') violations.push(`Rule R003: "${obj}" system of record "${d.system}" is not in the Recordkeeping tier.`);
+    if(!d||!d.system) violations.push(`Rule R002: "${obj}" has no system of record assigned.`);
+  });
+  const vDiv=document.getElementById('brm-violations');
+  vDiv.innerHTML='';
+  if(violations.length>0){
+    violations.forEach(v=>{
+      const a=document.createElement('div');
+      a.className='alert alert-warn';
+      a.innerHTML='<strong>Governance violation:</strong> '+v;
+      vDiv.appendChild(a);
+    });
+  } else if(objs2.length>0){
+    vDiv.innerHTML='<div class="alert alert-success">All governance rules are compliant for defined systems of record.</div>';
+  }
+}
+
+// ══════════════════════════════════════════
+// TRM VIEW
+// ══════════════════════════════════════════
+function renderTRM(){
+  const el=document.getElementById('trm-content');
+  const tiers=[
+    {name:'UI & Interfaces',color:'var(--blue-l)',border:'var(--blue-m)',text:'var(--blue)',
+     items:chanSolutions.filter(s=>s.name).map(s=>({name:s.name,sub:'Channel: '+s.channel,layer:'Environment'})),
+     rule:'Rule R005: Channel solutions MUST authenticate through the UI & Interfaces Infrastructure layer.'},
+    {name:'Service',color:'var(--amber-l)',border:'var(--amber-m)',text:'var(--amber)',
+     items:services.filter(s=>s.name).map(s=>({name:s.name,sub:'Capability: '+s.capability,layer:'Environment'})),
+     rule:'Rule R001: Business logic MUST reside in the Service tier.'},
+    {name:'Recordkeeping',color:'var(--purple-l)',border:'var(--purple-m)',text:'var(--purple)',
+     items:Object.entries(sorData).filter(([,d])=>d.system).map(([obj,d])=>({name:d.system,sub:'SoR for: '+obj,layer:'Environment',compliant:d.tier==='Recordkeeping'})),
+     rule:'Rule R003: Systems of record MUST reside in the Recordkeeping tier.'},
+    {name:'Infrastructure',color:'var(--green-l)',border:'var(--green-m)',text:'var(--green)',
+     items:infraComponents.map(c=>({name:c.name,sub:'Connects to: '+c.env,layer:'Infrastructure'})),
+     rule:'Rule R004: All inter-tier interactions MUST occur through the Infrastructure layer.'},
+  ];
+  el.innerHTML='';
+  tiers.forEach(tier=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.borderLeft=`4px solid ${tier.border}`;
+    card.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="card-title" style="color:${tier.text};font-size:14px">${tier.name} Tier</div>
+      <span style="font-size:11px;color:var(--muted)">${tier.items.length} component${tier.items.length!==1?'s':''}</span>
+    </div>
+    <div style="font-size:11px;font-style:italic;color:var(--muted);margin-bottom:10px;padding:6px 10px;background:var(--paper);border-radius:6px">${tier.rule}</div>`;
+    if(tier.items.length===0){
+      card.innerHTML+='<div class="empty" style="padding:16px">No components defined yet.</div>';
+    } else {
+      tier.items.forEach(item=>{
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)';
+        const compliant=item.compliant===false;
+        row.innerHTML=`
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${item.name}</div>
+            <div style="font-size:11px;color:var(--muted)">${item.sub}</div>
+          </div>
+          <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${tier.color};color:${tier.text}">${item.layer}</span>
+          ${compliant?'<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--red-l);color:var(--red);font-weight:600">Rule R003</span>':''}`;
+        card.appendChild(row);
+      });
+    }
+    el.appendChild(card);
+  });
+
+  // Active rules summary
+  const rulesCard=document.createElement('div');
+  rulesCard.className='card';
+  rulesCard.innerHTML='<div class="card-title" style="margin-bottom:10px">Active governance — Rules applied to this model</div>';
+  govLibrary.filter(g=>g.type==='rule'&&g.active).forEach(r=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)';
+    const enfColor=r.enforcement==='hard'?'var(--red)':r.enforcement==='soft'?'var(--amber)':'var(--green)';
+    row.innerHTML=`
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--rule-bg);color:var(--rule-color);white-space:nowrap">${r.id}</span>
+      <div style="flex:1;font-size:12px;line-height:1.5">${r.text}</div>
+      <span style="font-size:10px;color:${enfColor};white-space:nowrap;font-weight:600">${r.enforcement==='hard'?'Hard':'Soft'}</span>`;
+    rulesCard.appendChild(row);
+  });
+  el.appendChild(rulesCard);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderCapList();
+document.querySelectorAll('.add-row input').forEach(inp=>{
+  inp.addEventListener('keydown',e=>{
+    if(e.key!=='Enter')return;
+    const btn=inp.nextElementSibling;
+    if(btn&&btn.classList.contains('btn-add'))btn.click();
+  });
+});
+</script>
+</body>
+</html>
