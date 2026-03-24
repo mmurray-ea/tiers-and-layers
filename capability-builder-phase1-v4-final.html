@@ -144,6 +144,27 @@
   .drawer-notice.success { color:var(--cap); background:var(--cap-lt); border-color:var(--cap-md); }
 
   /* ── Import modal ── */
+
+  .src-role-btn {
+    font-family:var(--mono); font-size:9px; font-weight:500; letter-spacing:0.06em;
+    text-transform:uppercase; padding:2px 7px; border-radius:3px; cursor:pointer;
+    border:1px solid; flex-shrink:0; transition:all .15s;
+  }
+  .src-role-btn.primary { background:#E1F5EE; color:#0F6E56; border-color:#1D9E75; }
+  .src-role-btn.reference { background:#f7f6f2; color:#8a8a84; border-color:#e2e0d8; }
+  .build-hierarchy-btn {
+    width:100%; margin-top:12px; padding:9px 16px;
+    font-family:var(--sans); font-size:13px; font-weight:500;
+    background:var(--cap); color:var(--white); border:none;
+    border-radius:var(--radius); cursor:pointer; transition:background .15s;
+    display:none;
+  }
+  .build-hierarchy-btn:hover { background:#0a5240; }
+  .build-hierarchy-btn.visible { display:block; }
+  #build-status {
+    font-size:12px; color:var(--ink3); margin-top:8px;
+    line-height:1.5; font-style:italic; min-height:16px;
+  }
   #import-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:200; align-items:center; justify-content:center; }
   #import-overlay.open { display:flex; }
   #import-modal { background:var(--white); border-radius:10px; padding:24px; width:400px; max-width:90vw; border:1px solid var(--line); }
@@ -185,12 +206,14 @@
 
       <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line);">
         <button id="bootstrap-toggle" onclick="toggleBootstrap()" style="width:100%;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:space-between;text-align:left;">
-          <span style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);">Sources</span>
+          <span style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);">Sources &amp; References</span>
           <span id="bootstrap-chevron" style="font-size:11px;color:var(--ink3);transition:transform 0.2s;">▼</span>
         </button>
 
         <div id="bootstrap-body" style="display:none;margin-top:10px;">
-          <div id="sources-list" style="margin-bottom:10px;"></div>
+          <div id="sources-list" style="margin-bottom:6px;"></div>
+          <button class="build-hierarchy-btn" id="build-hierarchy-btn" onclick="buildHierarchy()">Build initial capability hierarchy</button>
+          <div id="build-status"></div>
           <div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;">Add source</div>
           <select id="bootstrap-type" onchange="onBootstrapTypeChange()" style="margin-bottom:8px;">
             <option value="">— select source type —</option>
@@ -1078,7 +1101,7 @@ function loadImportFile(file) {
         knownSources.forEach(ks => {
           if (rawSource.toLowerCase().includes(ks.key.toLowerCase())) {
             if (!state.sources.some(s => s.label === ks.key)) {
-              state.sources.push({ label: ks.key, url: ks.url, type: 'framework' });
+              state.sources.push({ label: ks.key, url: ks.url, type: 'framework', role: 'reference' });
               matched = true;
             }
           }
@@ -1086,17 +1109,17 @@ function loadImportFile(file) {
         const urlMatches = rawSource.match(/https?:\/\/[^\s,)]+/g) || [];
         urlMatches.forEach(u => {
           if (!state.sources.some(s => s.url === u)) {
-            state.sources.push({ label: u, url: u, type: 'url' });
+            state.sources.push({ label: u, url: u, type: 'url', role: 'primary' });
           }
         });
         if (!matched && !urlMatches.length && !state.sources.some(s => s.label === rawSource)) {
-          state.sources.push({ label: rawSource, url: null, type: 'note' });
+          state.sources.push({ label: rawSource, url: null, type: 'note', role: 'reference' });
         }
       }
       // Capture the filename itself as a source
       const fileName = file.name;
       if (!state.sources.some(s => s.label === fileName)) {
-        state.sources.push({ label: fileName, url: null, type: 'file' });
+        state.sources.push({ label: fileName, url: null, type: 'file', role: 'primary' });
       }
 
       const sorted=[...data.capabilities].sort((a,b)=>({L1:0,L2:1,L3:2}[a.level]||0)-({L1:0,L2:1,L3:2}[b.level]||0));
@@ -1152,17 +1175,41 @@ function addBootstrapUrlRow() {
 function renderSources() {
   const list = document.getElementById('sources-list');
   if (!list) return;
-  if (!state.sources.length) { list.innerHTML = '<div style="font-size:12px;color:var(--ink3);font-style:italic;margin-bottom:6px;">No sources recorded yet.</div>'; return; }
-  list.innerHTML = state.sources.map((s, i) => `
-    <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--line);font-size:12px;">
-      <span style="font-family:var(--mono);font-size:9px;color:var(--ink3);background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:1px 5px;flex-shrink:0;margin-top:1px;">${s.type}</span>
-      <span style="flex:1;color:var(--ink2);">${s.url ? `<a href="${escHtml(s.url)}" target="_blank" style="color:var(--cap);text-decoration:none;">${escHtml(s.label)}</a>` : escHtml(s.label)}</span>
+  const buildBtn = document.getElementById('build-hierarchy-btn');
+  if (!state.sources.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--ink3);font-style:italic;margin-bottom:6px;">No sources recorded yet.</div>';
+    if (buildBtn) buildBtn.classList.remove('visible');
+    return;
+  }
+  const hasPrimary = state.sources.some(s => s.role === 'primary');
+  if (buildBtn) buildBtn.classList.toggle('visible', hasPrimary);
+
+  list.innerHTML = state.sources.map((s, i) => {
+    const isPrimary = s.role === 'primary';
+    const nameHtml = s.url
+      ? `<a href="${escHtml(s.url)}" target="_blank" style="color:var(--cap);text-decoration:none;">${escHtml(s.label)}</a>`
+      : escHtml(s.label);
+    return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--line);font-size:12px;">
+      <button class="src-role-btn ${isPrimary ? 'primary' : 'reference'}"
+        onclick="toggleSourceRole(${i})"
+        title="${isPrimary ? 'Primary source — click to set as Reference' : 'Reference — click to set as Primary source'}">
+        ${isPrimary ? 'Primary' : 'Reference'}
+      </button>
+      <span style="flex:1;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nameHtml}</span>
       <button onclick="removeSource(${i})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px;padding:0;flex-shrink:0;" title="Remove">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function removeSource(idx) {
   state.sources.splice(idx, 1);
+  renderSources();
+}
+
+function toggleSourceRole(idx) {
+  const s = state.sources[idx];
+  if (!s) return;
+  s.role = (s.role === 'primary') ? 'reference' : 'primary';
   renderSources();
 }
 
@@ -1186,7 +1233,7 @@ function runBootstrap() {
     if (!urls.length) { setBootstrapStatus('Please enter at least one URL.'); return; }
     urls.forEach(u => {
       if (!state.sources.some(s => s.url === u)) {
-        state.sources.push({ label: u, url: u, type: 'url' }); added++;
+        state.sources.push({ label: u, url: u, type: 'url', role: 'primary' }); added++;
       }
     });
   } else if (type === 'industry') {
@@ -1196,12 +1243,12 @@ function runBootstrap() {
       if (cb.value === 'custom-url') {
         const u = document.getElementById('custom-framework-url').value.trim();
         if (u && !state.sources.some(s => s.url === u)) {
-          state.sources.push({ label: u, url: u, type: 'framework' }); added++;
+          state.sources.push({ label: u, url: u, type: 'framework', role: 'reference' }); added++;
         }
       } else if (KNOWN_URLS[cb.value]) {
         const k = KNOWN_URLS[cb.value];
         if (!state.sources.some(s => s.label === k.label)) {
-          state.sources.push({ label: k.label, url: k.url, type: 'framework' }); added++;
+          state.sources.push({ label: k.label, url: k.url, type: 'framework', role: 'reference' }); added++;
         }
       }
     });
@@ -1210,7 +1257,7 @@ function runBootstrap() {
     if (!files.length) { setBootstrapStatus('Please select at least one file.'); return; }
     Array.from(files).forEach(f => {
       if (!state.sources.some(s => s.label === f.name)) {
-        state.sources.push({ label: f.name, url: null, type: 'file' }); added++;
+        state.sources.push({ label: f.name, url: null, type: 'file', role: 'primary' }); added++;
       }
     });
   }
@@ -1234,6 +1281,112 @@ function setBootstrapStatus(msg) {
   document.getElementById('bootstrap-status').textContent = msg;
 }
 
+
+// ── Build hierarchy ────────────────────────────────────────────────────
+async function buildHierarchy() {
+  const bizName = document.getElementById('biz-name').value.trim();
+  if (!bizName) { setBuildStatus('Please enter a business name first.'); return; }
+
+  const primarySources = state.sources.filter(s => s.role === 'primary');
+  const refSources = state.sources.filter(s => s.role !== 'primary');
+
+  if (!primarySources.length) { setBuildStatus('Please mark at least one source as Primary.'); return; }
+
+  const btn = document.getElementById('build-hierarchy-btn');
+  btn.disabled = true;
+  btn.textContent = 'Building…';
+  setBuildStatus('Reading sources and generating hierarchy — this may take a moment…');
+
+  const primaryDesc = primarySources.map(s => s.label).join(', ');
+  const refDesc = refSources.length ? refSources.map(s => s.label).join(', ') : 'none specified';
+
+  const prompt = `You are an enterprise architect building a business capability model for "${bizName}".
+
+Primary sources (company-specific, used to derive the hierarchy):
+${primaryDesc}
+
+Reference frameworks (industry standards, used to validate and name capabilities correctly):
+${refDesc}
+
+Based on these sources, generate a complete business capability hierarchy as a JSON object matching this exact schema:
+{
+  "version": "2.0",
+  "phase": 1,
+  "businessName": "${bizName}",
+  "capabilities": [
+    {
+      "id": 1,
+      "name": "string",
+      "level": "L1",
+      "parentId": null,
+      "description": "The ability to... (outcome-focused, no process verbs, no technology references)",
+      "differentiating": true or false,
+      "kpis": [{"name": "string", "target": "string"}],
+      "aiFlags": [],
+      "overridden": false
+    }
+  ]
+}
+
+Rules:
+- Generate 7-10 L1 capabilities reflecting the actual business described in the primary sources
+- Generate 3-5 L2 capabilities under each L1
+- Descriptions must be outcome-focused ("The ability to..."), not process-oriented
+- Names must align with the reference framework terminology where applicable
+- Mark capabilities that are genuine competitive differentiators as differentiating: true
+- Include KPIs only where the primary source provides specific metrics
+- IDs must be unique integers; L2 parentId must match a valid L1 id
+- Return ONLY the JSON object, no explanation, no markdown code fences`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.find(b => b.type === 'text')?.text?.trim();
+    if (!text) throw new Error('No response received from AI.');
+
+    // Strip markdown fences if present
+    const clean = text.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/,'').trim();
+    const parsed = JSON.parse(clean);
+
+    if (!parsed.capabilities || !Array.isArray(parsed.capabilities)) throw new Error('Invalid JSON structure returned.');
+
+    // Load into state
+    state.capabilities = [];
+    state.nextId = 1;
+    const sorted = [...parsed.capabilities].sort((a,b) => ({L1:0,L2:1,L3:2}[a.level]||0)-({L1:0,L2:1,L3:2}[b.level]||0));
+    sorted.forEach(c => {
+      state.capabilities.push({
+        id: c.id || state.nextId, name: c.name || '', desc: c.description || '',
+        level: c.level || 'L1', parentId: c.parentId || null,
+        differentiating: !!c.differentiating, kpis: Array.isArray(c.kpis) ? c.kpis : [],
+        flags: [], overridden: false
+      });
+      if (c.id >= state.nextId) state.nextId = c.id + 1;
+    });
+
+    renderList(); renderGraph(); updateStats();
+    setBuildStatus('Hierarchy built successfully — ' + state.capabilities.length + ' capabilities loaded. Review and edit as needed.');
+    btn.textContent = 'Rebuild hierarchy';
+  } catch(err) {
+    setBuildStatus('Error: ' + err.message + '. Note: AI generation requires a hosted environment with API access.');
+  } finally {
+    btn.disabled = false;
+    if (btn.textContent === 'Building…') btn.textContent = 'Build initial capability hierarchy';
+  }
+}
+
+function setBuildStatus(msg) {
+  const el = document.getElementById('build-status');
+  if (el) el.textContent = msg;
+}
 
 function escHtml(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
