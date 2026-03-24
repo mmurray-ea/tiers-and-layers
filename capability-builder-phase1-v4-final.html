@@ -202,7 +202,7 @@
       <div class="section-label">Business</div>
 
       <label for="biz-name">Business name</label>
-      <input type="text" id="biz-name" placeholder="e.g. TJX Companies" oninput="renderGraph()">
+      <input type="text" id="biz-name" placeholder="e.g. Acme Corporation" oninput="renderGraph()">
 
       <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line);">
         <button id="bootstrap-toggle" onclick="toggleBootstrap()" style="width:100%;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:space-between;text-align:left;">
@@ -1284,9 +1284,6 @@ function setBootstrapStatus(msg) {
 
 // ── Build hierarchy ────────────────────────────────────────────────────
 async function buildHierarchy() {
-  const bizName = document.getElementById('biz-name').value.trim();
-  if (!bizName) { setBuildStatus('Please enter a business name first.'); return; }
-
   const primarySources = state.sources.filter(s => s.role === 'primary');
   const refSources = state.sources.filter(s => s.role !== 'primary');
 
@@ -1297,10 +1294,18 @@ async function buildHierarchy() {
   btn.textContent = 'Building…';
   setBuildStatus('Reading sources and generating hierarchy — this may take a moment…');
 
+  // Use whatever is in the biz-name field; if blank, the AI will infer it
+  const bizNameHint = document.getElementById('biz-name').value.trim();
+  const bizNameInstruction = bizNameHint
+    ? `The business name is "${bizNameHint}".`
+    : `Infer the business name from the primary source(s) and populate the "businessName" field accordingly.`;
+
   const primaryDesc = primarySources.map(s => s.label).join(', ');
   const refDesc = refSources.length ? refSources.map(s => s.label).join(', ') : 'none specified';
 
-  const prompt = `You are an enterprise architect building a business capability model for "${bizName}".
+  const prompt = `You are an enterprise architect building a business capability model.
+
+${bizNameInstruction}
 
 Primary sources (company-specific, used to derive the hierarchy):
 ${primaryDesc}
@@ -1312,7 +1317,7 @@ Based on these sources, generate a complete business capability hierarchy as a J
 {
   "version": "2.0",
   "phase": 1,
-  "businessName": "${bizName}",
+  "businessName": "inferred or provided business name",
   "capabilities": [
     {
       "id": 1,
@@ -1329,6 +1334,7 @@ Based on these sources, generate a complete business capability hierarchy as a J
 }
 
 Rules:
+- Derive the business name from the primary sources if not provided; use the official company name
 - Generate 7-10 L1 capabilities reflecting the actual business described in the primary sources
 - Generate 3-5 L2 capabilities under each L1
 - Descriptions must be outcome-focused ("The ability to..."), not process-oriented
@@ -1357,6 +1363,14 @@ Rules:
     const parsed = JSON.parse(clean);
 
     if (!parsed.capabilities || !Array.isArray(parsed.capabilities)) throw new Error('Invalid JSON structure returned.');
+
+    // Populate business name from returned JSON if field was blank
+    if (parsed.businessName) {
+      const bizField = document.getElementById('biz-name');
+      if (!bizField.value.trim()) {
+        bizField.value = parsed.businessName;
+      }
+    }
 
     // Load into state
     state.capabilities = [];
