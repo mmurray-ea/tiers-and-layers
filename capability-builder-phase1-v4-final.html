@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Capability Builder — Phase 1 v4</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cap:#0F6E56; --cap-lt:#E1F5EE; --cap-md:#1D9E75;
+    --flag:#A32D2D; --flag-lt:#FCEBEB; --flag-md:#E24B4A;
+    --warn:#854F0B; --warn-lt:#FAEEDA;
+    --ink:#1a1a18; --ink2:#4a4a46; --ink3:#8a8a84;
+    --line:#e2e0d8; --surface:#f7f6f2; --white:#ffffff;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+    --radius:6px;
+  }
+  body { font-family:var(--sans); background:var(--surface); color:var(--ink); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* ── Header ── */
+  header { background:var(--white); border-bottom:1px solid var(--line); padding:0 24px; height:52px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .header-left { display:flex; align-items:center; gap:12px; }
+  .phase-badge { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; background:var(--cap-lt); color:var(--cap); border:1px solid var(--cap-md); padding:3px 8px; border-radius:3px; }
+  .header-title { font-size:14px; font-weight:500; color:var(--ink); letter-spacing:-0.01em; }
+  .header-right { display:flex; align-items:center; gap:10px; }
+  .stat-pill { font-family:var(--mono); font-size:11px; color:var(--ink3); display:flex; align-items:center; gap:5px; }
+  .stat-pill strong { color:var(--ink2); font-weight:500; }
+  .hdr-btn { font-family:var(--sans); font-size:12px; font-weight:500; background:var(--white); border:1px solid var(--line); color:var(--ink2); padding:5px 12px; border-radius:var(--radius); cursor:pointer; transition:border-color .15s,color .15s; }
+  .hdr-btn:hover { border-color:var(--cap-md); color:var(--cap); }
+
+  /* ── Main layout — fixed height, two independent scroll areas ── */
+  main { display:grid; grid-template-columns:360px 1fr; flex:1; min-height:0; height:calc(100vh - 52px); overflow:hidden; }
+
+  /* ── Left panel: two independent sections ── */
+  .wizard { background:var(--white); border-right:1px solid var(--line); display:flex; flex-direction:column; overflow:hidden; height:100%; }
+  /* Entry form — capped height, scrolls internally */
+  .wizard-entry { flex:0 0 auto; max-height:58%; overflow-y:auto; border-bottom:1px solid var(--line); padding:20px 24px; }
+  /* Capabilities list — takes ALL remaining height, independent scroll */
+  .wizard-list { flex:1 1 0; overflow-y:auto; padding:20px 24px; min-height:0; }
+
+  .section-label { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink3); margin-bottom:14px; }
+  label { display:block; font-size:12px; font-weight:500; color:var(--ink2); margin-bottom:5px; margin-top:12px; }
+  label:first-of-type { margin-top:0; }
+  input[type="text"], textarea, select { width:100%; font-family:var(--sans); font-size:13px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:8px 10px; outline:none; transition:border-color .15s; appearance:none; }
+  input[type="text"]:focus, textarea:focus, select:focus { border-color:var(--cap-md); background:var(--white); }
+  textarea { resize:vertical; min-height:72px; line-height:1.5; }
+  .level-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  /* ── Validation ── */
+  #validation-area { display:none; margin-top:14px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line); }
+  #validation-area.warn { border-color:var(--warn); }
+  #validation-area.fail { border-color:var(--flag-md); }
+  .val-header { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; padding:6px 10px; }
+  .val-header.warn { background:var(--warn-lt); color:var(--warn); }
+  .val-header.fail { background:var(--flag-lt); color:var(--flag); }
+  .val-body { padding:10px 12px; background:var(--white); }
+  .val-item { font-size:12px; line-height:1.5; color:var(--ink2); padding:4px 0; border-bottom:1px solid var(--line); display:flex; gap:8px; align-items:flex-start; }
+  .val-item:last-child { border-bottom:none; }
+  .val-dot { width:6px; height:6px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+  .val-dot.warn { background:var(--warn); }
+  .val-dot.fail { background:var(--flag-md); }
+
+  /* ── Buttons ── */
+  .btn-row { display:flex; gap:8px; margin-top:14px; }
+  .btn { font-family:var(--sans); font-size:13px; font-weight:500; padding:8px 16px; border-radius:var(--radius); cursor:pointer; border:1px solid transparent; transition:all .15s; flex:1; }
+  .btn-primary { background:var(--cap); color:var(--white); border-color:var(--cap); }
+  .btn-primary:hover { background:#0a5240; }
+  .btn-secondary { background:var(--white); color:var(--ink2); border-color:var(--line); }
+  .btn-secondary:hover { border-color:var(--ink3); }
+  .btn-override { background:var(--warn-lt); color:var(--warn); border-color:var(--warn); display:none; }
+  .btn-override:hover { background:#f0dfc0; }
+  .btn-override.visible { display:block; }
+
+  /* ── Suggested description ── */
+  .ai-rewrite { display:none; margin-top:10px; border:1px solid var(--cap-md); border-radius:var(--radius); overflow:hidden; }
+  .ai-rewrite.visible { display:block; }
+  .ai-rewrite-header { background:var(--cap-lt); padding:6px 10px; font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--cap); }
+  .ai-rewrite-body { padding:10px 12px; background:var(--white); }
+  textarea.rewrite-text { font-size:12px; color:var(--ink2); line-height:1.6; font-style:italic; min-height:60px; border-left:2px solid var(--cap-md); border-top:none; border-right:none; border-bottom:none; border-radius:0; padding:4px 8px; background:transparent; width:100%; resize:vertical; }
+  textarea.rewrite-text:focus { background:var(--surface); }
+  .btn-use-rewrite { font-family:var(--sans); font-size:12px; font-weight:500; background:var(--cap); color:var(--white); border:none; border-radius:var(--radius); padding:5px 12px; cursor:pointer; margin-top:8px; }
+  .btn-use-rewrite:hover { background:#0a5240; }
+
+  /* ── Capability list ── */
+  .cap-list { display:flex; flex-direction:column; gap:4px; }
+  .cap-item { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:var(--radius); font-size:12px; background:var(--surface); border:1px solid var(--line); cursor:pointer; transition:border-color .1s; }
+  .cap-item:hover { border-color:var(--cap-md); }
+  .cap-level { font-family:var(--mono); font-size:9px; font-weight:500; padding:2px 5px; border-radius:3px; background:var(--cap-lt); color:var(--cap); flex-shrink:0; }
+  .cap-name { color:var(--ink); font-weight:500; flex:1; }
+  .cap-parent { color:var(--ink3); font-size:11px; }
+  .cap-flag { width:7px; height:7px; border-radius:50%; background:var(--flag-md); flex-shrink:0; }
+  .cap-incomplete { width:7px; height:7px; border-radius:50%; background:#EF9F27; flex-shrink:0; }
+  .empty-state { font-size:12px; color:var(--ink3); font-style:italic; padding:8px 0; }
+
+  /* ── KPI entry ── */
+  .kpi-row { display:flex; gap:6px; margin-bottom:6px; align-items:center; }
+  .kpi-row input { flex:1; font-size:12px; padding:5px 8px; }
+  .kpi-remove { background:none; border:none; color:var(--ink3); cursor:pointer; font-size:14px; padding:0 4px; line-height:1; }
+  .kpi-remove:hover { color:var(--flag-md); }
+  .btn-add-kpi { font-size:11px; font-weight:500; color:var(--cap); background:none; border:1px dashed var(--cap-md); border-radius:var(--radius); padding:4px 10px; cursor:pointer; margin-top:4px; width:100%; }
+  .btn-add-kpi:hover { background:var(--cap-lt); }
+  .diff-toggle { display:flex; align-items:center; gap:8px; margin-top:12px; }
+  .diff-toggle input[type="checkbox"] { width:16px; height:16px; accent-color:var(--cap); cursor:pointer; flex-shrink:0; }
+  .diff-toggle label { font-size:12px; font-weight:500; color:var(--ink2); cursor:pointer; margin:0; }
+  .diff-badge { font-family:var(--mono); font-size:9px; font-weight:500; padding:2px 6px; border-radius:3px; background:#EEEDFE; color:#534AB7; border:1px solid #534AB7; flex-shrink:0; }
+
+  /* ── Graph panel ── */
+  .graph-panel { display:flex; flex-direction:column; background:var(--surface); overflow:hidden; }
+  .graph-toolbar { padding:10px 20px; background:var(--white); border-bottom:1px solid var(--line); display:flex; align-items:center; gap:16px; flex-wrap:wrap; flex-shrink:0; }
+  .graph-toolbar-label { font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink2); }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink2); }
+  .legend-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+  .legend-dot.cap { border:1px solid #1D9E75; background:#E1F5EE; }
+  .legend-dot.diff { border:1px solid #534AB7; background:#EEEDFE; }
+  .legend-dot.nokpi { border-radius:50%; background:#EF9F27; width:9px; height:9px; }
+  .legend-dot.disc { border:1.5px solid #E24B4A; background:#FCEBEB; }
+  /* Graph canvas scrolls in both directions */
+  #graph-canvas { flex:1; overflow:auto; min-height:0; }
+  #graph-svg { display:block; }
+
+  /* ── Detail drawer ── */
+  #detail-drawer { display:none; position:fixed; right:0; top:52px; width:320px; height:calc(100vh - 52px); background:var(--white); border-left:1px solid var(--line); z-index:50; overflow-y:auto; padding:20px; }
+  #detail-drawer.open { display:block; }
+  .drawer-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
+  .drawer-title { font-size:15px; font-weight:600; color:var(--ink); flex:1; }
+  .drawer-close-btn { background:none; border:none; font-size:18px; cursor:pointer; color:var(--ink3); line-height:1; padding:0 0 0 8px; flex-shrink:0; }
+  .drawer-close-btn:hover { color:var(--ink); }
+  .drawer-level { font-family:var(--mono); font-size:10px; color:var(--cap); background:var(--cap-lt); border:1px solid var(--cap-md); padding:2px 7px; border-radius:3px; display:inline-block; margin-bottom:14px; }
+  .drawer-field-label { font-size:11px; font-weight:500; color:var(--ink3); text-transform:uppercase; letter-spacing:0.06em; margin-top:14px; margin-bottom:4px; }
+  .drawer-field-value { font-size:13px; color:var(--ink2); line-height:1.5; }
+  /* Renamed from "AI flag" to "Discrepancy" */
+  .drawer-flag { margin-top:10px; background:var(--flag-lt); border:1px solid var(--flag-md); border-radius:var(--radius); padding:8px 10px; font-size:12px; color:var(--flag); line-height:1.5; }
+  .drawer-flag strong { display:block; margin-bottom:3px; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; }
+  .drawer-edit-btn { font-family:var(--sans); font-size:12px; font-weight:500; padding:5px 12px; border-radius:var(--radius); cursor:pointer; border:1px solid var(--line); background:var(--white); color:var(--ink2); transition:all .15s; }
+  .drawer-edit-btn:hover { border-color:var(--cap-md); color:var(--cap); }
+  .drawer-save-btn { font-family:var(--sans); font-size:12px; font-weight:500; padding:5px 12px; border-radius:var(--radius); cursor:pointer; border:1px solid var(--cap); background:var(--cap); color:var(--white); }
+  .drawer-save-btn:hover { background:#0a5240; }
+  .drawer-delete-btn { font-family:var(--sans); font-size:12px; font-weight:500; padding:5px 12px; border-radius:var(--radius); cursor:pointer; border:1px solid var(--flag-md); background:var(--white); color:var(--flag); margin-left:auto; }
+  .drawer-delete-btn:hover { background:var(--flag-lt); }
+  .drawer-btn-row { display:flex; gap:8px; margin-top:16px; align-items:center; }
+  .drawer-notice { font-size:11px; color:var(--warn); background:var(--warn-lt); border:1px solid var(--warn); border-radius:var(--radius); padding:6px 10px; margin-top:10px; line-height:1.5; display:none; }
+  .drawer-notice.visible { display:block; }
+  .drawer-notice.success { color:var(--cap); background:var(--cap-lt); border-color:var(--cap-md); }
+
+  /* ── Import modal ── */
+  #import-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:200; align-items:center; justify-content:center; }
+  #import-overlay.open { display:flex; }
+  #import-modal { background:var(--white); border-radius:10px; padding:24px; width:400px; max-width:90vw; border:1px solid var(--line); }
+  #import-modal h3 { font-size:15px; font-weight:600; margin-bottom:8px; color:var(--ink); }
+  #import-modal p { font-size:12px; color:var(--ink3); margin-bottom:16px; line-height:1.5; }
+  #import-drop { border:2px dashed var(--line); border-radius:var(--radius); padding:24px; text-align:center; font-size:12px; color:var(--ink3); cursor:pointer; transition:border-color .15s; }
+  #import-drop:hover, #import-drop.drag-over { border-color:var(--cap-md); color:var(--cap); }
+  #import-file { display:none; }
+  #import-status { font-size:12px; margin-top:10px; min-height:18px; }
+  .import-btn-row { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="phase-badge">Phase 1 · v4</span>
+    <span class="header-title">Business Capability Builder</span>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill">L1 <strong id="count-l1">0</strong></div>
+    <div class="stat-pill">L2 <strong id="count-l2">0</strong></div>
+    <div class="stat-pill">L3 <strong id="count-l3">0</strong></div>
+    <div class="stat-pill">Discrepancies <strong id="count-flags" style="color:var(--flag-md)">0</strong></div>
+    <button class="hdr-btn" id="import-btn">Import JSON</button>
+    <button class="hdr-btn" onclick="exportModel()">Export JSON</button>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: Entry form + scrollable capability list as two independent sections -->
+  <div class="wizard">
+
+    <div class="wizard-entry">
+      <div class="section-label">Business</div>
+
+      <label for="biz-name">Business name</label>
+      <input type="text" id="biz-name" placeholder="e.g. TJX Companies" oninput="renderGraph()">
+
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line);">
+        <button id="bootstrap-toggle" onclick="toggleBootstrap()" style="width:100%;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:space-between;text-align:left;">
+          <span style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);">Sources</span>
+          <span id="bootstrap-chevron" style="font-size:11px;color:var(--ink3);transition:transform 0.2s;">▼</span>
+        </button>
+
+        <div id="bootstrap-body" style="display:none;margin-top:10px;">
+          <div id="sources-list" style="margin-bottom:10px;"></div>
+          <div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;">Add source</div>
+          <select id="bootstrap-type" onchange="onBootstrapTypeChange()" style="margin-bottom:8px;">
+            <option value="">— select source type —</option>
+            <option value="url">Web URL (annual report, company site, etc.)</option>
+            <option value="industry">Industry reference framework</option>
+            <option value="file">Local file upload</option>
+          </select>
+
+          <div id="bootstrap-url-section" style="display:none;margin-top:10px;">
+            <label>URL</label>
+            <input type="text" id="bootstrap-url" placeholder="https://...">
+            <div id="bootstrap-url-list" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
+            <button class="btn-add-kpi" id="bootstrap-add-url-btn" style="margin-top:6px;">+ Add another URL</button>
+          </div>
+
+          <div id="bootstrap-industry-section" style="display:none;margin-top:10px;">
+            <label>Suggested industry frameworks</label>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;" id="industry-list">
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="apqc-retail" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">APQC Retail PCF</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://www.apqc.org/process-frameworks/industry-specific-process-frameworks" target="_blank" style="color:var(--cap);">apqc.org</a> — off-price, omni-channel retail</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="apqc-cross" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">APQC Cross-Industry PCF</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://www.apqc.org/process-frameworks" target="_blank" style="color:var(--cap);">apqc.org</a> — universal enterprise capabilities</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="togaf-bm" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">TOGAF Business Architecture</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://www.opengroup.org/togaf" target="_blank" style="color:var(--cap);">opengroup.org</a> — capability mapping</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="bian" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">BIAN Service Landscape</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://bian.org/servicelandscape/" target="_blank" style="color:var(--cap);">bian.org</a> — financial services</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="tmforum" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">TM Forum eTOM</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://www.tmforum.org/oda/business-architecture/business-process-framework/" target="_blank" style="color:var(--cap);">tmforum.org</a> — telecoms &amp; digital</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="custom-url" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">Custom URL</strong><br><input type="text" id="custom-framework-url" placeholder="https://..." style="margin-top:4px;font-size:12px;padding:4px 8px;" onclick="event.stopPropagation()"></span>
+              </label>
+            </div>
+          </div>
+
+          <div id="bootstrap-file-section" style="display:none;margin-top:10px;">
+            <label>Upload file(s)</label>
+            <div id="bootstrap-drop" style="border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;font-size:12px;color:var(--ink3);cursor:pointer;margin-top:4px;">
+              Drop files here or click to browse<br><span style="font-size:11px;">(PDF, Word, text, or CSV)</span>
+            </div>
+            <input type="file" id="bootstrap-file" accept=".pdf,.doc,.docx,.txt,.csv" multiple style="display:none;">
+            <div id="bootstrap-file-list" style="margin-top:6px;font-size:12px;color:var(--ink2);"></div>
+          </div>
+
+          <div id="bootstrap-status" style="font-size:12px;color:var(--ink3);margin-top:8px;min-height:16px;font-style:italic;"></div>
+          <button class="btn btn-primary" id="bootstrap-btn" style="margin-top:10px;display:none;" onclick="runBootstrap()">Add to sources</button>
+        </div><!-- end bootstrap-body -->
+      </div><!-- end bootstrap outer -->
+
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line);">
+      <div class="section-label">Add capability</div>
+
+      <label for="cap-name">Capability name</label>
+      <input type="text" id="cap-name" placeholder="e.g. Merchandise Allocation">
+
+      <label for="cap-desc">Description <span style="font-weight:400;color:var(--ink3)">(plain language)</span></label>
+      <textarea id="cap-desc" placeholder="Describe what this capability enables the business to do and what outcome it produces. Avoid describing how it is done."></textarea>
+
+      <div class="level-row" style="margin-top:12px;">
+        <div>
+          <label for="cap-level">Level</label>
+          <select id="cap-level">
+            <option value="L1">L1 — top level</option>
+            <option value="L2">L2 — sub-capability</option>
+            <option value="L3">L3 — detail capability</option>
+          </select>
+        </div>
+        <div>
+          <label for="cap-parent">Parent capability</label>
+          <select id="cap-parent" disabled><option value="">— not required —</option></select>
+        </div>
+      </div>
+
+      <div class="diff-toggle">
+        <input type="checkbox" id="cap-diff">
+        <label for="cap-diff">Differentiating capability</label>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="section-label" style="margin-bottom:6px;">KPIs <span style="font-weight:400;font-style:italic;color:var(--ink3)">(optional)</span></div>
+        <div id="kpi-list"></div>
+        <button class="btn-add-kpi" id="add-kpi-btn">+ Add KPI</button>
+      </div>
+
+      <div id="validation-area"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="clear-btn">Clear</button>
+        <button class="btn btn-primary" id="validate-btn">Validate &amp; Add</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-override" id="override-btn">Add anyway (override warnings)</button>
+      </div>
+
+      <div class="ai-rewrite" id="ai-rewrite">
+        <div class="ai-rewrite-header">Suggested description — edit before using</div>
+        <div class="ai-rewrite-body">
+          <textarea class="rewrite-text" id="ai-rewrite-text" rows="4"></textarea>
+          <button class="btn-use-rewrite" id="use-rewrite-btn">Use this description &amp; add</button>
+        </div>
+      </div>
+      </div><!-- end add capability section -->
+    </div><!-- end wizard-entry -->
+      <div class="section-label">Capabilities defined <span id="total-count" style="font-weight:600;color:var(--ink2)">0</span></div>
+      <div class="cap-list" id="cap-list">
+        <div class="empty-state">No capabilities added yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Graph with independent scroll -->
+  <div class="graph-panel">
+    <div class="graph-toolbar">
+      <span class="graph-toolbar-label">Live model</span>
+      <div class="legend-item"><div class="legend-dot cap"></div> Capability</div>
+      <div class="legend-item"><div class="legend-dot diff"></div> Differentiating capability</div>
+      <div class="legend-item"><div class="legend-dot nokpi"></div> No KPIs</div>
+      <div class="legend-item"><div class="legend-dot disc"></div> Discrepancy</div>
+      <span style="margin-left:auto;font-size:11px;color:var(--ink3)">Click any node for detail / edit</span>
+    </div>
+    <div id="graph-canvas">
+      <svg id="graph-svg" width="800" height="500"></svg>
+    </div>
+  </div>
+</main>
+
+<div id="detail-drawer"><div id="drawer-content"></div></div>
+
+<div id="import-overlay">
+  <div id="import-modal">
+    <h3>Import capability model</h3>
+    <p>Load a previously exported JSON file to restore or continue building a model. Existing capabilities will be replaced. Imported entries are revalidated on load.</p>
+    <div id="import-drop"><div>Drop a JSON file here or click to browse</div></div>
+    <input type="file" id="import-file" accept=".json">
+    <div id="import-status"></div>
+    <div class="import-btn-row">
+      <button class="drawer-edit-btn" id="import-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const state = {
+  capabilities: [],
+  nextId: 1,
+  pendingEntry: null,
+  pendingRewrite: null,
+  suppressedWarnings: new Set(),
+  businessName: '',
+  sources: []   // { label, url, type } — accumulated across imports and manual additions
+};
+
+// ── Validation ─────────────────────────────────────────────────────────
+const PROCESS_VERB_PATTERNS = [
+  { pattern:/\bsubmit\s+(a |an |the |for |request|form|issue|ticket|claim|report)/i, label:'submit' },
+  { pattern:/\b(execute|executes|executing)\b/i, label:'execute' },
+  { pattern:/\b(perform|performs|performing)\s+(the |a |an )?(?!well|better|best|poorly)/i, label:'perform' },
+  { pattern:/\brun\s+(the |a |an |this )?(process|workflow|report|job|task|batch)/i, label:'run' },
+  { pattern:/\b(process|processes)\s+(the |a |an )?(request|order|payment|transaction|claim|application)/i, label:'process' },
+  { pattern:/\b(approve|approves|approving)\b/i, label:'approve' },
+  { pattern:/\b(review|reviews|reviewing)\s+(the |a |an |each |all )?(request|application|submission|document|form)/i, label:'review' },
+  { pattern:/\b(send|sends|sending)\s+(the |a |an )?(notification|alert|email|message|report)/i, label:'send' },
+  { pattern:/\b(calculat|generat\s+report|track\s+the|monitor\s+the|log\s+the|creat\s+a\s+(?:request|ticket|task)|updat\s+the|delet\s+the|fetch\s+the|retriev\s+the|notif|trigger|schedul|dispatch|handl\s+the|coordinat\s+the|manag\s+request|workflow|step-by-step|procedure|task list|activity list)/i, label:'process activity' }
+];
+
+// Context-aware technology detection — require explicit product name context, not substring
+const TECH_PATTERNS = [
+  { pattern:/\bsap\b(?!\s*[a-z])/i, label:'SAP' },
+  { pattern:/\boracle\b/i, label:'Oracle' },
+  { pattern:/\bsalesforce\b/i, label:'Salesforce' },
+  { pattern:/\bworkday\b/i, label:'Workday' },
+  { pattern:/\bservicenow\b/i, label:'ServiceNow' },
+  { pattern:/\bjira\b/i, label:'Jira' },
+  { pattern:/\bsharepoint\b/i, label:'SharePoint' },
+  // "excel" only as standalone word meaning the spreadsheet, not part of "excellence"
+  { pattern:/\bexcel\b(?!l)/i, label:'Excel' },
+  // "erp" only as acronym, not substring of "enterprise"
+  { pattern:/\berp\b/i, label:'ERP' },
+  { pattern:/\bcrm\b/i, label:'CRM' },
+  // "database" only as explicit standalone reference
+  { pattern:/\bdatabase\b/i, label:'database' },
+  // "system" only when clearly referencing a specific system, not "information systems" broadly
+  { pattern:/\b(the|a|an|our|its)\s+system\b/i, label:'specific system' },
+  // "platform" only as a specific product reference, not conceptual capability name
+  { pattern:/\b(the|a|an|our|its|this)\s+platform\b/i, label:'specific platform' },
+  // "application" only as specific software reference
+  { pattern:/\b(the|a|an|our)\s+application\b/i, label:'specific application' },
+  { pattern:/\bsoftware\b(?!\s+(engineer|developer|development|architecture|design|testing|quality))/i, label:'software product' },
+  { pattern:/\b(the|a|specific)\s+tool\b/i, label:'specific tool' }
+];
+
+// Context-aware org scope detection — require clear org unit reference, not common words
+const ORG_PATTERNS = [
+  { pattern:/\b(a |the |our |specific |by |within a )(department|division|team|group|business unit)\b/i, label:'org unit' },
+  // "unit" only when preceding by org-context words, not in "communities" or "unit of measure"
+  { pattern:/\b(business|org|organizational|operating)\s+unit\b/i, label:'business unit' },
+  { pattern:/\b(north america|emea|apac|latam)\b/i, label:'geography' },
+  { pattern:/\b(corporate|headquarters)\s+(only|specific|team|function)\b/i, label:'HQ scope' }
+];
+
+const ORG_BOUNDARY_PATTERNS = [/\bus\b(?!e|ed|er|ing|ual|age|ually|iness|tomers|tomary)/i, /\beu\b/i, /\buk\b/i];
+
+function validate(name, desc, level, parentId, excludeId) {
+  const issues = [];
+  const combined = name + ' ' + desc;
+
+  // What not How
+  const procMatch = PROCESS_VERB_PATTERNS.find(p => p.pattern.test(combined));
+  if (procMatch) {
+    issues.push({ type:'warn', rule:'What not How',
+      msg:'The description contains activity language ("' + procMatch.label + '"). Capabilities define outcomes, not actions. Try describing what the business can do rather than the steps it takes.' });
+  }
+
+  // Outcome present
+  if (desc.trim().length < 20) {
+    issues.push({ type:'warn', rule:'Outcome missing',
+      msg:'The description is very short. Add enough detail to identify the business outcome this capability produces.' });
+  }
+
+  // Technology reference — context-aware
+  const techMatch = TECH_PATTERNS.find(p => p.pattern.test(combined));
+  if (techMatch) {
+    issues.push({ type:'warn', rule:'Technology reference',
+      msg:'The name or description appears to reference a specific technology ("' + techMatch.label + '"). Capabilities should remain technology-neutral to survive system changes.' });
+  }
+
+  // Org/geography scope — context-aware
+  const orgMatch = ORG_PATTERNS.find(p => p.pattern.test(combined));
+  const orgBoundaryMatch = !orgMatch && ORG_BOUNDARY_PATTERNS.find(p => p.test(combined));
+  if (orgMatch || orgBoundaryMatch) {
+    const matched = orgMatch ? orgMatch.label : (combined.match(orgBoundaryMatch)||[''])[0];
+    issues.push({ type:'warn', rule:'Org or geography scope',
+      msg:'This appears scoped to a specific org unit or geography ("' + matched.trim() + '"). Enterprise capabilities should be cross-organizational.' });
+  }
+
+  // Overlap
+  if (!state.suppressedWarnings.has('overlap')) {
+    const parentIdInt = parentId ? parseInt(parentId) : null;
+    const excludedIds = new Set();
+    if (excludeId != null) excludedIds.add(parseInt(excludeId));
+    if (parentIdInt) {
+      excludedIds.add(parentIdInt);
+      state.capabilities.filter(c => c.parentId === parentIdInt).forEach(c => excludedIds.add(c.id));
+      let anc = state.capabilities.find(c => c.id === parentIdInt);
+      while (anc) { excludedIds.add(anc.id); anc = anc.parentId ? state.capabilities.find(c => c.id === anc.parentId) : null; }
+    }
+    const similar = state.capabilities.find(c => {
+      if (excludedIds.has(c.id)) return false;
+      const existing = (c.name + ' ' + c.desc).toLowerCase();
+      const words = name.toLowerCase().split(' ').filter(w => w.length > 4);
+      return words.filter(w => existing.includes(w)).length >= 2;
+    });
+    if (similar) {
+      issues.push({ type:'warn', rule:'Potential overlap',
+        msg:'This may overlap with "' + similar.name + '" already in the model. Review both before adding to ensure mutual exclusivity.' });
+    }
+  }
+
+  // Parent required
+  if ((level === 'L2' || level === 'L3') && !parentId) {
+    issues.push({ type:'fail', rule:'Parent required',
+      msg:'A ' + level + ' capability must have a parent. Select a parent capability before adding.' });
+  }
+
+  // L1 count — one-time advisory at 11
+  if (level === 'L1' && !state.suppressedWarnings.has('l1count')) {
+    const l1count = state.capabilities.filter(c => c.level === 'L1' && c.id !== excludeId).length;
+    if (l1count === 10) {
+      issues.push({ type:'warn', rule:'L1 count advisory',
+        msg:'You now have more than 10 L1 capabilities, which exceeds the recommended maximum. Consider whether any can be consolidated or moved to L2. This advisory will not appear again.' });
+    }
+  }
+
+  // Name empty
+  if (!name.trim()) {
+    issues.push({ type:'fail', rule:'Name required', msg:'Enter a capability name.' });
+  }
+
+  return issues;
+}
+
+// ── Form ───────────────────────────────────────────────────────────────
+function onLevelChange() {
+  const level = document.getElementById('cap-level').value;
+  document.getElementById('cap-parent').disabled = level === 'L1';
+  refreshParentOptions(level);
+}
+
+function refreshParentOptions(level, selectedId) {
+  const parentSel = document.getElementById('cap-parent');
+  if (level === 'L1') { parentSel.innerHTML = '<option value="">— not required —</option>'; return; }
+  const eligible = level === 'L2'
+    ? state.capabilities.filter(c => c.level === 'L1')
+    : state.capabilities.filter(c => c.level === 'L2');
+  if (!eligible.length) {
+    parentSel.innerHTML = `<option value="" disabled>${level==='L2'?'— no L1 defined yet —':'— no L2 defined yet —'}</option>`;
+    return;
+  }
+  parentSel.innerHTML = '<option value="">— select parent —</option>';
+  eligible.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = computeNumber(c) + '  ' + c.name;
+    if (selectedId && c.id === selectedId) opt.selected = true;
+    parentSel.appendChild(opt);
+  });
+}
+
+function clearForm() {
+  document.getElementById('cap-name').value = '';
+  document.getElementById('cap-desc').value = '';
+  document.getElementById('cap-level').value = 'L1';
+  document.getElementById('cap-diff').checked = false;
+  document.getElementById('kpi-list').innerHTML = '';
+  onLevelChange();
+  hideValidation();
+  state.pendingEntry = null;
+  state.pendingRewrite = null;
+  const keep = new Set([...state.suppressedWarnings].filter(w => w === 'l1count'));
+  state.suppressedWarnings = keep;
+}
+
+function hideValidation() {
+  const va = document.getElementById('validation-area');
+  va.style.display = 'none'; va.innerHTML = '';
+  document.getElementById('override-btn').classList.remove('visible');
+  document.getElementById('ai-rewrite').classList.remove('visible');
+  document.getElementById('ai-rewrite-text').value = '';
+  state.pendingRewrite = null;
+}
+
+function showValidation(issues, name, desc) {
+  const va = document.getElementById('validation-area');
+  if (!issues.length) { va.style.display='none'; return; }
+  const hasFail = issues.some(i => i.type==='fail');
+  va.className = hasFail ? 'fail' : 'warn';
+  va.style.display = 'block';
+  va.innerHTML = `
+    <div class="val-header ${hasFail?'fail':'warn'}">${hasFail?'Cannot add — fix required':'Review before adding'}</div>
+    <div class="val-body">${issues.map(i=>`
+      <div class="val-item">
+        <div class="val-dot ${i.type}"></div>
+        <div><strong style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink3)">${i.rule}</strong><br>${i.msg}</div>
+      </div>`).join('')}
+    </div>`;
+  if (!hasFail) {
+    document.getElementById('override-btn').classList.add('visible');
+    requestRewrite(name, desc);
+  } else {
+    document.getElementById('override-btn').classList.remove('visible');
+  }
+}
+
+function getKPIs(containerId) {
+  const kpis = [];
+  document.querySelectorAll('#' + (containerId||'kpi-list') + ' .kpi-row').forEach(r => {
+    const n = r.querySelector('.kpi-name-input').value.trim();
+    const t = r.querySelector('.kpi-target-input').value.trim();
+    if (n) kpis.push({ name:n, target:t });
+  });
+  return kpis;
+}
+
+function addKPIRow(name='', target='', containerId='kpi-list') {
+  const list = document.getElementById(containerId);
+  const row = document.createElement('div');
+  row.className = 'kpi-row';
+  row.innerHTML = `<input class="kpi-name-input" type="text" placeholder="KPI name" value="${escHtml(name)}" style="flex:2"><input class="kpi-target-input" type="text" placeholder="Target" value="${escHtml(target)}" style="flex:1"><button class="kpi-remove">✕</button>`;
+  row.querySelector('.kpi-remove').addEventListener('click', () => row.remove());
+  list.appendChild(row);
+}
+
+function submitCapability() {
+  const name = document.getElementById('cap-name').value.trim();
+  const desc = document.getElementById('cap-desc').value.trim();
+  const level = document.getElementById('cap-level').value;
+  const parentId = document.getElementById('cap-parent').value || null;
+  const diff = document.getElementById('cap-diff').checked;
+  const kpis = getKPIs();
+
+  if (state.pendingEntry &&
+      state.pendingEntry.name === name && state.pendingEntry.desc === desc &&
+      state.pendingEntry.level === level && String(state.pendingEntry.parentId) === String(parentId)) {
+    addCapability(name, desc, level, parentId, state.pendingEntry.flags, true, diff, kpis);
+    state.pendingEntry = null; state.suppressedWarnings = new Set([...state.suppressedWarnings].filter(w=>w==='l1count'));
+    return;
+  }
+
+  state.pendingEntry = null;
+  const issues = validate(name, desc, level, parentId);
+  const hasFail = issues.some(i => i.type==='fail');
+
+  if (issues.length > 0) {
+    showValidation(issues, name, desc);
+    if (!hasFail) {
+      state.pendingEntry = { name, desc, level, parentId, diff, kpis, flags: issues.map(i=>i.msg) };
+      issues.forEach(i => {
+        if (i.rule==='Potential overlap') state.suppressedWarnings.add('overlap');
+        if (i.rule==='L1 count advisory') state.suppressedWarnings.add('l1count');
+      });
+    }
+    return;
+  }
+  state.suppressedWarnings = new Set([...state.suppressedWarnings].filter(w=>w==='l1count'));
+  addCapability(name, desc, level, parentId, [], false, diff, kpis);
+}
+
+function addWithOverride() {
+  if (!state.pendingEntry) return;
+  const { name, desc, level, parentId, flags, diff, kpis } = state.pendingEntry;
+  addCapability(name, desc, level, parentId, flags, true, diff, kpis);
+  state.pendingEntry = null;
+}
+
+function addCapability(name, desc, level, parentId, flags, overridden, diff, kpis) {
+  state.capabilities.push({
+    id: state.nextId++, name, desc, level,
+    parentId: parentId ? parseInt(parentId) : null,
+    flags: flags||[], overridden:!!overridden,
+    differentiating:!!diff, kpis:kpis||[]
+  });
+  clearForm();
+  renderList(); renderGraph(); updateStats();
+}
+
+// ── Numbering ──────────────────────────────────────────────────────────
+function computeNumber(cap) {
+  if (cap.level==='L1') return String(state.capabilities.filter(c=>c.level==='L1').findIndex(c=>c.id===cap.id)+1);
+  const parent = state.capabilities.find(c=>c.id===cap.parentId);
+  if (!parent) return '?';
+  const siblings = state.capabilities.filter(c=>c.level===cap.level && c.parentId===cap.parentId);
+  return computeNumber(parent) + '.' + (siblings.findIndex(c=>c.id===cap.id)+1);
+}
+
+// ── List (depth-first sort) ────────────────────────────────────────────
+function depthFirstSort(caps) {
+  const sorted = [];
+  function walk(parentId) {
+    caps.filter(c=>c.parentId===parentId)
+      .sort((a,b)=>computeNumber(a).localeCompare(computeNumber(b),undefined,{numeric:true}))
+      .forEach(c=>{ sorted.push(c); walk(c.id); });
+  }
+  caps.filter(c=>c.level==='L1')
+    .sort((a,b)=>computeNumber(a).localeCompare(computeNumber(b),undefined,{numeric:true}))
+    .forEach(c=>{ sorted.push(c); walk(c.id); });
+  return sorted;
+}
+
+function renderList() {
+  const list = document.getElementById('cap-list');
+  if (!state.capabilities.length) { list.innerHTML='<div class="empty-state">No capabilities added yet.</div>'; return; }
+  list.innerHTML = '';
+  depthFirstSort(state.capabilities).forEach(c => {
+    const parent = c.parentId ? state.capabilities.find(x=>x.id===c.parentId) : null;
+    const num = computeNumber(c);
+    const div = document.createElement('div');
+    div.className = 'cap-item';
+    div.innerHTML = `
+      <span class="cap-level">${escHtml(num)}</span>
+      <span class="cap-name">${escHtml(c.name)}</span>
+      ${parent?`<span class="cap-parent">↳ ${escHtml(parent.name)}</span>`:''}
+      ${c.differentiating?'<span class="diff-badge">DIFF</span>':''}
+      ${c.flags&&c.flags.length?'<span class="cap-flag" title="Discrepancy noted"></span>':''}
+      ${!c.kpis.length?'<span class="cap-incomplete" title="No KPIs defined"></span>':''}`;
+    div.addEventListener('click', ()=>openDrawer(c.id));
+    list.appendChild(div);
+  });
+}
+
+function updateStats() {
+  document.getElementById('count-l1').textContent = state.capabilities.filter(c=>c.level==='L1').length;
+  document.getElementById('count-l2').textContent = state.capabilities.filter(c=>c.level==='L2').length;
+  document.getElementById('count-l3').textContent = state.capabilities.filter(c=>c.level==='L3').length;
+  document.getElementById('count-flags').textContent = state.capabilities.filter(c=>c.flags&&c.flags.length).length;
+  document.getElementById('total-count').textContent = state.capabilities.length;
+}
+
+// ── Graph — org-chart style hierarchical layout ────────────────────────
+const NODE_W = { L1:130, L2:110, L3:96 };
+const NODE_H_BASE = { L1:44, L2:38, L3:32 };
+const V_GAP = 80;    // vertical gap between levels
+const H_GAP = 14;    // horizontal gap between siblings
+const MARGIN = 30;
+
+function computeNodeHeight(c, nw) {
+  const maxChars = Math.floor((nw - 16) / 7);
+  const words = c.name.split(' ');
+  const lines = []; let cur = '';
+  words.forEach(w => { const t = cur?cur+' '+w:w; if(t.length<=maxChars){cur=t;}else{if(cur)lines.push(cur);cur=w;} });
+  if(cur) lines.push(cur);
+  const numH=14, lineH=15;
+  return Math.max(NODE_H_BASE[c.level]||38, numH+3+lines.length*lineH+16);
+}
+
+function layoutTree(caps) {
+  // Build tree structure
+  const byId = {};
+  caps.forEach(c => byId[c.id] = { cap:c, children:[], x:0, y:0, w:NODE_W[c.level]||110 });
+  const roots = [];
+  caps.forEach(c => {
+    if (c.parentId && byId[c.parentId]) byId[c.parentId].children.push(byId[c.id]);
+    else roots.push(byId[c.id]);
+  });
+
+  // Compute subtree width bottom-up
+  function subtreeWidth(node) {
+    const nw = node.w;
+    if (!node.children.length) { node.subtreeW = nw; return nw; }
+    const childTotal = node.children.reduce((sum,ch) => sum + subtreeWidth(ch), 0)
+                     + (node.children.length-1) * H_GAP;
+    node.subtreeW = Math.max(nw, childTotal);
+    return node.subtreeW;
+  }
+  roots.forEach(r => subtreeWidth(r));
+
+  // Assign x positions top-down
+  function assignX(node, leftEdge) {
+    node.x = leftEdge + (node.subtreeW - node.w) / 2;
+    let cx = leftEdge;
+    node.children.forEach(ch => { assignX(ch, cx); cx += ch.subtreeW + H_GAP; });
+  }
+  let cursor = MARGIN;
+  roots.forEach(r => { assignX(r, cursor); cursor += r.subtreeW + H_GAP * 2; });
+
+  // Assign y by level
+  const levelY = { L1: MARGIN, L2: MARGIN + NODE_H_BASE.L1 + V_GAP, L3: MARGIN + NODE_H_BASE.L1 + V_GAP + NODE_H_BASE.L2 + V_GAP };
+  Object.values(byId).forEach(node => { node.y = levelY[node.cap.level] || MARGIN; });
+
+  return byId;
+}
+
+function renderGraph() {
+  const svg = document.getElementById('graph-svg');
+  const caps = state.capabilities;
+  const bizName = (document.getElementById('biz-name').value.trim()) || 'Business';
+
+  if (!caps.length) {
+    svg.setAttribute('width', 800); svg.setAttribute('height', 400);
+    svg.innerHTML = `<text x="400" y="200" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" fill="#8a8a84">Add a capability to see the model</text>`;
+    return;
+  }
+
+  const byId = layoutTree(caps);
+  const allNodes = Object.values(byId);
+
+  // Root node constants
+  const ROOT_W = 160; const ROOT_H = 44; const ROOT_V_GAP = 70;
+  // Shift all capability nodes down for root
+  allNodes.forEach(n => { n.y += ROOT_H + ROOT_V_GAP; });
+
+  const svgW = Math.max(800, ...allNodes.map(n => n.x + n.w + MARGIN));
+  const svgH = Math.max(500, ...allNodes.map(n => { const nh=computeNodeHeight(n.cap,n.w); return n.y+nh+80; }));
+  svg.setAttribute('width', svgW); svg.setAttribute('height', svgH);
+
+  // Root position — centered over L1 span
+  const l1Nodes = caps.filter(c=>c.level==='L1').map(c=>byId[c.id]).filter(Boolean);
+  const l1Left = l1Nodes.length ? Math.min(...l1Nodes.map(n=>n.x)) : svgW/2-ROOT_W/2;
+  const l1Right = l1Nodes.length ? Math.max(...l1Nodes.map(n=>n.x+n.w)) : svgW/2+ROOT_W/2;
+  const rootX = Math.max(MARGIN, (l1Left+l1Right)/2 - ROOT_W/2);
+  const rootY = MARGIN;
+  const rootBX = rootX + ROOT_W/2;
+  const rootBY = rootY + ROOT_H;
+  const midY = rootBY + (l1Nodes.length ? (l1Nodes[0].y - rootBY)/2 : ROOT_V_GAP/2);
+
+  let html = `<defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+
+  // Root → L1 connectors
+  l1Nodes.forEach(n => {
+    const tx = n.x+n.w/2; const ty = n.y;
+    if (Math.abs(rootBX-tx)<2) {
+      html += `<line x1="${rootBX}" y1="${rootBY}" x2="${tx}" y2="${ty}" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)" fill="none"/>`;
+    } else {
+      html += `<path d="M${rootBX},${rootBY} L${rootBX},${midY} L${tx},${midY} L${tx},${ty}" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"/>`;
+    }
+  });
+
+  // Capability edges
+  caps.forEach(c => {
+    if (!c.parentId||!byId[c.parentId]||!byId[c.id]) return;
+    const p=byId[c.parentId]; const ch=byId[c.id];
+    const pnh=computeNodeHeight(p.cap,p.w);
+    const x1=p.x+p.w/2; const y1=p.y+pnh;
+    const x2=ch.x+ch.w/2; const y2=ch.y;
+    const emid=(y1+y2)/2;
+    const flagged=c.flags&&c.flags.length;
+    const color=flagged?'#E24B4A':'#1D9E75';
+    const dash=flagged?'4 3':'none';
+    if (Math.abs(x1-x2)<2) {
+      html+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="1.2" stroke-dasharray="${dash}" marker-end="url(#arr)" fill="none"/>`;
+    } else {
+      html+=`<path d="M${x1},${y1} L${x1},${emid} L${x2},${emid} L${x2},${y2}" fill="none" stroke="${color}" stroke-width="1.2" stroke-dasharray="${dash}" marker-end="url(#arr)"/>`;
+    }
+  });
+
+  // Open slot stubs
+  caps.filter(c=>c.level==='L1'&&!caps.some(x=>x.parentId===c.id)).forEach(c=>{
+    const node=byId[c.id]; if(!node) return;
+    const nh=computeNodeHeight(c,node.w);
+    const cx=node.x+node.w/2; const cy=node.y+nh;
+    html+=`<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy+34}" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+    <circle cx="${cx}" cy="${cy+38}" r="4" fill="none" stroke="#b4b2a9" stroke-width="1"/>
+    <text x="${cx}" y="${cy+52}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#b4b2a9">no L2 yet</text>`;
+  });
+
+  // Discrepancy labels
+  caps.filter(c=>c.flags&&c.flags.length).forEach(c=>{
+    const node=byId[c.id]; if(!node) return;
+    const nh=computeNodeHeight(c,node.w);
+    html+=`<rect x="${node.x}" y="${node.y+nh+4}" width="${node.w}" height="16" rx="3" fill="#FCEBEB" stroke="#E24B4A" stroke-width="0.5"/>
+    <text x="${node.x+node.w/2}" y="${node.y+nh+14}" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="9" fill="#A32D2D">discrepancy — click to review</text>`;
+  });
+
+  // Root node (drawn after connectors so it sits on top)
+  const bizLabel = bizName.length>20 ? bizName.substring(0,19)+'…' : bizName;
+  html+=`<g>
+    <rect x="${rootX}" y="${rootY}" width="${ROOT_W}" height="${ROOT_H}" rx="8" fill="#1a1a18" stroke="#1a1a18" stroke-width="0.5"/>
+    <text x="${rootX+ROOT_W/2}" y="${rootY+ROOT_H/2}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#ffffff">${escHtml(bizLabel)}</text>
+  </g>`;
+
+  // Capability nodes
+  caps.forEach(c=>{
+    const node=byId[c.id]; if(!node) return;
+    const flagged=c.flags&&c.flags.length;
+    const stroke=flagged?'#E24B4A':c.differentiating?'#534AB7':'#1D9E75';
+    const fill=flagged?'#FCEBEB':c.differentiating?'#EEEDFE':'#E1F5EE';
+    const textColor=flagged?'#A32D2D':c.differentiating?'#3C3489':'#085041';
+    const numColor=flagged?'#E24B4A':c.differentiating?'#534AB7':'#0F6E56';
+    const sw=(flagged||c.differentiating)?1.5:0.5;
+    const inset=sw/2;
+    const nw=node.w; const num=computeNumber(c);
+    const maxChars=Math.floor((nw-16)/7);
+    const words=c.name.split(' ');
+    const lines=[]; let cur='';
+    words.forEach(w=>{const t=cur?cur+' '+w:w;if(t.length<=maxChars){cur=t;}else{if(cur)lines.push(cur);cur=w;}});
+    if(cur)lines.push(cur);
+    const numH=14,lineH=15;
+    const textBlockH=numH+3+lines.length*lineH;
+    const nh=Math.max(NODE_H_BASE[c.level]||38,textBlockH+16);
+    const blockStartY=node.y+(nh-textBlockH)/2;
+    const numY=blockStartY+numH*0.85;
+    const nameY=numY+3+lineH*0.85;
+    const tspans=lines.map((ln,i)=>`<tspan x="${node.x+nw/2}" dy="${i===0?0:lineH}">${escHtml(ln)}</tspan>`).join('');
+    const missingKpi=!c.kpis.length;
+    html+=`<g style="cursor:pointer" onclick="openDrawer(${c.id})">
+      <rect x="${node.x+inset}" y="${node.y+inset}" width="${nw-sw}" height="${nh-sw}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
+      ${missingKpi?`<circle cx="${node.x+nw-6}" cy="${node.y+6}" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"/>`:''}
+      <text x="${node.x+nw/2}" y="${numY}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="${numColor}">${escHtml(num)}</text>
+      <text x="${node.x+nw/2}" y="${nameY}" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="${textColor}">${tspans}</text>
+    </g>`;
+  });
+
+  const hasDiff = caps.some(c => c.differentiating);
+  const hasMissingKpi = caps.some(c => !c.kpis.length);
+  if (hasDiff || hasMissingKpi) {
+    let legendX = 10;
+    if (hasDiff) {
+      html += `<rect x="${legendX}" y="${svgH-26}" width="8" height="8" rx="2" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="${legendX+12}" y="${svgH-19}" font-family="IBM Plex Sans,sans-serif" font-size="9" fill="#534AB7">Differentiating</text>`;
+      legendX += 100;
+    }
+    if (hasMissingKpi) {
+      html += `<circle cx="${legendX+4}" cy="${svgH-22}" r="4" fill="#EF9F27"/>
+      <text x="${legendX+12}" y="${svgH-19}" font-family="IBM Plex Sans,sans-serif" font-size="9" fill="#854F0B">No KPIs</text>`;
+    }
+  }
+
+  svg.innerHTML = html;
+}
+
+// ── Drawer ─────────────────────────────────────────────────────────────
+function openDrawer(id) {
+  const cap = state.capabilities.find(c=>c.id===id);
+  if(!cap) return;
+  const children = state.capabilities.filter(c=>c.parentId===id);
+  const num = computeNumber(cap);
+  const eligibleParents = cap.level==='L2'
+    ? state.capabilities.filter(c=>c.level==='L1'&&c.id!==id)
+    : cap.level==='L3' ? state.capabilities.filter(c=>c.level==='L2'&&c.id!==id) : [];
+  const parentOpts = eligibleParents.map(c=>`<option value="${c.id}" ${c.id===cap.parentId?'selected':''}>${computeNumber(c)}  ${escHtml(c.name)}</option>`).join('');
+  const kpiRows = (cap.kpis||[]).map((k,i)=>`
+    <div class="kpi-row" id="dkpi-${i}">
+      <input class="kpi-name-input" type="text" placeholder="KPI name" value="${escHtml(k.name)}" style="flex:2">
+      <input class="kpi-target-input" type="text" placeholder="Target" value="${escHtml(k.target)}" style="flex:1">
+      <button class="kpi-remove" data-idx="${i}">✕</button>
+    </div>`).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-header">
+      <div class="drawer-title"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--cap);margin-right:6px;">${escHtml(num)}</span>${escHtml(cap.name)}</div>
+      <button class="drawer-close-btn" id="drawer-x">✕</button>
+    </div>
+    <span class="drawer-level">${cap.level}</span>
+    <div class="drawer-field-label">Capability name</div>
+    <input type="text" id="edit-name" value="${escHtml(cap.name)}">
+    <div class="drawer-field-label">Description</div>
+    <textarea id="edit-desc" style="min-height:80px;line-height:1.5;">${escHtml(cap.desc)}</textarea>
+    ${cap.level!=='L1'?`<div class="drawer-field-label">Parent capability</div><select id="edit-parent">${parentOpts}</select>`:''}
+    <div class="diff-toggle" style="margin-top:12px;">
+      <input type="checkbox" id="edit-diff" ${cap.differentiating?'checked':''}>
+      <label for="edit-diff">Differentiating capability</label>
+    </div>
+    <div class="drawer-field-label" style="margin-top:14px;">KPIs</div>
+    <div id="drawer-kpi-list">${kpiRows}</div>
+    <button class="btn-add-kpi" id="drawer-add-kpi">+ Add KPI</button>
+    ${children.length?`<div class="drawer-field-label">Child capabilities (${children.length})</div><div class="drawer-field-value">${children.map(c=>computeNumber(c)+'  '+escHtml(c.name)).join('<br>')}</div>`:''}
+    ${cap.flags&&cap.flags.length ? cap.flags.map(f=>`<div class="drawer-flag"><strong>Discrepancy</strong>${escHtml(f)}</div>`).join('') : ''}
+    <div class="drawer-notice" id="drawer-notice"></div>
+    <div class="drawer-btn-row">
+      <button class="drawer-save-btn" id="drawer-save">Save changes</button>
+      <button class="drawer-edit-btn" id="drawer-cancel">Cancel</button>
+      <button class="drawer-delete-btn" id="drawer-delete">Delete</button>
+    </div>`;
+
+  document.getElementById('detail-drawer').classList.add('open');
+  document.getElementById('drawer-x').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-cancel').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-save').addEventListener('click', ()=>saveEdit(id));
+  document.getElementById('drawer-delete').addEventListener('click', ()=>deleteCapability(id));
+  document.getElementById('drawer-add-kpi').addEventListener('click', ()=>addKPIRow('','','drawer-kpi-list'));
+  document.querySelectorAll('#drawer-kpi-list .kpi-remove').forEach(btn=>btn.addEventListener('click',()=>btn.closest('.kpi-row').remove()));
+}
+
+function closeDrawer() { document.getElementById('detail-drawer').classList.remove('open'); }
+
+function saveEdit(id) {
+  const cap = state.capabilities.find(c=>c.id===id);
+  if(!cap) return;
+  const newName = document.getElementById('edit-name').value.trim();
+  const newDesc = document.getElementById('edit-desc').value.trim();
+  const parentSel = document.getElementById('edit-parent');
+  const newParentId = parentSel ? (parseInt(parentSel.value)||null) : cap.parentId;
+  const newDiff = document.getElementById('edit-diff').checked;
+  const newKpis = [];
+  document.querySelectorAll('#drawer-kpi-list .kpi-row').forEach(r=>{
+    const n=r.querySelector('.kpi-name-input').value.trim();
+    const t=r.querySelector('.kpi-target-input').value.trim();
+    if(n) newKpis.push({name:n,target:t});
+  });
+  if(!newName){showDrawerNotice('Capability name cannot be empty.',false);return;}
+  const issues = validate(newName, newDesc, cap.level, newParentId?String(newParentId):null, id);
+  const hardFails = issues.filter(i=>i.type==='fail'&&i.rule!=='Parent required');
+  if(hardFails.length){showDrawerNotice(hardFails[0].msg,false);return;}
+  cap.name=newName; cap.desc=newDesc;
+  if(newParentId!==undefined) cap.parentId=newParentId;
+  cap.differentiating=newDiff; cap.kpis=newKpis;
+  const warnIssues = issues.filter(i=>i.type==='warn');
+  cap.flags=warnIssues.map(i=>i.msg); cap.overridden=warnIssues.length>0;
+  closeDrawer(); renderList(); renderGraph(); updateStats();
+}
+
+function showDrawerNotice(msg, success) {
+  const el=document.getElementById('drawer-notice'); if(!el) return;
+  el.textContent=msg; el.className='drawer-notice visible'+(success?' success':'');
+}
+
+function deleteCapability(id) {
+  const cap=state.capabilities.find(c=>c.id===id); if(!cap) return;
+  const children=state.capabilities.filter(c=>c.parentId===id);
+  if(children.length){showDrawerNotice('Cannot delete — '+children.length+' child capability(s) exist. Remove or re-parent them first.',false);return;}
+  if(!confirm('Delete "'+cap.name+'"? This cannot be undone.')) return;
+  state.capabilities=state.capabilities.filter(c=>c.id!==id);
+  closeDrawer(); renderList(); renderGraph(); updateStats();
+}
+
+// ── Rewrite engine ─────────────────────────────────────────────────────
+const PROC_VERB_MAP = [
+  {pattern:/\b(perform and provide|perform|performs)\b/gi,replace:'deliver'},
+  {pattern:/\b(provide services to|providing services to)\b/gi,replace:'support'},
+  {pattern:/\b(execute|executes|executing)\b/gi,replace:'achieve'},
+  {pattern:/\b(process|processes|processing)\b/gi,replace:'manage'},
+  {pattern:/\b(submit|submits|submitting)\s+(a |an |the |for |request|form|issue|ticket|claim|report)/gi,replace:'raise '},
+  {pattern:/\b(approve|approves|approving)\b/gi,replace:'govern'},
+  {pattern:/\b(handle|handles|handling)\b/gi,replace:'manage'},
+  {pattern:/\b(track|tracks|tracking)\b/gi,replace:'maintain visibility into'},
+  {pattern:/\b(monitor|monitors|monitoring)\b/gi,replace:'maintain oversight of'},
+  {pattern:/\b(send|sends|sending)\b/gi,replace:'communicate'},
+  {pattern:/\b(receive|receives|receiving)\b/gi,replace:'capture'},
+  {pattern:/\b(create|creates|creating)\b/gi,replace:'establish'},
+  {pattern:/\b(update|updates|updating)\b/gi,replace:'maintain'},
+  {pattern:/\b(review|reviews|reviewing)\b/gi,replace:'evaluate'},
+  {pattern:/\b(schedule|schedules|scheduling)\b/gi,replace:'coordinate'},
+  {pattern:/\b(notify|notifies|notifying)\b/gi,replace:'communicate'},
+  {pattern:/\b(generate report[s]?)\b/gi,replace:'provide insight'},
+  {pattern:/\b(calculate|calculates|calculating)\b/gi,replace:'determine'},
+];
+
+function localRewrite(name, desc) {
+  let text = desc.trim(); const original = text;
+  PROC_VERB_MAP.forEach(({pattern,replace})=>{text=text.replace(pattern,replace);});
+  text=text.replace(/\s{2,}/g,' ').trim();
+  text=text.replace(/^(and|or|to|,)\s+/i,'').replace(/\s+(and|or),?\s*$/i,'');
+  const hasOpener=/^(the ability|ability to|the capacity|enables|ensures|provides the foundation|empowers)/i.test(text);
+  if(!hasOpener) text=`The ability to ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+  text=text.replace(/^Ability to /i,'The ability to ');
+  if(!/[.!?]$/.test(text)) text+='.';
+  const sentences=text.match(/[^.!?]+[.!?]+/g);
+  if(sentences&&sentences.length>2) text=sentences.slice(0,2).join(' ').trim();
+  const norm=s=>s.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+  if(norm(text)===norm(original)) return null;
+  return text;
+}
+
+function requestRewrite(name, desc) {
+  const rewriteEl=document.getElementById('ai-rewrite');
+  const suggestion=localRewrite(name,desc);
+  if(!suggestion){rewriteEl.classList.remove('visible');state.pendingRewrite=null;return;}
+  rewriteEl.classList.add('visible');
+  state.pendingRewrite=suggestion;
+  document.getElementById('ai-rewrite-text').value=suggestion;
+}
+
+function useRewrite() {
+  const rewriteText=document.getElementById('ai-rewrite-text').value.trim();
+  if(!rewriteText) return;
+  document.getElementById('cap-desc').value=rewriteText;
+  state.suppressedWarnings.add('overlap');
+  state.suppressedWarnings.add('org');
+  state.suppressedWarnings.add('proc');
+  state.pendingEntry=null; state.pendingRewrite=null;
+  hideValidation(); submitCapability();
+}
+
+// ── Export ─────────────────────────────────────────────────────────────
+function exportModel() {
+  const data={version:'4.0',phase:1,exported:new Date().toISOString(),
+    businessName: document.getElementById('biz-name').value.trim(),
+    sources: state.sources,
+    capabilities:state.capabilities.map(c=>({
+      id:c.id,name:c.name,description:c.desc,level:c.level,parentId:c.parentId,
+      differentiating:c.differentiating,kpis:c.kpis,aiFlags:c.flags,overridden:c.overridden
+    }))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='ea-capability-model-phase1.json'; a.click();
+}
+
+// ── Import ─────────────────────────────────────────────────────────────
+function openImport(){document.getElementById('import-overlay').classList.add('open');document.getElementById('import-status').textContent='';}
+function closeImport(){document.getElementById('import-overlay').classList.remove('open');}
+
+function loadImportFile(file) {
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try {
+      const data=JSON.parse(e.target.result);
+      if(!data.capabilities||!Array.isArray(data.capabilities)) throw new Error('Invalid format — no capabilities array found.');
+      state.capabilities=[]; state.nextId=1;
+
+      // Extract business name from JSON if present
+      if (data.businessName) {
+        document.getElementById('biz-name').value = data.businessName;
+      }
+
+      // Restore sources from exported JSON if present
+      if (Array.isArray(data.sources)) {
+        data.sources.forEach(s => {
+          if (!state.sources.some(x => x.label === s.label)) {
+            state.sources.push(s);
+          }
+        });
+      }
+
+      // Parse legacy "source" string field — extract named framework references
+      if (data.source && typeof data.source === 'string') {
+        const rawSource = data.source;
+        const knownSources = [
+          { key:'APQC Retail PCF', url:'https://www.apqc.org/process-frameworks/industry-specific-process-frameworks' },
+          { key:'APQC Cross-Industry', url:'https://www.apqc.org/process-frameworks' },
+          { key:'BIAN', url:'https://bian.org/servicelandscape/' },
+          { key:'TOGAF', url:'https://www.opengroup.org/togaf' },
+          { key:'TM Forum', url:'https://www.tmforum.org/oda/business-architecture/business-process-framework/' },
+        ];
+        let matched = false;
+        knownSources.forEach(ks => {
+          if (rawSource.toLowerCase().includes(ks.key.toLowerCase())) {
+            if (!state.sources.some(s => s.label === ks.key)) {
+              state.sources.push({ label: ks.key, url: ks.url, type: 'framework' });
+              matched = true;
+            }
+          }
+        });
+        const urlMatches = rawSource.match(/https?:\/\/[^\s,)]+/g) || [];
+        urlMatches.forEach(u => {
+          if (!state.sources.some(s => s.url === u)) {
+            state.sources.push({ label: u, url: u, type: 'url' });
+          }
+        });
+        if (!matched && !urlMatches.length && !state.sources.some(s => s.label === rawSource)) {
+          state.sources.push({ label: rawSource, url: null, type: 'note' });
+        }
+      }
+      // Capture the filename itself as a source
+      const fileName = file.name;
+      if (!state.sources.some(s => s.label === fileName)) {
+        state.sources.push({ label: fileName, url: null, type: 'file' });
+      }
+
+      const sorted=[...data.capabilities].sort((a,b)=>({L1:0,L2:1,L3:2}[a.level]||0)-({L1:0,L2:1,L3:2}[b.level]||0));
+      sorted.forEach(c=>{
+        state.capabilities.push({
+          id:c.id||state.nextId, name:c.name||'', desc:c.description||'',
+          level:c.level||'L1', parentId:c.parentId||null,
+          differentiating:!!c.differentiating, kpis:Array.isArray(c.kpis)?c.kpis:[],
+          flags:Array.isArray(c.aiFlags)?c.aiFlags:[], overridden:!!c.overridden
+        });
+        if(c.id>=state.nextId) state.nextId=c.id+1;
+      });
+      // On import: only re-flag for technology and org scope
+      state.capabilities.forEach(c=>{
+        if(c.overridden) return;
+        const issues=validate(c.name,c.desc,c.level,c.parentId?String(c.parentId):null);
+        c.flags=issues.filter(i=>i.type==='warn'&&(i.rule==='Technology reference'||i.rule==='Org or geography scope')).map(i=>i.msg);
+      });
+      closeImport();
+      renderList(); renderGraph(); updateStats(); renderSources();
+    } catch(err){
+      document.getElementById('import-status').innerHTML=`<span style="color:var(--flag)">Error: ${escHtml(err.message)}</span>`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Bootstrap source UI ────────────────────────────────────────────────
+function toggleBootstrap() {
+  const body = document.getElementById('bootstrap-body');
+  const chevron = document.getElementById('bootstrap-chevron');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chevron.style.transform = open ? '' : 'rotate(180deg)';
+}
+function onBootstrapTypeChange() {
+  const type = document.getElementById('bootstrap-type').value;
+  document.getElementById('bootstrap-url-section').style.display = type==='url' ? 'block' : 'none';
+  document.getElementById('bootstrap-industry-section').style.display = type==='industry' ? 'block' : 'none';
+  document.getElementById('bootstrap-file-section').style.display = type==='file' ? 'block' : 'none';
+  document.getElementById('bootstrap-btn').style.display = type ? 'block' : 'none';
+}
+
+function addBootstrapUrlRow() {
+  const list = document.getElementById('bootstrap-url-list');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:6px;margin-top:4px;';
+  row.innerHTML = `<input type="text" placeholder="https://..." style="flex:1;font-size:12px;padding:5px 8px;"><button class="kpi-remove" style="flex-shrink:0;">✕</button>`;
+  row.querySelector('.kpi-remove').addEventListener('click', ()=>row.remove());
+  list.appendChild(row);
+}
+
+function renderSources() {
+  const list = document.getElementById('sources-list');
+  if (!list) return;
+  if (!state.sources.length) { list.innerHTML = '<div style="font-size:12px;color:var(--ink3);font-style:italic;margin-bottom:6px;">No sources recorded yet.</div>'; return; }
+  list.innerHTML = state.sources.map((s, i) => `
+    <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--line);font-size:12px;">
+      <span style="font-family:var(--mono);font-size:9px;color:var(--ink3);background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:1px 5px;flex-shrink:0;margin-top:1px;">${s.type}</span>
+      <span style="flex:1;color:var(--ink2);">${s.url ? `<a href="${escHtml(s.url)}" target="_blank" style="color:var(--cap);text-decoration:none;">${escHtml(s.label)}</a>` : escHtml(s.label)}</span>
+      <button onclick="removeSource(${i})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px;padding:0;flex-shrink:0;" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+function removeSource(idx) {
+  state.sources.splice(idx, 1);
+  renderSources();
+}
+
+function runBootstrap() {
+  const type = document.getElementById('bootstrap-type').value;
+  if (!type) { setBootstrapStatus('Please select a source type.'); return; }
+
+  const KNOWN_URLS = {
+    'apqc-retail':  { label:'APQC Retail PCF', url:'https://www.apqc.org/process-frameworks/industry-specific-process-frameworks' },
+    'apqc-cross':   { label:'APQC Cross-Industry PCF', url:'https://www.apqc.org/process-frameworks' },
+    'togaf-bm':     { label:'TOGAF Business Architecture', url:'https://www.opengroup.org/togaf' },
+    'bian':         { label:'BIAN Service Landscape', url:'https://bian.org/servicelandscape/' },
+    'tmforum':      { label:'TM Forum eTOM', url:'https://www.tmforum.org/oda/business-architecture/business-process-framework/' },
+  };
+
+  let added = 0;
+  if (type === 'url') {
+    const urls = [document.getElementById('bootstrap-url').value.trim(),
+      ...Array.from(document.querySelectorAll('#bootstrap-url-list input')).map(i=>i.value.trim())
+    ].filter(Boolean);
+    if (!urls.length) { setBootstrapStatus('Please enter at least one URL.'); return; }
+    urls.forEach(u => {
+      if (!state.sources.some(s => s.url === u)) {
+        state.sources.push({ label: u, url: u, type: 'url' }); added++;
+      }
+    });
+  } else if (type === 'industry') {
+    const checked = Array.from(document.querySelectorAll('#industry-list input[type="checkbox"]:checked'));
+    if (!checked.length) { setBootstrapStatus('Please select at least one framework.'); return; }
+    checked.forEach(cb => {
+      if (cb.value === 'custom-url') {
+        const u = document.getElementById('custom-framework-url').value.trim();
+        if (u && !state.sources.some(s => s.url === u)) {
+          state.sources.push({ label: u, url: u, type: 'framework' }); added++;
+        }
+      } else if (KNOWN_URLS[cb.value]) {
+        const k = KNOWN_URLS[cb.value];
+        if (!state.sources.some(s => s.label === k.label)) {
+          state.sources.push({ label: k.label, url: k.url, type: 'framework' }); added++;
+        }
+      }
+    });
+  } else if (type === 'file') {
+    const files = document.getElementById('bootstrap-file').files;
+    if (!files.length) { setBootstrapStatus('Please select at least one file.'); return; }
+    Array.from(files).forEach(f => {
+      if (!state.sources.some(s => s.label === f.name)) {
+        state.sources.push({ label: f.name, url: null, type: 'file' }); added++;
+      }
+    });
+  }
+
+  if (added > 0) {
+    renderSources();
+    // Auto-open sources panel so user sees the result
+    const body = document.getElementById('bootstrap-body');
+    if (body.style.display === 'block') {
+      setBootstrapStatus(added + ' source(s) added.');
+    }
+  } else {
+    setBootstrapStatus('Source(s) already recorded.');
+  }
+  // Reset type selector
+  document.getElementById('bootstrap-type').value = '';
+  onBootstrapTypeChange();
+}
+
+function setBootstrapStatus(msg) {
+  document.getElementById('bootstrap-status').textContent = msg;
+}
+
+
+function escHtml(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Init ───────────────────────────────────────────────────────────────
+document.getElementById('cap-level').addEventListener('change',onLevelChange);
+document.getElementById('clear-btn').addEventListener('click',clearForm);
+document.getElementById('validate-btn').addEventListener('click',submitCapability);
+document.getElementById('override-btn').addEventListener('click',addWithOverride);
+document.getElementById('use-rewrite-btn').addEventListener('click',useRewrite);
+document.getElementById('add-kpi-btn').addEventListener('click',()=>addKPIRow());
+document.getElementById('import-btn').addEventListener('click',openImport);
+document.getElementById('import-cancel-btn').addEventListener('click',closeImport);
+document.getElementById('bootstrap-add-url-btn').addEventListener('click', addBootstrapUrlRow);
+
+// Bootstrap file drop
+const bsDrop = document.getElementById('bootstrap-drop');
+const bsFile = document.getElementById('bootstrap-file');
+bsDrop.addEventListener('click', ()=>bsFile.click());
+bsFile.addEventListener('change', e=>{
+  const names = Array.from(e.target.files).map(f=>f.name);
+  document.getElementById('bootstrap-file-list').textContent = names.join(', ');
+});
+bsDrop.addEventListener('dragover', e=>{e.preventDefault();bsDrop.style.borderColor='var(--cap-md)';});
+bsDrop.addEventListener('dragleave', ()=>{bsDrop.style.borderColor='';});
+bsDrop.addEventListener('drop', e=>{
+  e.preventDefault(); bsDrop.style.borderColor='';
+  const names = Array.from(e.dataTransfer.files).map(f=>f.name);
+  document.getElementById('bootstrap-file-list').textContent = names.join(', ');
+});
+const importDrop=document.getElementById('import-drop');
+const importFile=document.getElementById('import-file');
+importDrop.addEventListener('click',()=>importFile.click());
+importFile.addEventListener('change',e=>loadImportFile(e.target.files[0]));
+importDrop.addEventListener('dragover',e=>{e.preventDefault();importDrop.classList.add('drag-over');});
+importDrop.addEventListener('dragleave',()=>importDrop.classList.remove('drag-over'));
+importDrop.addEventListener('drop',e=>{e.preventDefault();importDrop.classList.remove('drag-over');loadImportFile(e.dataTransfer.files[0]);});
+onLevelChange(); renderGraph(); renderSources();
+</script>
+</body>
+</html>
