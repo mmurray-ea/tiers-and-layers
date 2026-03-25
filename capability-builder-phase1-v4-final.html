@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Business Capability Builder — Phase 1 v4</title>
+<title>Business Capability Builder — Phase 1 v4.5</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -226,7 +226,7 @@
 
 <header>
   <div class="header-left">
-    <span class="phase-badge">Phase 1 · v4</span>
+    <span class="phase-badge">Phase 1 · v4.5</span>
     <span class="header-title">Business Capability Builder</span>
   </div>
   <div class="header-right">
@@ -428,6 +428,9 @@ const state = {
   sources: []   // { label, url, type } — accumulated across imports and manual additions
 };
 
+// ── Utility (defined first — used throughout) ──────────────────────────
+function escHtml(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 // ── Validation ─────────────────────────────────────────────────────────
 const PROCESS_VERB_PATTERNS = [
   { pattern:/\bsubmit\s+(a |an |the |for |request|form|issue|ticket|claim|report)/i, label:'submit' },
@@ -463,7 +466,13 @@ const TECH_PATTERNS = [
   // "system" fires only as a specific product reference
   // Excluded: 'across the system', 'within the system', 'throughout the system' (=org/network),
   //           'revenue management system(s)', 'management systems' (generic category, usually plural)
-  { pattern:/(?<!across |within |throughout |management |reservation |loyalty |property |information )\b(the|a|an|its)\s+system\b(?!s\b)/i, label:'specific system' },
+  // "system" fires only for specific named technology systems — no lookbehind (browser compat)
+  { pattern:/\b(the|a|an|its)\s+system\b(?!s\b)/i,
+    validate(str) {
+      if (/\b(across|within|throughout)\s+(the|our|its)\s+system\b/i.test(str)) return false;
+      if (/\b(management|reservation|loyalty|property|information|operating|payment|legacy)\s+systems?\b/i.test(str)) return false;
+      return true;
+    }, label:'specific system' },
   // "platform" only as a specific product reference, not conceptual capability name
   { pattern:/\b(the|a|an|our|its|this)\s+platform\b/i, label:'specific platform' },
   // "application" only as specific software reference
@@ -509,7 +518,7 @@ function validate(name, desc, level, parentId, excludeId) {
   }
 
   // Technology reference — context-aware
-  const techMatch = TECH_PATTERNS.find(p => p.pattern.test(combined));
+  const techMatch = TECH_PATTERNS.find(p => p.pattern.test(combined) && (!p.validate || p.validate(combined)));
   if (techMatch) {
     issues.push({ type:'warn', rule:'Technology reference',
       msg:'The name or description appears to reference a specific technology ("' + techMatch.label + '"). Capabilities should remain technology-neutral to survive system changes.' });
@@ -1125,9 +1134,38 @@ function loadImportFile(file) {
       if(!data.capabilities||!Array.isArray(data.capabilities)) throw new Error('Invalid format — no capabilities array found.');
       state.capabilities=[]; state.nextId=1;
 
-      // Extract business name from JSON if present
-      if (data.businessName) {
-        document.getElementById('biz-name').value = data.businessName;
+      // Extract business name — handle empty string, missing field, and legacy format
+      let importedBizName = (data.businessName || '').trim();
+
+      // Fallback 1: derive from sources array primary document label
+      if (!importedBizName && Array.isArray(data.sources)) {
+        const primary = data.sources.find(s => s.role === 'primary' && s.label);
+        if (primary) {
+          importedBizName = primary.label
+            .replace(/\s*\(.*\)\s*$/, '')
+            .replace(/\s+\d{4}\s.*$/, '')
+            .replace(/\s+annual\s+report.*$/i, '')
+            .replace(/\s+10-k.*$/i, '')
+            .trim();
+        }
+      }
+
+      // Fallback 2: parse legacy "source" string — "Derived from X 2025 Annual Report..."
+      if (!importedBizName && data.source && typeof data.source === 'string') {
+        const m = data.source.match(/(?:derived from|based on)\s+(.+)/i);
+        if (m) {
+          importedBizName = m[1]
+            .replace(/\s*\(.*\)\s*$/, '')
+            .replace(/\s+\d{4}\s.*$/, '')
+            .replace(/\s+annual\s+report.*$/i, '')
+            .replace(/\s+10-k.*$/i, '')
+            .trim();
+        }
+      }
+
+      if (importedBizName) {
+        document.getElementById('biz-name').value = importedBizName;
+        renderGraph(); // update root node immediately
       }
 
       // Restore sources from exported JSON if present
@@ -1492,51 +1530,54 @@ function printGraph() {
 function printDetailReport() {
   const bizName = document.getElementById('biz-name').value.trim() || 'Capability Model';
   const sorted = depthFirstSort(state.capabilities);
-  let rows = sorted.map(c => {
+  const rows = sorted.map(c => {
     const num = computeNumber(c);
     const parent = c.parentId ? state.capabilities.find(x=>x.id===c.parentId) : null;
     const kpiText = c.kpis.length ? c.kpis.map(k=>k.name+(k.target?' — '+k.target:'')).join('; ') : '—';
-    const flags = c.flags && c.flags.length ? c.flags.join('; ') : '';
-    const diff = c.differentiating ? '★' : '';
-    return `<tr>
-      <td style="white-space:nowrap;font-weight:600;color:#0F6E56;">${num}</td>
-      <td style="padding-left:${(c.level==='L2'?16:c.level==='L3'?32:0)}px;font-weight:${c.level==='L1'?'700':'400'}">${diff ? '<span style="color:#534AB7;">★ </span>' : ''}${c.name}</td>
-      <td style="color:#4a4a46;">${c.level}</td>
-      <td style="color:#4a4a46;">${parent ? parent.name : '—'}</td>
-      <td style="color:#4a4a46;font-size:11px;">${c.desc||'—'}</td>
-      <td style="color:#4a4a46;font-size:11px;">${kpiText}</td>
-      ${flags ? `<td style="color:#A32D2D;font-size:11px;">${flags}</td>` : '<td style="color:#8a8a84;">—</td>'}
-    </tr>`;
+    const flags = c.flags && c.flags.length ? c.flags.join('; ') : '—';
+    const indent = c.level==='L2' ? 16 : c.level==='L3' ? 32 : 0;
+    const weight = c.level==='L1' ? '700' : '400';
+    const star = c.differentiating ? '\u2605 ' : '';
+    return [
+      `<tr>`,
+      `<td style="white-space:nowrap;font-weight:600;color:#0F6E56;">${escHtml(num)}</td>`,
+      `<td style="padding-left:${indent}px;font-weight:${weight};">${star}${escHtml(c.name)}</td>`,
+      `<td style="color:#4a4a46;">${c.level}</td>`,
+      `<td style="color:#4a4a46;">${escHtml(parent ? parent.name : '—')}</td>`,
+      `<td style="color:#4a4a46;font-size:11px;">${escHtml(c.desc||'—')}</td>`,
+      `<td style="color:#4a4a46;font-size:11px;">${escHtml(kpiText)}</td>`,
+      `<td style="color:${c.flags&&c.flags.length?'#A32D2D':'#8a8a84'};font-size:11px;">${escHtml(flags)}</td>`,
+      `</tr>`
+    ].join('');
   }).join('');
 
-  const styleTag = 'style';
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <title>${bizName} — Capability Model</title>
-  <${styleTag}>
-    body { font-family:'Segoe UI',Arial,sans-serif; font-size:12px; color:#1a1a18; margin:20px; }
-    h1 { font-size:18px; margin-bottom:4px; }
-    .meta { font-size:11px; color:#8a8a84; margin-bottom:16px; }
-    table { border-collapse:collapse; width:100%; }
-    th { background:#0F6E56; color:#fff; text-align:left; padding:7px 10px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
-    td { padding:6px 10px; border-bottom:1px solid #e2e0d8; vertical-align:top; }
-    tr:nth-child(even) td { background:#f7f6f2; }
-    @page { size:landscape; margin:15mm; }
-    @media print { body { margin:0; } }
-  </${styleTag}></head><body>
-  <h1>${bizName} — Business Capability Model</h1>
-  <div class="meta">Generated ${new Date().toLocaleDateString()} · ${state.capabilities.length} capabilities · L1: ${state.capabilities.filter(c=>c.level==='L1').length} · L2: ${state.capabilities.filter(c=>c.level==='L2').length}</div>
-  <table>
-    <thead><tr><th>#</th><th>Capability</th><th>Level</th><th>Parent</th><th>Description</th><th>KPIs</th><th>Discrepancies</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <div style="margin-top:16px;font-size:10px;color:#8a8a84;">★ = Differentiating capability</div>
-  </body></html>`;
+  // Build report as array of strings — no embedded HTML structural tags in JS source
+  const parts = [
+    '<!DOCTYPE html>',
+    '<' + 'html><' + 'head><' + 'meta charset="UTF-8">',
+    '<' + 'title>' + escHtml(bizName) + ' \u2014 Capability Model</title>',
+    '<' + 'style>',
+    'body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#1a1a18;margin:20px}',
+    'h1{font-size:18px;margin-bottom:4px}',
+    '.meta{font-size:11px;color:#8a8a84;margin-bottom:16px}',
+    'table{border-collapse:collapse;width:100%}',
+    'th{background:#0F6E56;color:#fff;text-align:left;padding:7px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.05em}',
+    'td{padding:6px 10px;border-bottom:1px solid #e2e0d8;vertical-align:top}',
+    'tr:nth-child(even) td{background:#f7f6f2}',
+    '@page{size:landscape;margin:15mm}',
+    '</' + 'style></' + 'head><' + 'body>',
+    '<h1>' + escHtml(bizName) + ' \u2014 Business Capability Model</h1>',
+    '<div class="meta">Generated ' + new Date().toLocaleDateString() + ' \u00b7 ' + state.capabilities.length + ' capabilities \u00b7 L1: ' + state.capabilities.filter(c=>c.level==='L1').length + ' \u00b7 L2: ' + state.capabilities.filter(c=>c.level==='L2').length + '</div>',
+    '<table><thead><tr><th>#</th><th>Capability</th><th>Level</th><th>Parent</th><th>Description</th><th>KPIs</th><th>Discrepancies</th></tr></thead>',
+    '<tbody>' + rows + '</tbody></table>',
+    '<div style="margin-top:16px;font-size:10px;color:#8a8a84;">\u2605 = Differentiating capability</div>',
+    '</' + 'body></' + 'html>'
+  ];
 
-  const w = window.open('','_blank','width=1100,height=800');
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(()=>w.print(), 400);
+  const blob = new Blob([parts.join('\n')], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank', 'width=1100,height=800');
+  if (w) setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 600);
 }
 
 // ── Export CSV ─────────────────────────────────────────────────────────
@@ -1669,11 +1710,15 @@ function openLibrary() {
         <span class="lib-cap-item-level">${cap.level}</span>
       </div>`).join('');
     return `<div class="lib-domain">
-      <div class="lib-domain-header" onclick="toggleLibDomain(${di})">
-        <span style="font-size:16px;">${domain.icon}</span>
-        <span class="lib-domain-title">${domain.domain}</span>
-        <span class="lib-domain-count">${domain.caps.length} caps · ${domain.ref}</span>
-        <span class="lib-domain-chevron" id="lib-chev-${di}">▼</span>
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-${di}" class="lib-domain-chk"
+          style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;"
+          onclick="event.stopPropagation();toggleDomainAll(${di})"
+          title="Select all in ${domain.domain}">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(${di})">${domain.icon}</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(${di})">${domain.domain}</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(${di})">${domain.caps.length} caps · ${domain.ref}</span>
+        <span class="lib-domain-chevron" id="lib-chev-${di}" style="cursor:pointer;" onclick="toggleLibDomain(${di})">▼</span>
       </div>
       <div class="lib-cap-list" id="lib-list-${di}">${items}</div>
     </div>`;
@@ -1695,8 +1740,34 @@ function toggleLibDomain(di) {
 }
 
 function updateLibCount() {
-  const checked = document.querySelectorAll('#library-modal-body input[type="checkbox"]:checked').length;
+  // Count only item checkboxes (not domain-level ones)
+  const checked = document.querySelectorAll('#library-modal-body input.lib-domain-chk ~ * input[type="checkbox"]:checked, #library-modal-body .lib-cap-list input[type="checkbox"]:checked').length;
   document.getElementById('library-add-count').textContent = checked + ' capabilit' + (checked===1?'y':'ies') + ' selected';
+  // Sync domain checkboxes to reflect partial/full selection state
+  ENTERPRISE_LIBRARY.forEach((domain, di) => {
+    const domChk = document.getElementById('lib-all-'+di);
+    if (!domChk) return;
+    const all = document.querySelectorAll('#lib-list-'+di+' input[type="checkbox"]');
+    const chked = document.querySelectorAll('#lib-list-'+di+' input[type="checkbox"]:checked');
+    domChk.checked = chked.length === all.length && all.length > 0;
+    domChk.indeterminate = chked.length > 0 && chked.length < all.length;
+  });
+}
+
+function toggleDomainAll(di) {
+  const domChk = document.getElementById('lib-all-'+di);
+  const items = document.querySelectorAll('#lib-list-'+di+' input[type="checkbox"]');
+  items.forEach(cb => { cb.checked = domChk.checked; });
+  // Auto-expand the domain list when selecting
+  if (domChk.checked) {
+    const list = document.getElementById('lib-list-'+di);
+    const chev = document.getElementById('lib-chev-'+di);
+    if (list && !list.classList.contains('open')) {
+      list.classList.add('open');
+      if (chev) chev.classList.add('open');
+    }
+  }
+  updateLibCount();
 }
 
 function addLibrarySelection() {
