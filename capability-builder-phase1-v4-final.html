@@ -1509,9 +1509,10 @@ function printDetailReport() {
     </tr>`;
   }).join('');
 
+  const styleTag = 'style';
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>${bizName} — Capability Model</title>
-  <style>
+  <${styleTag}>
     body { font-family:'Segoe UI',Arial,sans-serif; font-size:12px; color:#1a1a18; margin:20px; }
     h1 { font-size:18px; margin-bottom:4px; }
     .meta { font-size:11px; color:#8a8a84; margin-bottom:16px; }
@@ -1521,7 +1522,7 @@ function printDetailReport() {
     tr:nth-child(even) td { background:#f7f6f2; }
     @page { size:landscape; margin:15mm; }
     @media print { body { margin:0; } }
-  </style></head><body>
+  </${styleTag}></head><body>
   <h1>${bizName} — Business Capability Model</h1>
   <div class="meta">Generated ${new Date().toLocaleDateString()} · ${state.capabilities.length} capabilities · L1: ${state.capabilities.filter(c=>c.level==='L1').length} · L2: ${state.capabilities.filter(c=>c.level==='L2').length}</div>
   <table>
