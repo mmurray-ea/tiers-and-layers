@@ -402,7 +402,7 @@ const PROCESS_VERB_PATTERNS = [
 
 // Context-aware technology detection — require explicit product name context, not substring
 const TECH_PATTERNS = [
-  { pattern:/\bsap\b(?!\s*[a-z])/i, label:'SAP' },
+  { pattern:/\bsap\b/i, label:'SAP' },
   { pattern:/\boracle\b/i, label:'Oracle' },
   { pattern:/\bsalesforce\b/i, label:'Salesforce' },
   { pattern:/\bworkday\b/i, label:'Workday' },
@@ -413,11 +413,16 @@ const TECH_PATTERNS = [
   { pattern:/\bexcel\b(?!l)/i, label:'Excel' },
   // "erp" only as acronym, not substring of "enterprise"
   { pattern:/\berp\b/i, label:'ERP' },
-  { pattern:/\bcrm\b/i, label:'CRM' },
+  // CRM as a generic category is acceptable — only flag named CRM products (Salesforce already caught above)
+  { pattern:/\b(salesforce|ms dynamics|microsoft dynamics|hubspot|zoho)\s*crm\b/i, label:'named CRM product' },
   // "database" only as explicit standalone reference
   { pattern:/\bdatabase\b/i, label:'database' },
-  // "system" only when clearly referencing a specific system, not "information systems" broadly
-  { pattern:/\b(the|a|an|our|its)\s+system\b/i, label:'specific system' },
+  // "system" fires only when referencing a discrete technology system as a product
+  // Excluded: "across the/our system" (=hotel/org network), "systems that/used/include" (generic plural)
+  // "system" fires only as a specific product reference
+  // Excluded: 'across the system', 'within the system', 'throughout the system' (=org/network),
+  //           'revenue management system(s)', 'management systems' (generic category, usually plural)
+  { pattern:/(?<!across |within |throughout |management |reservation |loyalty |property |information )\b(the|a|an|its)\s+system\b(?!s\b)/i, label:'specific system' },
   // "platform" only as a specific product reference, not conceptual capability name
   { pattern:/\b(the|a|an|our|its|this)\s+platform\b/i, label:'specific platform' },
   // "application" only as specific software reference
@@ -431,11 +436,19 @@ const ORG_PATTERNS = [
   { pattern:/\b(a |the |our |specific |by |within a )(department|division|team|group|business unit)\b/i, label:'org unit' },
   // "unit" only when preceding by org-context words, not in "communities" or "unit of measure"
   { pattern:/\b(business|org|organizational|operating)\s+unit\b/i, label:'business unit' },
-  { pattern:/\b(north america|emea|apac|latam)\b/i, label:'geography' },
+  // Geography only flags when the region is the owning/limiting scope, not just listed as an expansion target
+  // Pattern requires geography to be followed or preceded by operational ownership context
+  { pattern:/\b(north america|emea|apac|latam)\b(?=\s*(team|segment|only|specific|function|office|region\b|headquarters|operations\b))/i, label:'geography' },
   { pattern:/\b(corporate|headquarters)\s+(only|specific|team|function)\b/i, label:'HQ scope' }
 ];
 
-const ORG_BOUNDARY_PATTERNS = [/\bus\b(?!e|ed|er|ing|ual|age|ually|iness|tomers|tomary)/i, /\beu\b/i, /\buk\b/i];
+// ORG_BOUNDARY_PATTERNS: only fire when region acronym stands alone as a geographic scope marker
+// \beu\b excluded inside words like 'value', 'revenue', 'continue', 'queue'
+const ORG_BOUNDARY_PATTERNS = [
+  /\bus\b(?!e|ed|er|ing|ual|age|ually|iness|tomers|tomary|ing)/i,
+  /\beu\b(?!ro|r[oa]|rop|que|r$|\s*(market|region|customer|partner|user|standard|regulatory|compliance))/i,
+  /\buk\b(?!\s*(gaap|standard|market|team|region|only))/i
+];
 
 function validate(name, desc, level, parentId, excludeId) {
   const issues = [];
