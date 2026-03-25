@@ -173,6 +173,43 @@
     pointer-events:none; z-index:9999; display:none;
     box-shadow:0 2px 8px rgba(0,0,0,0.25);
   }
+
+  @media print {
+    body { overflow:visible !important; height:auto !important; }
+    header, .wizard, #detail-drawer, #src-tooltip { display:none !important; }
+    main { display:block !important; height:auto !important; }
+    .graph-panel { display:block !important; height:auto !important; overflow:visible !important; }
+    .graph-toolbar { display:none !important; }
+    #graph-canvas { overflow:visible !important; height:auto !important; }
+    #graph-svg { display:block !important; }
+    @page { size:landscape; margin:10mm; }
+  }
+  /* Library modal */
+  #library-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:300; align-items:flex-start; justify-content:center; overflow-y:auto; padding:40px 20px; }
+  #library-overlay.open { display:flex; }
+  #library-modal { background:var(--white); border-radius:10px; width:680px; max-width:95vw; border:1px solid var(--line); display:flex; flex-direction:column; max-height:85vh; }
+  #library-modal-header { padding:20px 24px 16px; border-bottom:1px solid var(--line); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
+  #library-modal-header h3 { font-size:15px; font-weight:600; color:var(--ink); margin:0; }
+  #library-modal-header p { font-size:12px; color:var(--ink3); margin:4px 0 0; }
+  #library-modal-body { overflow-y:auto; flex:1; padding:0; }
+  .lib-domain { border-bottom:1px solid var(--line); }
+  .lib-domain-header { padding:12px 24px; display:flex; align-items:center; gap:10px; cursor:pointer; background:var(--surface); user-select:none; }
+  .lib-domain-header:hover { background:#eeedea; }
+  .lib-domain-title { font-size:13px; font-weight:600; color:var(--ink); flex:1; }
+  .lib-domain-count { font-family:var(--mono); font-size:10px; color:var(--ink3); }
+  .lib-domain-chevron { font-size:10px; color:var(--ink3); transition:transform .2s; }
+  .lib-domain-chevron.open { transform:rotate(180deg); }
+  .lib-cap-list { display:none; padding:0 24px 12px; }
+  .lib-cap-list.open { display:block; }
+  .lib-cap-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:0.5px solid var(--line); }
+  .lib-cap-item:last-child { border-bottom:none; }
+  .lib-cap-item input[type="checkbox"] { margin-top:3px; width:14px; height:14px; accent-color:var(--cap); flex-shrink:0; }
+  .lib-cap-item-body { flex:1; }
+  .lib-cap-item-name { font-size:12px; font-weight:600; color:var(--ink); }
+  .lib-cap-item-desc { font-size:11px; color:var(--ink3); margin-top:2px; line-height:1.5; }
+  .lib-cap-item-level { font-family:var(--mono); font-size:9px; color:var(--cap); background:var(--cap-lt); border:1px solid var(--cap-md); border-radius:3px; padding:1px 5px; flex-shrink:0; }
+  #library-modal-footer { padding:16px 24px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  #library-add-count { font-size:12px; color:var(--ink3); }
   #import-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:200; align-items:center; justify-content:center; }
   #import-overlay.open { display:flex; }
   #import-modal { background:var(--white); border-radius:10px; padding:24px; width:400px; max-width:90vw; border:1px solid var(--line); }
@@ -199,6 +236,10 @@
     <div class="stat-pill">Discrepancies <strong id="count-flags" style="color:var(--flag-md)">0</strong></div>
     <button class="hdr-btn" id="import-btn">Import JSON</button>
     <button class="hdr-btn" onclick="exportModel()">Export JSON</button>
+    <button class="hdr-btn" onclick="exportCSV()">Export CSV</button>
+    <button class="hdr-btn" onclick="printDetailReport()">Print Report</button>
+    <button class="hdr-btn" onclick="printGraph()">Print Graph</button>
+    <button class="hdr-btn" id="library-btn" style="background:var(--cap-lt);color:var(--cap);border-color:var(--cap-md);">+ Enterprise Library</button>
   </div>
 </header>
 
@@ -793,8 +834,11 @@ function renderGraph() {
   const byId = layoutTree(caps);
   const allNodes = Object.values(byId);
 
-  // Root node constants
-  const ROOT_W = 160; const ROOT_H = 44; const ROOT_V_GAP = 70;
+  // Root node: width auto-sized to fit full business name, min 160px
+  const ROOT_H = 44; const ROOT_V_GAP = 70;
+  const ROOT_FONT_W = 7.5; // approx px per char at 13px IBM Plex Sans bold
+  const ROOT_PAD = 32;
+  const ROOT_W = Math.max(160, Math.ceil(bizName.length * ROOT_FONT_W) + ROOT_PAD);
   // Shift all capability nodes down for root
   allNodes.forEach(n => { n.y += ROOT_H + ROOT_V_GAP; });
 
@@ -861,10 +905,9 @@ function renderGraph() {
   });
 
   // Root node (drawn after connectors so it sits on top)
-  const bizLabel = bizName.length>20 ? bizName.substring(0,19)+'…' : bizName;
   html+=`<g>
     <rect x="${rootX}" y="${rootY}" width="${ROOT_W}" height="${ROOT_H}" rx="8" fill="#1a1a18" stroke="#1a1a18" stroke-width="0.5"/>
-    <text x="${rootX+ROOT_W/2}" y="${rootY+ROOT_H/2}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#ffffff">${escHtml(bizLabel)}</text>
+    <text x="${rootX+ROOT_W/2}" y="${rootY+ROOT_H/2}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Sans,sans-serif" font-size="13" font-weight="500" fill="#ffffff">${escHtml(bizName)}</text>
   </g>`;
 
   // Capability nodes
@@ -1440,7 +1483,280 @@ function setBuildStatus(msg) {
   if (el) el.textContent = msg;
 }
 
-function escHtml(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// ── Print Graph ────────────────────────────────────────────────────────
+function printGraph() {
+  window.print();
+}
+
+// ── Print Detail Report ────────────────────────────────────────────────
+function printDetailReport() {
+  const bizName = document.getElementById('biz-name').value.trim() || 'Capability Model';
+  const sorted = depthFirstSort(state.capabilities);
+  let rows = sorted.map(c => {
+    const num = computeNumber(c);
+    const parent = c.parentId ? state.capabilities.find(x=>x.id===c.parentId) : null;
+    const kpiText = c.kpis.length ? c.kpis.map(k=>k.name+(k.target?' — '+k.target:'')).join('; ') : '—';
+    const flags = c.flags && c.flags.length ? c.flags.join('; ') : '';
+    const diff = c.differentiating ? '★' : '';
+    return `<tr>
+      <td style="white-space:nowrap;font-weight:600;color:#0F6E56;">${num}</td>
+      <td style="padding-left:${(c.level==='L2'?16:c.level==='L3'?32:0)}px;font-weight:${c.level==='L1'?'700':'400'}">${diff ? '<span style="color:#534AB7;">★ </span>' : ''}${c.name}</td>
+      <td style="color:#4a4a46;">${c.level}</td>
+      <td style="color:#4a4a46;">${parent ? parent.name : '—'}</td>
+      <td style="color:#4a4a46;font-size:11px;">${c.desc||'—'}</td>
+      <td style="color:#4a4a46;font-size:11px;">${kpiText}</td>
+      ${flags ? `<td style="color:#A32D2D;font-size:11px;">${flags}</td>` : '<td style="color:#8a8a84;">—</td>'}
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>${bizName} — Capability Model</title>
+  <style>
+    body { font-family:'Segoe UI',Arial,sans-serif; font-size:12px; color:#1a1a18; margin:20px; }
+    h1 { font-size:18px; margin-bottom:4px; }
+    .meta { font-size:11px; color:#8a8a84; margin-bottom:16px; }
+    table { border-collapse:collapse; width:100%; }
+    th { background:#0F6E56; color:#fff; text-align:left; padding:7px 10px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+    td { padding:6px 10px; border-bottom:1px solid #e2e0d8; vertical-align:top; }
+    tr:nth-child(even) td { background:#f7f6f2; }
+    @page { size:landscape; margin:15mm; }
+    @media print { body { margin:0; } }
+  </style></head><body>
+  <h1>${bizName} — Business Capability Model</h1>
+  <div class="meta">Generated ${new Date().toLocaleDateString()} · ${state.capabilities.length} capabilities · L1: ${state.capabilities.filter(c=>c.level==='L1').length} · L2: ${state.capabilities.filter(c=>c.level==='L2').length}</div>
+  <table>
+    <thead><tr><th>#</th><th>Capability</th><th>Level</th><th>Parent</th><th>Description</th><th>KPIs</th><th>Discrepancies</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div style="margin-top:16px;font-size:10px;color:#8a8a84;">★ = Differentiating capability</div>
+  </body></html>`;
+
+  const w = window.open('','_blank','width=1100,height=800');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(), 400);
+}
+
+// ── Export CSV ─────────────────────────────────────────────────────────
+function exportCSV() {
+  const bizName = document.getElementById('biz-name').value.trim() || 'Capability Model';
+  const sorted = depthFirstSort(state.capabilities);
+  const esc = v => '"' + String(v||'').replace(/"/g,'""') + '"';
+  const headers = ['Number','Name','Level','Parent','Differentiating','Description','KPIs','Discrepancies'];
+  const rows = sorted.map(c => {
+    const num = computeNumber(c);
+    const parent = c.parentId ? (state.capabilities.find(x=>x.id===c.parentId)||{}).name||'' : '';
+    const kpiText = c.kpis.map(k=>k.name+(k.target?' ('+k.target+')':'')).join(' | ');
+    const flagText = (c.flags||[]).join(' | ');
+    return [num, c.name, c.level, parent, c.differentiating?'Yes':'No', c.desc||'', kpiText, flagText].map(esc).join(',');
+  });
+  const csv = [headers.map(esc).join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (bizName.replace(/[^a-z0-9]/gi,'-').toLowerCase() || 'capability-model') + '-capabilities.csv';
+  a.click();
+}
+
+// ── Enterprise Capability Library ──────────────────────────────────────
+const ENTERPRISE_LIBRARY = [
+  {
+    domain: 'Strategy and Planning',
+    icon: '🎯',
+    ref: 'APQC PCF 11 · TOGAF ADM',
+    caps: [
+      { name:'Enterprise Strategy Development', level:'L1', desc:'The ability to define, communicate, and sustain the long-term direction of the enterprise, including mission, vision, strategic objectives, and competitive positioning.' },
+      { name:'Strategic Planning and Goal Management', level:'L2', parentDomain:'Enterprise Strategy Development', desc:'The ability to translate strategic direction into annual and multi-year plans, cascading measurable goals across the enterprise and tracking progress against strategic targets.' },
+      { name:'Portfolio and Investment Management', level:'L2', parentDomain:'Enterprise Strategy Development', desc:'The ability to evaluate, prioritize, and govern investments across business initiatives, technology programs, and capital projects to maximize strategic return.' },
+      { name:'Mergers, Acquisitions and Partnerships', level:'L2', parentDomain:'Enterprise Strategy Development', desc:'The ability to identify, evaluate, negotiate, and integrate strategic acquisitions, divestitures, joint ventures, and alliance partnerships that advance enterprise objectives.' },
+      { name:'Business Performance Management', level:'L2', parentDomain:'Enterprise Strategy Development', desc:'The ability to measure, monitor, and report enterprise performance against strategic objectives using KPIs, scorecards, and management reporting disciplines.' },
+    ]
+  },
+  {
+    domain: 'Information Technology Management',
+    icon: '💻',
+    ref: 'COBIT 2019 · APQC PCF 7',
+    caps: [
+      { name:'IT Strategy and Governance', level:'L1', desc:'The ability to define the technology vision and govern IT investments, standards, and risk in alignment with enterprise strategy and regulatory obligations.' },
+      { name:'Application Development and Maintenance', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to design, build, test, deploy, and maintain software applications that support business operations and customer experiences.' },
+      { name:'IT Infrastructure and Cloud Operations', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to operate and continuously modernize the technology infrastructure — including compute, storage, networks, and cloud environments — that underpins enterprise systems.' },
+      { name:'IT Service Management and Support', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to deliver reliable IT services to internal users through incident management, service desk, problem resolution, and change management disciplines.' },
+      { name:'Enterprise Architecture', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to define and govern the target-state architecture of the enterprise — business, data, application, and technology — to guide technology investment and reduce complexity.' },
+      { name:'Technology Vendor Management', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to select, contract, manage, and evaluate third-party technology vendors and service providers against defined performance and cost expectations.' },
+    ]
+  },
+  {
+    domain: 'Financial Operations',
+    icon: '💰',
+    ref: 'APQC PCF 2',
+    caps: [
+      { name:'Financial Operations Management', level:'L1', desc:'The ability to manage the day-to-day financial operations of the enterprise, including accounting, reporting, tax compliance, and treasury activities.' },
+      { name:'General Accounting and Reporting', level:'L2', parentDomain:'Financial Operations Management', desc:'The ability to record, reconcile, and report financial transactions in compliance with applicable accounting standards, producing accurate financial statements on a timely basis.' },
+      { name:'Accounts Payable and Receivable', level:'L2', parentDomain:'Financial Operations Management', desc:'The ability to manage the full cycle of vendor payments and customer collections, including invoice processing, dispute resolution, and cash application.' },
+      { name:'Tax Compliance and Planning', level:'L2', parentDomain:'Financial Operations Management', desc:'The ability to meet all federal, state, and international tax filing obligations and to identify lawful tax planning opportunities that reduce enterprise tax burden.' },
+      { name:'Treasury and Cash Management', level:'L2', parentDomain:'Financial Operations Management', desc:'The ability to manage enterprise cash positions, banking relationships, debt obligations, foreign exchange exposures, and short-term liquidity needs.' },
+    ]
+  },
+  {
+    domain: 'Procurement and Supply Chain',
+    icon: '🔗',
+    ref: 'APQC PCF 4',
+    caps: [
+      { name:'Procurement and Vendor Management', level:'L1', desc:'The ability to source, evaluate, contract with, and manage suppliers of goods and services in a manner that delivers quality, cost efficiency, and supply continuity.' },
+      { name:'Strategic Sourcing', level:'L2', parentDomain:'Procurement and Vendor Management', desc:'The ability to analyze spend categories, assess supply markets, and negotiate contracts that deliver optimal total cost of ownership for the enterprise.' },
+      { name:'Purchase-to-Pay Operations', level:'L2', parentDomain:'Procurement and Vendor Management', desc:'The ability to manage the end-to-end procurement transaction cycle from requisition through purchase order, receipt, invoice matching, and payment.' },
+      { name:'Supplier Relationship Management', level:'L2', parentDomain:'Procurement and Vendor Management', desc:'The ability to develop and sustain productive, risk-managed relationships with strategic suppliers, including performance monitoring, development, and risk mitigation.' },
+    ]
+  },
+  {
+    domain: 'Legal and Compliance',
+    icon: '⚖️',
+    ref: 'APQC PCF 10',
+    caps: [
+      { name:'Legal and Regulatory Affairs', level:'L1', desc:'The ability to manage enterprise legal obligations, protect intellectual property, support regulatory compliance, and resolve disputes in a manner that minimizes legal risk and cost.' },
+      { name:'Contract Management', level:'L2', parentDomain:'Legal and Regulatory Affairs', desc:'The ability to draft, negotiate, execute, store, and monitor contracts across all enterprise relationships, ensuring obligations are met and rights are protected.' },
+      { name:'Regulatory Compliance Management', level:'L2', parentDomain:'Legal and Regulatory Affairs', desc:'The ability to identify applicable laws and regulations, implement controls that ensure compliance, and manage relationships with regulatory bodies across all jurisdictions.' },
+      { name:'Litigation and Dispute Management', level:'L2', parentDomain:'Legal and Regulatory Affairs', desc:'The ability to manage the enterprise\'s exposure to litigation, arbitration, and dispute resolution, including external counsel engagement and settlement strategy.' },
+      { name:'Intellectual Property Management', level:'L2', parentDomain:'Legal and Regulatory Affairs', desc:'The ability to register, protect, and enforce the enterprise\'s intellectual property portfolio — including patents, trademarks, copyrights, and trade secrets.' },
+    ]
+  },
+  {
+    domain: 'Enterprise Risk Management',
+    icon: '🛡️',
+    ref: 'APQC PCF 10 · COSO ERM',
+    caps: [
+      { name:'Enterprise Risk Management', level:'L1', desc:'The ability to identify, assess, monitor, and respond to risks across all enterprise domains in alignment with the board-defined risk appetite and regulatory expectations.' },
+      { name:'Risk Identification and Assessment', level:'L2', parentDomain:'Enterprise Risk Management', desc:'The ability to systematically identify, analyze, and prioritize risks — operational, strategic, financial, and compliance — across the enterprise on an ongoing basis.' },
+      { name:'Internal Audit and Controls', level:'L2', parentDomain:'Enterprise Risk Management', desc:'The ability to independently evaluate the effectiveness of internal controls, governance processes, and risk management activities, providing assurance to the board and management.' },
+      { name:'Business Continuity and Resilience', level:'L2', parentDomain:'Enterprise Risk Management', desc:'The ability to sustain critical business operations through disruptions — including technology failures, natural disasters, and cyber incidents — through tested continuity plans and recovery capabilities.' },
+    ]
+  },
+  {
+    domain: 'Corporate Communications',
+    icon: '📢',
+    ref: 'APQC PCF 9',
+    caps: [
+      { name:'Corporate Communications', level:'L1', desc:'The ability to manage the enterprise\'s internal and external communications in a manner that builds trust, protects reputation, and supports business objectives with all stakeholder groups.' },
+      { name:'Investor Relations', level:'L2', parentDomain:'Corporate Communications', desc:'The ability to communicate financial performance, strategy, and governance to shareholders, analysts, and the investment community through earnings calls, filings, and investor events.' },
+      { name:'Public and Media Relations', level:'L2', parentDomain:'Corporate Communications', desc:'The ability to shape and protect the enterprise\'s public reputation through proactive media engagement, crisis communications, and brand narrative management.' },
+      { name:'Internal Communications', level:'L2', parentDomain:'Corporate Communications', desc:'The ability to keep associates informed, aligned, and engaged through consistent messaging, leadership communications, and two-way dialogue channels across the enterprise.' },
+    ]
+  },
+  {
+    domain: 'Real Estate and Facilities',
+    icon: '🏢',
+    ref: 'APQC PCF 6',
+    caps: [
+      { name:'Real Estate and Facilities Management', level:'L1', desc:'The ability to acquire, maintain, and optimize the physical workspace portfolio that supports enterprise operations, balancing cost, location, employee experience, and sustainability objectives.' },
+      { name:'Workplace Strategy and Planning', level:'L2', parentDomain:'Real Estate and Facilities Management', desc:'The ability to plan and design the enterprise workplace portfolio — including owned, leased, and hybrid workspaces — in alignment with workforce needs and real estate cost targets.' },
+      { name:'Facilities Operations and Maintenance', level:'L2', parentDomain:'Real Estate and Facilities Management', desc:'The ability to operate and maintain enterprise facilities to a defined standard of safety, functionality, and sustainability, including building services, security, and space management.' },
+    ]
+  },
+];
+
+function openLibrary() {
+  const body = document.getElementById('library-modal-body');
+  body.innerHTML = ENTERPRISE_LIBRARY.map((domain, di) => {
+    const items = domain.caps.map((cap, ci) => `
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-${di}-${ci}" data-di="${di}" data-ci="${ci}" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">${cap.name}</div>
+          <div class="lib-cap-item-desc">${cap.desc}</div>
+        </div>
+        <span class="lib-cap-item-level">${cap.level}</span>
+      </div>`).join('');
+    return `<div class="lib-domain">
+      <div class="lib-domain-header" onclick="toggleLibDomain(${di})">
+        <span style="font-size:16px;">${domain.icon}</span>
+        <span class="lib-domain-title">${domain.domain}</span>
+        <span class="lib-domain-count">${domain.caps.length} caps · ${domain.ref}</span>
+        <span class="lib-domain-chevron" id="lib-chev-${di}">▼</span>
+      </div>
+      <div class="lib-cap-list" id="lib-list-${di}">${items}</div>
+    </div>`;
+  }).join('');
+  updateLibCount();
+  document.getElementById('library-overlay').classList.add('open');
+}
+
+function closeLibrary() {
+  document.getElementById('library-overlay').classList.remove('open');
+}
+
+function toggleLibDomain(di) {
+  const list = document.getElementById('lib-list-'+di);
+  const chev = document.getElementById('lib-chev-'+di);
+  const open = list.classList.contains('open');
+  list.classList.toggle('open', !open);
+  chev.classList.toggle('open', !open);
+}
+
+function updateLibCount() {
+  const checked = document.querySelectorAll('#library-modal-body input[type="checkbox"]:checked').length;
+  document.getElementById('library-add-count').textContent = checked + ' capabilit' + (checked===1?'y':'ies') + ' selected';
+}
+
+function addLibrarySelection() {
+  const checked = Array.from(document.querySelectorAll('#library-modal-body input[type="checkbox"]:checked'));
+  if (!checked.length) { closeLibrary(); return; }
+
+  // Collect selected caps grouped by domain for L1→L2 parent linking
+  const toAdd = checked.map(cb => {
+    const di = parseInt(cb.dataset.di); const ci = parseInt(cb.dataset.ci);
+    return { domain: ENTERPRISE_LIBRARY[di], cap: ENTERPRISE_LIBRARY[di].caps[ci] };
+  });
+
+  // First pass: add any L1 caps and track domain→id mapping
+  const domainL1Map = {}; // domain title → new capability id
+  toAdd.filter(({cap})=>cap.level==='L1').forEach(({domain, cap}) => {
+    // Don't add if an identical name already exists
+    if (state.capabilities.some(c=>c.name===cap.name)) {
+      const existing = state.capabilities.find(c=>c.name===cap.name);
+      domainL1Map[domain.domain] = existing.id;
+      return;
+    }
+    const id = state.nextId++;
+    domainL1Map[domain.domain] = id;
+    state.capabilities.push({
+      id, name:cap.name, desc:cap.desc, level:'L1', parentId:null,
+      differentiating:false, kpis:[], flags:[], overridden:false, fromLibrary:true
+    });
+  });
+
+  // For L2 caps whose L1 was NOT explicitly selected, auto-create the L1 parent
+  toAdd.filter(({cap})=>cap.level==='L2').forEach(({domain}) => {
+    if (domainL1Map[domain.domain]) return;
+    const domainL1 = domain.caps.find(c=>c.level==='L1');
+    if (!domainL1) return;
+    if (state.capabilities.some(c=>c.name===domainL1.name)) {
+      domainL1Map[domain.domain] = state.capabilities.find(c=>c.name===domainL1.name).id;
+      return;
+    }
+    const id = state.nextId++;
+    domainL1Map[domain.domain] = id;
+    state.capabilities.push({
+      id, name:domainL1.name, desc:domainL1.desc, level:'L1', parentId:null,
+      differentiating:false, kpis:[], flags:[], overridden:false, fromLibrary:true
+    });
+  });
+
+  // Second pass: add L2 caps
+  toAdd.filter(({cap})=>cap.level==='L2').forEach(({domain, cap}) => {
+    if (state.capabilities.some(c=>c.name===cap.name)) return;
+    const parentId = domainL1Map[domain.domain] || null;
+    state.capabilities.push({
+      id:state.nextId++, name:cap.name, desc:cap.desc, level:'L2', parentId,
+      differentiating:false, kpis:[], flags:[], overridden:false, fromLibrary:true
+    });
+  });
+
+  closeLibrary();
+  renderList(); renderGraph(); updateStats();
+}
+
+
 
 // ── Init ───────────────────────────────────────────────────────────────
 document.getElementById('cap-level').addEventListener('change',onLevelChange);
@@ -1452,6 +1768,7 @@ document.getElementById('add-kpi-btn').addEventListener('click',()=>addKPIRow())
 document.getElementById('import-btn').addEventListener('click',openImport);
 document.getElementById('import-cancel-btn').addEventListener('click',closeImport);
 document.getElementById('bootstrap-add-url-btn').addEventListener('click', addBootstrapUrlRow);
+document.getElementById('library-btn').addEventListener('click', openLibrary);
 
 // Bootstrap file drop
 const bsDrop = document.getElementById('bootstrap-drop');
@@ -1477,5 +1794,26 @@ importDrop.addEventListener('dragleave',()=>importDrop.classList.remove('drag-ov
 importDrop.addEventListener('drop',e=>{e.preventDefault();importDrop.classList.remove('drag-over');loadImportFile(e.dataTransfer.files[0]);});
 onLevelChange(); renderGraph(); renderSources();
 </script>
+
+<!-- Enterprise Capability Library Modal -->
+<div id="library-overlay">
+  <div id="library-modal">
+    <div id="library-modal-header">
+      <div>
+        <h3>Standard Enterprise Capability Library</h3>
+        <p>Select enabling capabilities common across all enterprises — drawn from APQC PCF, TOGAF, and COBIT 2019. These complement business-specific capabilities derived from primary sources.</p>
+      </div>
+      <button onclick="closeLibrary()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3);padding:0 0 0 16px;line-height:1;">✕</button>
+    </div>
+    <div id="library-modal-body"><!-- populated by JS --></div>
+    <div id="library-modal-footer">
+      <span id="library-add-count">0 capabilities selected</span>
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeLibrary()" class="drawer-edit-btn">Cancel</button>
+        <button onclick="addLibrarySelection()" class="btn btn-primary" style="flex:none;padding:7px 20px;">Add to model</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
