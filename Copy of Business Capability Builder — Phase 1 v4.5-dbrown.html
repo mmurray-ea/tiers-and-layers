@@ -1,0 +1,2940 @@
+<!DOCTYPE html>
+<!-- saved from url=(0065)https://ea-frameworks.com/capability-builder-phase1-v4-final.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Capability Builder — Phase 1 v4.5</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cap:#0F6E56; --cap-lt:#E1F5EE; --cap-md:#1D9E75;
+    --flag:#A32D2D; --flag-lt:#FCEBEB; --flag-md:#E24B4A;
+    --warn:#854F0B; --warn-lt:#FAEEDA;
+    --ink:#1a1a18; --ink2:#4a4a46; --ink3:#8a8a84;
+    --line:#e2e0d8; --surface:#f7f6f2; --white:#ffffff;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+    --radius:6px;
+  }
+  body { font-family:var(--sans); background:var(--surface); color:var(--ink); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* ── Header ── */
+  header { background:var(--white); border-bottom:1px solid var(--line); padding:0 24px; height:52px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .header-left { display:flex; align-items:center; gap:12px; }
+  .phase-badge { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; background:var(--cap-lt); color:var(--cap); border:1px solid var(--cap-md); padding:3px 8px; border-radius:3px; }
+  .header-title { font-size:14px; font-weight:500; color:var(--ink); letter-spacing:-0.01em; }
+  .header-right { display:flex; align-items:center; gap:10px; }
+  .stat-pill { font-family:var(--mono); font-size:11px; color:var(--ink3); display:flex; align-items:center; gap:5px; }
+  .stat-pill strong { color:var(--ink2); font-weight:500; }
+  .hdr-btn { font-family:var(--sans); font-size:12px; font-weight:500; background:var(--white); border:1px solid var(--line); color:var(--ink2); padding:5px 12px; border-radius:var(--radius); cursor:pointer; transition:border-color .15s,color .15s; }
+  .hdr-btn:hover { border-color:var(--cap-md); color:var(--cap); }
+
+  /* ── Main layout — fixed height, two independent scroll areas ── */
+  main { display:grid; grid-template-columns:360px 1fr; height:calc(100vh - 52px); overflow:hidden; }
+
+  /* ── Left panel: fixed height column, split into two scroll zones ── */
+  .wizard { background:var(--white); border-right:1px solid var(--line); display:flex; flex-direction:column; height:calc(100vh - 52px); overflow:hidden; }
+  /* Entry form — fixed pixel height, scrolls internally */
+  .wizard-entry { height:420px; min-height:420px; max-height:420px; overflow-y:auto; border-bottom:2px solid var(--line); padding:20px 24px; flex-shrink:0; box-sizing:border-box; }
+  /* Capabilities list — fills remaining height exactly, scrolls independently */
+  .wizard-list { flex:1; overflow-y:auto; padding:20px 24px; min-height:0; }
+
+  .section-label { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink3); margin-bottom:14px; }
+  label { display:block; font-size:12px; font-weight:500; color:var(--ink2); margin-bottom:5px; margin-top:12px; }
+  label:first-of-type { margin-top:0; }
+  input[type="text"], textarea, select { width:100%; font-family:var(--sans); font-size:13px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:8px 10px; outline:none; transition:border-color .15s; appearance:none; }
+  input[type="text"]:focus, textarea:focus, select:focus { border-color:var(--cap-md); background:var(--white); }
+  textarea { resize:vertical; min-height:72px; line-height:1.5; }
+  .level-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  /* ── Validation ── */
+  #validation-area { display:none; margin-top:14px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line); }
+  #validation-area.warn { border-color:var(--warn); }
+  #validation-area.fail { border-color:var(--flag-md); }
+  .val-header { font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; padding:6px 10px; }
+  .val-header.warn { background:var(--warn-lt); color:var(--warn); }
+  .val-header.fail { background:var(--flag-lt); color:var(--flag); }
+  .val-body { padding:10px 12px; background:var(--white); }
+  .val-item { font-size:12px; line-height:1.5; color:var(--ink2); padding:4px 0; border-bottom:1px solid var(--line); display:flex; gap:8px; align-items:flex-start; }
+  .val-item:last-child { border-bottom:none; }
+  .val-dot { width:6px; height:6px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+  .val-dot.warn { background:var(--warn); }
+  .val-dot.fail { background:var(--flag-md); }
+
+  /* ── Buttons ── */
+  .btn-row { display:flex; gap:8px; margin-top:14px; }
+  .btn { font-family:var(--sans); font-size:13px; font-weight:500; padding:8px 16px; border-radius:var(--radius); cursor:pointer; border:1px solid transparent; transition:all .15s; flex:1; }
+  .btn-primary { background:var(--cap); color:var(--white); border-color:var(--cap); }
+  .btn-primary:hover { background:#0a5240; }
+  .btn-secondary { background:var(--white); color:var(--ink2); border-color:var(--line); }
+  .btn-secondary:hover { border-color:var(--ink3); }
+  .btn-override { background:var(--warn-lt); color:var(--warn); border-color:var(--warn); display:none; }
+  .btn-override:hover { background:#f0dfc0; }
+  .btn-override.visible { display:block; }
+
+  /* ── Suggested description ── */
+  .ai-rewrite { display:none; margin-top:10px; border:1px solid var(--cap-md); border-radius:var(--radius); overflow:hidden; }
+  .ai-rewrite.visible { display:block; }
+  .ai-rewrite-header { background:var(--cap-lt); padding:6px 10px; font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--cap); }
+  .ai-rewrite-body { padding:10px 12px; background:var(--white); }
+  textarea.rewrite-text { font-size:12px; color:var(--ink2); line-height:1.6; font-style:italic; min-height:60px; border-left:2px solid var(--cap-md); border-top:none; border-right:none; border-bottom:none; border-radius:0; padding:4px 8px; background:transparent; width:100%; resize:vertical; }
+  textarea.rewrite-text:focus { background:var(--surface); }
+  .btn-use-rewrite { font-family:var(--sans); font-size:12px; font-weight:500; background:var(--cap); color:var(--white); border:none; border-radius:var(--radius); padding:5px 12px; cursor:pointer; margin-top:8px; }
+  .btn-use-rewrite:hover { background:#0a5240; }
+
+  /* ── Capability list ── */
+  .cap-list { display:flex; flex-direction:column; gap:4px; }
+  .cap-item { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:var(--radius); font-size:12px; background:var(--surface); border:1px solid var(--line); cursor:pointer; transition:border-color .1s; }
+  .cap-item:hover { border-color:var(--cap-md); }
+  .cap-level { font-family:var(--mono); font-size:9px; font-weight:500; padding:2px 5px; border-radius:3px; background:var(--cap-lt); color:var(--cap); flex-shrink:0; }
+  .cap-name { color:var(--ink); font-weight:500; flex:1; }
+  .cap-parent { color:var(--ink3); font-size:11px; }
+  .cap-flag { width:7px; height:7px; border-radius:50%; background:var(--flag-md); flex-shrink:0; }
+  .cap-incomplete { width:7px; height:7px; border-radius:50%; background:#EF9F27; flex-shrink:0; }
+  .empty-state { font-size:12px; color:var(--ink3); font-style:italic; padding:8px 0; }
+
+  /* ── KPI entry ── */
+  .kpi-row { display:flex; gap:6px; margin-bottom:6px; align-items:center; }
+  .kpi-row input { flex:1; font-size:12px; padding:5px 8px; }
+  .kpi-remove { background:none; border:none; color:var(--ink3); cursor:pointer; font-size:14px; padding:0 4px; line-height:1; }
+  .kpi-remove:hover { color:var(--flag-md); }
+  .btn-add-kpi { font-size:11px; font-weight:500; color:var(--cap); background:none; border:1px dashed var(--cap-md); border-radius:var(--radius); padding:4px 10px; cursor:pointer; margin-top:4px; width:100%; }
+  .btn-add-kpi:hover { background:var(--cap-lt); }
+  .diff-toggle { display:flex; align-items:center; gap:8px; margin-top:12px; }
+  .diff-toggle input[type="checkbox"] { width:16px; height:16px; accent-color:var(--cap); cursor:pointer; flex-shrink:0; }
+  .diff-toggle label { font-size:12px; font-weight:500; color:var(--ink2); cursor:pointer; margin:0; }
+  .diff-badge { font-family:var(--mono); font-size:9px; font-weight:500; padding:2px 6px; border-radius:3px; background:#EEEDFE; color:#534AB7; border:1px solid #534AB7; flex-shrink:0; }
+
+  /* ── Graph panel ── */
+  .graph-panel { display:flex; flex-direction:column; background:var(--surface); overflow:hidden; }
+  .graph-toolbar { padding:10px 20px; background:var(--white); border-bottom:1px solid var(--line); display:flex; align-items:center; gap:16px; flex-wrap:wrap; flex-shrink:0; }
+  .graph-toolbar-label { font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink2); }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink2); }
+  .legend-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+  .legend-dot.cap { border:1px solid #1D9E75; background:#E1F5EE; }
+  .legend-dot.diff { border:1px solid #534AB7; background:#EEEDFE; }
+  .legend-dot.nokpi { border-radius:50%; background:#EF9F27; width:9px; height:9px; }
+  .legend-dot.disc { border:1.5px solid #E24B4A; background:#FCEBEB; }
+  /* Graph canvas — zoom/pan via mouse wheel + click-drag */
+  #graph-canvas { flex:1; overflow:hidden; min-height:0; position:relative; cursor:grab; }
+  #graph-canvas.panning { cursor:grabbing; }
+  #graph-svg { display:block; transform-origin:0 0; }
+
+  /* ── Detail drawer ── */
+  #detail-drawer { display:none; position:fixed; right:0; top:52px; width:320px; height:calc(100vh - 52px); background:var(--white); border-left:1px solid var(--line); z-index:50; overflow-y:auto; padding:20px; }
+  #detail-drawer.open { display:block; }
+  .drawer-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
+  .drawer-title { font-size:15px; font-weight:600; color:var(--ink); flex:1; }
+  .drawer-close-btn { background:none; border:none; font-size:18px; cursor:pointer; color:var(--ink3); line-height:1; padding:0 0 0 8px; flex-shrink:0; }
+  .drawer-close-btn:hover { color:var(--ink); }
+  .drawer-level { font-family:var(--mono); font-size:10px; color:var(--cap); background:var(--cap-lt); border:1px solid var(--cap-md); padding:2px 7px; border-radius:3px; display:inline-block; margin-bottom:14px; }
+  .drawer-field-label { font-size:11px; font-weight:500; color:var(--ink3); text-transform:uppercase; letter-spacing:0.06em; margin-top:14px; margin-bottom:4px; }
+  .drawer-field-value { font-size:13px; color:var(--ink2); line-height:1.5; }
+  /* Renamed from "AI flag" to "Discrepancy" */
+  .drawer-flag { margin-top:10px; background:var(--flag-lt); border:1px solid var(--flag-md); border-radius:var(--radius); padding:8px 10px; font-size:12px; color:var(--flag); line-height:1.5; }
+  .drawer-flag strong { display:block; margin-bottom:3px; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; }
+  .drawer-edit-btn { font-family:var(--sans); font-size:12px; font-weight:500; padding:5px 12px; border-radius:var(--radius); cursor:pointer; border:1px solid var(--line); background:var(--white); color:var(--ink2); transition:all .15s; }
+  .drawer-edit-btn:hover { border-color:var(--cap-md); color:var(--cap); }
+  .drawer-save-btn { font-family:var(--sans); font-size:12px; font-weight:500; padding:5px 12px; border-radius:var(--radius); cursor:pointer; border:1px solid var(--cap); background:var(--cap); color:var(--white); }
+  .drawer-save-btn:hover { background:#0a5240; }
+  .drawer-delete-btn { font-family:var(--sans); font-size:12px; font-weight:500; padding:5px 12px; border-radius:var(--radius); cursor:pointer; border:1px solid var(--flag-md); background:var(--white); color:var(--flag); margin-left:auto; }
+  .drawer-delete-btn:hover { background:var(--flag-lt); }
+  .drawer-btn-row { display:flex; gap:8px; margin-top:16px; align-items:center; }
+  .drawer-notice { font-size:11px; color:var(--warn); background:var(--warn-lt); border:1px solid var(--warn); border-radius:var(--radius); padding:6px 10px; margin-top:10px; line-height:1.5; display:none; }
+  .drawer-notice.visible { display:block; }
+  .drawer-notice.success { color:var(--cap); background:var(--cap-lt); border-color:var(--cap-md); }
+
+  /* ── Import modal ── */
+
+  .src-role-btn {
+    font-family:var(--mono); font-size:9px; font-weight:500; letter-spacing:0.06em;
+    text-transform:uppercase; padding:2px 7px; border-radius:3px; cursor:pointer;
+    border:1px solid; flex-shrink:0; transition:all .15s;
+  }
+  .src-role-btn.primary { background:#E1F5EE; color:#0F6E56; border-color:#1D9E75; }
+  .src-role-btn.reference { background:#f7f6f2; color:#8a8a84; border-color:#e2e0d8; }
+  .build-hierarchy-btn {
+    width:100%; margin-top:12px; padding:9px 16px;
+    font-family:var(--sans); font-size:13px; font-weight:500;
+    background:var(--cap); color:var(--white); border:none;
+    border-radius:var(--radius); cursor:pointer; transition:background .15s;
+    display:none;
+  }
+  .build-hierarchy-btn:hover { background:#0a5240; }
+  .build-hierarchy-btn.visible { display:block; }
+  #build-status {
+    font-size:12px; color:var(--ink3); margin-top:8px;
+    line-height:1.5; font-style:italic; min-height:16px;
+  }
+
+  #src-tooltip {
+    position:fixed; background:var(--ink); color:var(--white);
+    font-size:11px; line-height:1.4; padding:5px 9px;
+    border-radius:4px; max-width:280px; word-break:break-word;
+    pointer-events:none; z-index:9999; display:none;
+    box-shadow:0 2px 8px rgba(0,0,0,0.25);
+  }
+
+  @media print {
+    body { overflow:visible !important; height:auto !important; }
+    header, .wizard, #detail-drawer, #src-tooltip { display:none !important; }
+    main { display:block !important; height:auto !important; }
+    .graph-panel { display:block !important; height:auto !important; overflow:visible !important; }
+    .graph-toolbar { display:none !important; }
+    #graph-canvas { overflow:visible !important; height:auto !important; }
+    #graph-svg { display:block !important; }
+    @page { size:landscape; margin:10mm; }
+  }
+  /* Library modal */
+  #library-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:300; align-items:flex-start; justify-content:center; overflow-y:auto; padding:40px 20px; }
+  #library-overlay.open { display:flex; }
+  #library-modal { background:var(--white); border-radius:10px; width:680px; max-width:95vw; border:1px solid var(--line); display:flex; flex-direction:column; max-height:85vh; }
+  #library-modal-header { padding:20px 24px 16px; border-bottom:1px solid var(--line); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
+  #library-modal-header h3 { font-size:15px; font-weight:600; color:var(--ink); margin:0; }
+  #library-modal-header p { font-size:12px; color:var(--ink3); margin:4px 0 0; }
+  #library-modal-body { overflow-y:auto; flex:1; padding:0; }
+  .lib-domain { border-bottom:1px solid var(--line); }
+  .lib-domain-header { padding:12px 24px; display:flex; align-items:center; gap:10px; cursor:pointer; background:var(--surface); user-select:none; }
+  .lib-domain-header:hover { background:#eeedea; }
+  .lib-domain-title { font-size:13px; font-weight:600; color:var(--ink); flex:1; }
+  .lib-domain-count { font-family:var(--mono); font-size:10px; color:var(--ink3); }
+  .lib-domain-chevron { font-size:10px; color:var(--ink3); transition:transform .2s; }
+  .lib-domain-chevron.open { transform:rotate(180deg); }
+  .lib-cap-list { display:none; padding:0 24px 12px; }
+  .lib-cap-list.open { display:block; }
+  .lib-cap-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:0.5px solid var(--line); }
+  .lib-cap-item:last-child { border-bottom:none; }
+  .lib-cap-item input[type="checkbox"] { margin-top:3px; width:14px; height:14px; accent-color:var(--cap); flex-shrink:0; }
+  .lib-cap-item-body { flex:1; }
+  .lib-cap-item-name { font-size:12px; font-weight:600; color:var(--ink); }
+  .lib-cap-item-desc { font-size:11px; color:var(--ink3); margin-top:2px; line-height:1.5; }
+  .lib-cap-item-level { font-family:var(--mono); font-size:9px; color:var(--cap); background:var(--cap-lt); border:1px solid var(--cap-md); border-radius:3px; padding:1px 5px; flex-shrink:0; }
+  #library-modal-footer { padding:16px 24px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  #library-add-count { font-size:12px; color:var(--ink3); }
+  #import-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:200; align-items:center; justify-content:center; }
+  #import-overlay.open { display:flex; }
+  #import-modal { background:var(--white); border-radius:10px; padding:24px; width:400px; max-width:90vw; border:1px solid var(--line); }
+  #import-modal h3 { font-size:15px; font-weight:600; margin-bottom:8px; color:var(--ink); }
+  #import-modal p { font-size:12px; color:var(--ink3); margin-bottom:16px; line-height:1.5; }
+  #import-drop { border:2px dashed var(--line); border-radius:var(--radius); padding:24px; text-align:center; font-size:12px; color:var(--ink3); cursor:pointer; transition:border-color .15s; }
+  #import-drop:hover, #import-drop.drag-over { border-color:var(--cap-md); color:var(--cap); }
+  #import-file { display:none; }
+  #import-status { font-size:12px; margin-top:10px; min-height:18px; }
+  .import-btn-row { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="phase-badge">Phase 1 · v4.5</span>
+    <span class="header-title">Business Capability Builder</span>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill">L1 <strong id="count-l1">11</strong></div>
+    <div class="stat-pill">L2 <strong id="count-l2">40</strong></div>
+    <div class="stat-pill">L3 <strong id="count-l3">0</strong></div>
+    <div class="stat-pill">Discrepancies <strong id="count-flags" style="color:var(--flag-md)">0</strong></div>
+    <button class="hdr-btn" id="import-btn">Import JSON</button>
+    <button class="hdr-btn" onclick="exportModel()">Export JSON</button>
+    <button class="hdr-btn" onclick="exportCSV()">Export CSV</button>
+    <button class="hdr-btn" onclick="printDetailReport()">Print Report</button>
+    <button class="hdr-btn" onclick="printGraph()">Print Graph</button>
+    <button class="hdr-btn" id="library-btn" style="background:var(--cap-lt);color:var(--cap);border-color:var(--cap-md);">+ Enterprise Library</button>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: Entry form + scrollable capability list as two independent sections -->
+  <div class="wizard">
+
+    <div class="wizard-entry">
+      <div class="section-label">Business</div>
+
+      <label for="biz-name">Business name</label>
+      <input type="text" id="biz-name" placeholder="e.g. Acme Corporation" oninput="renderGraph()">
+
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line);">
+        <button id="bootstrap-toggle" onclick="toggleBootstrap()" style="width:100%;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:space-between;text-align:left;">
+          <span style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);">Sources &amp; References</span>
+          <span id="bootstrap-chevron" style="font-size:11px;color:var(--ink3);transition:transform 0.2s;">▼</span>
+        </button>
+
+        <div id="bootstrap-body" style="display:none;margin-top:10px;">
+          <div id="sources-list" style="margin-bottom:6px;"><div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--line);font-size:12px;">
+      <button class="src-role-btn primary" onclick="toggleSourceRole(0)" title="Primary source — click to set as Reference">
+        Primary
+      </button>
+      <span style="flex:1;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;" title="TJX Companies 2024 Annual Report" onmouseenter="showSourceTooltip(event,&#39;TJX Companies 2024 Annual Report&#39;)" onmouseleave="hideSourceTooltip()">TJX Companies 2024 Annual Report</span>
+      <button onclick="removeSource(0)" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px;padding:0;flex-shrink:0;" title="Remove">✕</button>
+    </div></div>
+          <button class="build-hierarchy-btn visible" id="build-hierarchy-btn" onclick="buildHierarchy()">Build initial capability hierarchy</button>
+          <div id="build-status"></div>
+          <div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;">Add source</div>
+          <select id="bootstrap-type" onchange="onBootstrapTypeChange()" style="margin-bottom:8px;">
+            <option value="">— select source type —</option>
+            <option value="url">Web URL (annual report, company site, etc.)</option>
+            <option value="industry">Industry reference framework</option>
+            <option value="file">Local file upload</option>
+          </select>
+
+          <div id="bootstrap-url-section" style="display:none;margin-top:10px;">
+            <label>URL</label>
+            <input type="text" id="bootstrap-url" placeholder="https://...">
+            <div id="bootstrap-url-list" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
+            <button class="btn-add-kpi" id="bootstrap-add-url-btn" style="margin-top:6px;">+ Add another URL</button>
+          </div>
+
+          <div id="bootstrap-industry-section" style="display:none;margin-top:10px;">
+            <label>Suggested industry frameworks</label>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;" id="industry-list">
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="apqc-retail" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">APQC Retail PCF</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://www.apqc.org/process-frameworks/industry-specific-process-frameworks" target="_blank" style="color:var(--cap);">apqc.org</a> — off-price, omni-channel retail</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="apqc-cross" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">APQC Cross-Industry PCF</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://www.apqc.org/process-frameworks" target="_blank" style="color:var(--cap);">apqc.org</a> — universal enterprise capabilities</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="togaf-bm" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">TOGAF Business Architecture</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://www.opengroup.org/togaf" target="_blank" style="color:var(--cap);">opengroup.org</a> — capability mapping</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="bian" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">BIAN Service Landscape</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://bian.org/servicelandscape/" target="_blank" style="color:var(--cap);">bian.org</a> — financial services</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="tmforum" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">TM Forum eTOM</strong><br><span style="color:var(--ink3);font-size:11px;"><a href="https://www.tmforum.org/oda/business-architecture/business-process-framework/" target="_blank" style="color:var(--cap);">tmforum.org</a> — telecoms &amp; digital</span></span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:0;cursor:pointer;">
+                <input type="checkbox" value="custom-url" style="margin-top:2px;width:14px;height:14px;accent-color:var(--cap);">
+                <span><strong style="font-size:12px;">Custom URL</strong><br><input type="text" id="custom-framework-url" placeholder="https://..." style="margin-top:4px;font-size:12px;padding:4px 8px;" onclick="event.stopPropagation()"></span>
+              </label>
+            </div>
+          </div>
+
+          <div id="bootstrap-file-section" style="display:none;margin-top:10px;">
+            <label>Upload file(s)</label>
+            <div id="bootstrap-drop" style="border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;font-size:12px;color:var(--ink3);cursor:pointer;margin-top:4px;">
+              Drop files here or click to browse<br><span style="font-size:11px;">(PDF, Word, text, or CSV)</span>
+            </div>
+            <input type="file" id="bootstrap-file" accept=".pdf,.doc,.docx,.txt,.csv" multiple="" style="display:none;">
+            <div id="bootstrap-file-list" style="margin-top:6px;font-size:12px;color:var(--ink2);"></div>
+          </div>
+
+          <div id="bootstrap-status" style="font-size:12px;color:var(--ink3);margin-top:8px;min-height:16px;font-style:italic;"></div>
+          <button class="btn btn-primary" id="bootstrap-btn" style="margin-top:10px;display:none;" onclick="runBootstrap()">Add to sources</button>
+        </div><!-- end bootstrap-body -->
+      </div><!-- end bootstrap outer -->
+
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line);">
+      <div class="section-label">Add capability</div>
+
+      <label for="cap-name">Capability name</label>
+      <input type="text" id="cap-name" placeholder="e.g. Merchandise Allocation">
+
+      <label for="cap-desc">Description <span style="font-weight:400;color:var(--ink3)">(plain language)</span></label>
+      <textarea id="cap-desc" placeholder="Describe what this capability enables the business to do and what outcome it produces. Avoid describing how it is done."></textarea>
+
+      <div class="level-row" style="margin-top:12px;">
+        <div>
+          <label for="cap-level">Level</label>
+          <select id="cap-level">
+            <option value="L1">L1 — top level</option>
+            <option value="L2">L2 — sub-capability</option>
+            <option value="L3">L3 — detail capability</option>
+          </select>
+        </div>
+        <div>
+          <label for="cap-parent">Parent capability</label>
+          <select id="cap-parent" disabled=""><option value="">— not required —</option></select>
+        </div>
+      </div>
+
+      <div class="diff-toggle">
+        <input type="checkbox" id="cap-diff">
+        <label for="cap-diff">Differentiating capability</label>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="section-label" style="margin-bottom:6px;">KPIs <span style="font-weight:400;font-style:italic;color:var(--ink3)">(optional)</span></div>
+        <div id="kpi-list"></div>
+        <button class="btn-add-kpi" id="add-kpi-btn">+ Add KPI</button>
+      </div>
+
+      <div id="validation-area"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="clear-btn">Clear</button>
+        <button class="btn btn-primary" id="validate-btn">Validate &amp; Add</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-override" id="override-btn">Add anyway (override warnings)</button>
+      </div>
+
+      <div class="ai-rewrite" id="ai-rewrite">
+        <div class="ai-rewrite-header">Suggested description — edit before using</div>
+        <div class="ai-rewrite-body">
+          <textarea class="rewrite-text" id="ai-rewrite-text" rows="4"></textarea>
+          <button class="btn-use-rewrite" id="use-rewrite-btn">Use this description &amp; add</button>
+        </div>
+      </div>
+      </div><!-- end add capability section -->
+    </div><!-- end wizard-entry -->
+
+    <div class="wizard-list">
+      <div class="section-label">Capabilities defined <span id="total-count" style="font-weight:600;color:var(--ink2)">51</span></div>
+      <div class="cap-list" id="cap-list"><div class="cap-item">
+      <span class="cap-level">1</span>
+      <span class="cap-name">Customer Experience Management</span>
+      
+      <span class="diff-badge">DIFF</span>
+      
+      </div><div class="cap-item">
+      <span class="cap-level">1.1</span>
+      <span class="cap-name">Customer Insight and Analytics</span>
+      <span class="cap-parent">↳ Customer Experience Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">1.2</span>
+      <span class="cap-name">In-Store Experience Design</span>
+      <span class="cap-parent">↳ Customer Experience Management</span>
+      <span class="diff-badge">DIFF</span>
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">1.3</span>
+      <span class="cap-name">Customer Loyalty and Retention</span>
+      <span class="cap-parent">↳ Customer Experience Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">1.4</span>
+      <span class="cap-name">Omni-Channel Experience Integration</span>
+      <span class="cap-parent">↳ Customer Experience Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">2</span>
+      <span class="cap-name">Merchandising and Buying</span>
+      
+      <span class="diff-badge">DIFF</span>
+      
+      </div><div class="cap-item">
+      <span class="cap-level">2.1</span>
+      <span class="cap-name">Opportunistic Buying</span>
+      <span class="cap-parent">↳ Merchandising and Buying</span>
+      <span class="diff-badge">DIFF</span>
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">2.2</span>
+      <span class="cap-name">Vendor Relationship Management</span>
+      <span class="cap-parent">↳ Merchandising and Buying</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">2.3</span>
+      <span class="cap-name">Assortment Planning and Allocation</span>
+      <span class="cap-parent">↳ Merchandising and Buying</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">2.4</span>
+      <span class="cap-name">Merchandise Pricing Strategy</span>
+      <span class="cap-parent">↳ Merchandising and Buying</span>
+      <span class="diff-badge">DIFF</span>
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">2.5</span>
+      <span class="cap-name">Global Buying Office Operations</span>
+      <span class="cap-parent">↳ Merchandising and Buying</span>
+      <span class="diff-badge">DIFF</span>
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">3</span>
+      <span class="cap-name">Store Operations</span>
+      
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">3.1</span>
+      <span class="cap-name">Multi-Banner Store Management</span>
+      <span class="cap-parent">↳ Store Operations</span>
+      <span class="diff-badge">DIFF</span>
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">3.2</span>
+      <span class="cap-name">Store Layout and Space Management</span>
+      <span class="cap-parent">↳ Store Operations</span>
+      <span class="diff-badge">DIFF</span>
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">3.3</span>
+      <span class="cap-name">Store Workforce Management</span>
+      <span class="cap-parent">↳ Store Operations</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">3.4</span>
+      <span class="cap-name">Real Estate and Store Development</span>
+      <span class="cap-parent">↳ Store Operations</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">4</span>
+      <span class="cap-name">Supply Chain and Logistics</span>
+      
+      <span class="diff-badge">DIFF</span>
+      
+      </div><div class="cap-item">
+      <span class="cap-level">4.1</span>
+      <span class="cap-name">Inbound Logistics and Receiving</span>
+      <span class="cap-parent">↳ Supply Chain and Logistics</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">4.2</span>
+      <span class="cap-name">Distribution Center Operations</span>
+      <span class="cap-parent">↳ Supply Chain and Logistics</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">4.3</span>
+      <span class="cap-name">Inventory Management</span>
+      <span class="cap-parent">↳ Supply Chain and Logistics</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">4.4</span>
+      <span class="cap-name">Transportation and Carrier Management</span>
+      <span class="cap-parent">↳ Supply Chain and Logistics</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">5</span>
+      <span class="cap-name">Marketing and Brand Management</span>
+      
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">5.1</span>
+      <span class="cap-name">Banner Brand Strategy</span>
+      <span class="cap-parent">↳ Marketing and Brand Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">5.2</span>
+      <span class="cap-name">Marketing Campaign Management</span>
+      <span class="cap-parent">↳ Marketing and Brand Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">5.3</span>
+      <span class="cap-name">Gift and Seasonal Merchandising</span>
+      <span class="cap-parent">↳ Marketing and Brand Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">6</span>
+      <span class="cap-name">Digital and E-Commerce</span>
+      
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">6.1</span>
+      <span class="cap-name">E-Commerce Platform Management</span>
+      <span class="cap-parent">↳ Digital and E-Commerce</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">6.2</span>
+      <span class="cap-name">Digital Assortment Expansion</span>
+      <span class="cap-parent">↳ Digital and E-Commerce</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">6.3</span>
+      <span class="cap-name">Digital Customer Experience</span>
+      <span class="cap-parent">↳ Digital and E-Commerce</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">7</span>
+      <span class="cap-name">Financial Management</span>
+      
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">7.1</span>
+      <span class="cap-name">Financial Planning and Analysis</span>
+      <span class="cap-parent">↳ Financial Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">7.2</span>
+      <span class="cap-name">Capital Allocation and Investment</span>
+      <span class="cap-parent">↳ Financial Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">7.3</span>
+      <span class="cap-name">Shareholder Returns Management</span>
+      <span class="cap-parent">↳ Financial Management</span>
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">7.4</span>
+      <span class="cap-name">Treasury and Risk Management</span>
+      <span class="cap-parent">↳ Financial Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">8</span>
+      <span class="cap-name">Human Capital Management</span>
+      
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">8.1</span>
+      <span class="cap-name">Talent Acquisition and Onboarding</span>
+      <span class="cap-parent">↳ Human Capital Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">8.2</span>
+      <span class="cap-name">Learning and Development</span>
+      <span class="cap-parent">↳ Human Capital Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">8.3</span>
+      <span class="cap-name">Inclusion and Diversity</span>
+      <span class="cap-parent">↳ Human Capital Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">8.4</span>
+      <span class="cap-name">Associate Compensation and Benefits</span>
+      <span class="cap-parent">↳ Human Capital Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">9</span>
+      <span class="cap-name">Technology and Information Management</span>
+      
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">9.1</span>
+      <span class="cap-name">Retail Technology Systems</span>
+      <span class="cap-parent">↳ Technology and Information Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">9.2</span>
+      <span class="cap-name">Data and Analytics Platform</span>
+      <span class="cap-parent">↳ Technology and Information Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">9.3</span>
+      <span class="cap-name">Cybersecurity and Data Protection</span>
+      <span class="cap-parent">↳ Technology and Information Management</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">10</span>
+      <span class="cap-name">Corporate Responsibility</span>
+      
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">10.1</span>
+      <span class="cap-name">Environmental Sustainability</span>
+      <span class="cap-parent">↳ Corporate Responsibility</span>
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">10.2</span>
+      <span class="cap-name">Social Compliance and Ethics</span>
+      <span class="cap-parent">↳ Corporate Responsibility</span>
+      
+      
+      <span class="cap-incomplete" title="No KPIs defined"></span></div><div class="cap-item">
+      <span class="cap-level">10.3</span>
+      <span class="cap-name">Community Engagement</span>
+      <span class="cap-parent">↳ Corporate Responsibility</span>
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">11</span>
+      <span class="cap-name">Global Expansion and Market Development</span>
+      
+      <span class="diff-badge">DIFF</span>
+      
+      </div><div class="cap-item">
+      <span class="cap-level">11.1</span>
+      <span class="cap-name">Organic Store Network Expansion</span>
+      <span class="cap-parent">↳ Global Expansion and Market Development</span>
+      
+      
+      </div><div class="cap-item">
+      <span class="cap-level">11.2</span>
+      <span class="cap-name">New Market Entry</span>
+      <span class="cap-parent">↳ Global Expansion and Market Development</span>
+      <span class="diff-badge">DIFF</span>
+      
+      </div><div class="cap-item">
+      <span class="cap-level">11.3</span>
+      <span class="cap-name">Strategic Partnerships and Investments</span>
+      <span class="cap-parent">↳ Global Expansion and Market Development</span>
+      <span class="diff-badge">DIFF</span>
+      
+      </div></div>
+    </div><!-- end wizard-list -->
+  </div><!-- end wizard -->
+
+  <!-- RIGHT: Graph with independent scroll -->
+  <div class="graph-panel">
+    <div class="graph-toolbar">
+      <span class="graph-toolbar-label">Live model</span>
+      <div class="legend-item"><div class="legend-dot cap"></div> Capability</div>
+      <div class="legend-item"><div class="legend-dot diff"></div> Differentiating capability</div>
+      <div class="legend-item"><div class="legend-dot nokpi"></div> No KPIs</div>
+      <div class="legend-item"><div class="legend-dot disc"></div> Discrepancy</div>
+      <span style="margin-left:auto;font-size:11px;color:var(--ink3)">Click any node for detail / edit</span>
+    </div>
+    <div id="graph-canvas">
+      <svg id="graph-svg" width="5146" height="500"><defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></marker></defs><path d="M2604,74 L2604,109 L271,109 L271,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L843,109 L843,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L1415,109 L1415,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L1925,109 L1925,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L2373,109 L2373,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L2759,109 L2759,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L3207,109 L3207,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L3717,109 L3717,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L4165,109 L4165,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L4551,109 L4551,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M2604,74 L2604,109 L4937,109 L4937,144" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"></path><path d="M271,222 L271,245 L85,245 L85,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M271,222 L271,245 L209,245 L209,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M271,222 L271,245 L333,245 L333,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M271,222 L271,245 L457,245 L457,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M843,207 L843,237.5 L595,237.5 L595,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M843,207 L843,237.5 L719,237.5 L719,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><line x1="843" y1="207" x2="843" y2="268" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)" fill="none"></line><path d="M843,207 L843,237.5 L967,237.5 L967,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M843,207 L843,237.5 L1091,237.5 L1091,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M1415,192 L1415,230 L1229,230 L1229,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M1415,192 L1415,230 L1353,230 L1353,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M1415,192 L1415,230 L1477,230 L1477,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M1415,192 L1415,230 L1601,230 L1601,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M1925,207 L1925,237.5 L1739,237.5 L1739,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M1925,207 L1925,237.5 L1863,237.5 L1863,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M1925,207 L1925,237.5 L1987,237.5 L1987,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M1925,207 L1925,237.5 L2111,237.5 L2111,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M2373,207 L2373,237.5 L2249,237.5 L2249,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><line x1="2373" y1="207" x2="2373" y2="268" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)" fill="none"></line><path d="M2373,207 L2373,237.5 L2497,237.5 L2497,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M2759,207 L2759,237.5 L2635,237.5 L2635,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><line x1="2759" y1="207" x2="2759" y2="268" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)" fill="none"></line><path d="M2759,207 L2759,237.5 L2883,237.5 L2883,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M3207,207 L3207,237.5 L3021,237.5 L3021,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M3207,207 L3207,237.5 L3145,237.5 L3145,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M3207,207 L3207,237.5 L3269,237.5 L3269,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M3207,207 L3207,237.5 L3393,237.5 L3393,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M3717,207 L3717,237.5 L3531,237.5 L3531,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M3717,207 L3717,237.5 L3655,237.5 L3655,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M3717,207 L3717,237.5 L3779,237.5 L3779,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M3717,207 L3717,237.5 L3903,237.5 L3903,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M4165,222 L4165,245 L4041,245 L4041,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><line x1="4165" y1="222" x2="4165" y2="268" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)" fill="none"></line><path d="M4165,222 L4165,245 L4289,245 L4289,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M4551,207 L4551,237.5 L4427,237.5 L4427,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><line x1="4551" y1="207" x2="4551" y2="268" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)" fill="none"></line><path d="M4551,207 L4551,237.5 L4675,237.5 L4675,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><path d="M4937,222 L4937,245 L4813,245 L4813,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><line x1="4937" y1="222" x2="4937" y2="268" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)" fill="none"></line><path d="M4937,222 L4937,245 L5061,245 L5061,268" fill="none" stroke="#1D9E75" stroke-width="1.2" stroke-dasharray="none" marker-end="url(#arr)"></path><g>
+    <rect x="2524" y="30" width="160" height="44" rx="8" fill="#1a1a18" stroke="#1a1a18" stroke-width="0.5"></rect>
+    <text x="2604" y="52" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Sans,sans-serif" font-size="13" font-weight="500" fill="#ffffff">TJX Companies</text>
+  </g><g style="cursor:pointer" onclick="openDrawer(1)">
+      <rect x="206.75" y="144.75" width="128.5" height="76.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      
+      <text x="271" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">1</text>
+      <text x="271" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="271" dy="0">Customer</tspan><tspan x="271" dy="15">Experience</tspan><tspan x="271" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(2)">
+      <rect x="778.75" y="144.75" width="128.5" height="61.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      
+      <text x="843" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">2</text>
+      <text x="843" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="843" dy="0">Merchandising</tspan><tspan x="843" dy="15">and Buying</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(3)">
+      <rect x="1350.25" y="144.25" width="129.5" height="47.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="1415" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">3</text>
+      <text x="1415" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="1415" dy="0">Store Operations</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(4)">
+      <rect x="1860.75" y="144.75" width="128.5" height="61.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      
+      <text x="1925" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">4</text>
+      <text x="1925" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="1925" dy="0">Supply Chain and</tspan><tspan x="1925" dy="15">Logistics</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(5)">
+      <rect x="2308.25" y="144.25" width="129.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="2373" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">5</text>
+      <text x="2373" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2373" dy="0">Marketing and</tspan><tspan x="2373" dy="15">Brand Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(6)">
+      <rect x="2694.25" y="144.25" width="129.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="2759" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">6</text>
+      <text x="2759" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2759" dy="0">Digital and</tspan><tspan x="2759" dy="15">E-Commerce</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(7)">
+      <rect x="3142.25" y="144.25" width="129.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="3207" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">7</text>
+      <text x="3207" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3207" dy="0">Financial</tspan><tspan x="3207" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(8)">
+      <rect x="3652.25" y="144.25" width="129.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="3717" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">8</text>
+      <text x="3717" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3717" dy="0">Human Capital</tspan><tspan x="3717" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(9)">
+      <rect x="4100.25" y="144.25" width="129.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="4165" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">9</text>
+      <text x="4165" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4165" dy="0">Technology and</tspan><tspan x="4165" dy="15">Information</tspan><tspan x="4165" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(10)">
+      <rect x="4486.25" y="144.25" width="129.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="4551" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">10</text>
+      <text x="4551" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4551" dy="0">Corporate</tspan><tspan x="4551" dy="15">Responsibility</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(11)">
+      <rect x="4872.75" y="144.75" width="128.5" height="76.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      
+      <text x="4937" y="163.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">11</text>
+      <text x="4937" y="179.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="4937" dy="0">Global Expansion</tspan><tspan x="4937" dy="15">and Market</tspan><tspan x="4937" dy="15">Development</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(101)">
+      <rect x="30.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="134" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="85" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">1.1</text>
+      <text x="85" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="85" dy="0">Customer</tspan><tspan x="85" dy="15">Insight and</tspan><tspan x="85" dy="15">Analytics</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(102)">
+      <rect x="154.75" y="268.75" width="108.5" height="76.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      <circle cx="258" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="209" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">1.2</text>
+      <text x="209" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="209" dy="0">In-Store</tspan><tspan x="209" dy="15">Experience</tspan><tspan x="209" dy="15">Design</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(103)">
+      <rect x="278.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="382" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="333" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">1.3</text>
+      <text x="333" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="333" dy="0">Customer</tspan><tspan x="333" dy="15">Loyalty and</tspan><tspan x="333" dy="15">Retention</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(104)">
+      <rect x="402.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="506" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="457" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">1.4</text>
+      <text x="457" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="457" dy="0">Omni-Channel</tspan><tspan x="457" dy="15">Experience</tspan><tspan x="457" dy="15">Integration</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(201)">
+      <rect x="540.75" y="268.75" width="108.5" height="61.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      <circle cx="644" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="595" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">2.1</text>
+      <text x="595" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="595" dy="0">Opportunistic</tspan><tspan x="595" dy="15">Buying</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(202)">
+      <rect x="664.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="768" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="719" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">2.2</text>
+      <text x="719" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="719" dy="0">Vendor</tspan><tspan x="719" dy="15">Relationship</tspan><tspan x="719" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(203)">
+      <rect x="788.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="892" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="843" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">2.3</text>
+      <text x="843" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="843" dy="0">Assortment</tspan><tspan x="843" dy="15">Planning and</tspan><tspan x="843" dy="15">Allocation</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(204)">
+      <rect x="912.75" y="268.75" width="108.5" height="76.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      <circle cx="1016" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="967" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">2.4</text>
+      <text x="967" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="967" dy="0">Merchandise</tspan><tspan x="967" dy="15">Pricing</tspan><tspan x="967" dy="15">Strategy</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(205)">
+      <rect x="1036.75" y="268.75" width="108.5" height="76.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      <circle cx="1140" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="1091" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">2.5</text>
+      <text x="1091" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="1091" dy="0">Global Buying</tspan><tspan x="1091" dy="15">Office</tspan><tspan x="1091" dy="15">Operations</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(301)">
+      <rect x="1174.75" y="268.75" width="108.5" height="76.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      <circle cx="1278" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="1229" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">3.1</text>
+      <text x="1229" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="1229" dy="0">Multi-Banner</tspan><tspan x="1229" dy="15">Store</tspan><tspan x="1229" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(302)">
+      <rect x="1298.75" y="268.75" width="108.5" height="76.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      <circle cx="1402" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="1353" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">3.2</text>
+      <text x="1353" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="1353" dy="0">Store Layout</tspan><tspan x="1353" dy="15">and Space</tspan><tspan x="1353" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(303)">
+      <rect x="1422.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="1526" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="1477" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">3.3</text>
+      <text x="1477" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="1477" dy="0">Store</tspan><tspan x="1477" dy="15">Workforce</tspan><tspan x="1477" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(304)">
+      <rect x="1546.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="1650" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="1601" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">3.4</text>
+      <text x="1601" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="1601" dy="0">Real Estate</tspan><tspan x="1601" dy="15">and Store</tspan><tspan x="1601" dy="15">Development</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(401)">
+      <rect x="1684.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="1788" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="1739" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">4.1</text>
+      <text x="1739" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="1739" dy="0">Inbound</tspan><tspan x="1739" dy="15">Logistics and</tspan><tspan x="1739" dy="15">Receiving</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(402)">
+      <rect x="1808.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="1912" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="1863" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">4.2</text>
+      <text x="1863" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="1863" dy="0">Distribution</tspan><tspan x="1863" dy="15">Center</tspan><tspan x="1863" dy="15">Operations</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(403)">
+      <rect x="1932.25" y="268.25" width="109.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="2036" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="1987" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">4.3</text>
+      <text x="1987" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="1987" dy="0">Inventory</tspan><tspan x="1987" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(404)">
+      <rect x="2056.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="2160" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="2111" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">4.4</text>
+      <text x="2111" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2111" dy="0">Transportation</tspan><tspan x="2111" dy="15">and Carrier</tspan><tspan x="2111" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(501)">
+      <rect x="2194.25" y="268.25" width="109.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="2298" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="2249" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">5.1</text>
+      <text x="2249" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2249" dy="0">Banner Brand</tspan><tspan x="2249" dy="15">Strategy</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(502)">
+      <rect x="2318.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="2422" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="2373" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">5.2</text>
+      <text x="2373" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2373" dy="0">Marketing</tspan><tspan x="2373" dy="15">Campaign</tspan><tspan x="2373" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(503)">
+      <rect x="2442.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="2546" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="2497" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">5.3</text>
+      <text x="2497" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2497" dy="0">Gift and</tspan><tspan x="2497" dy="15">Seasonal</tspan><tspan x="2497" dy="15">Merchandising</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(601)">
+      <rect x="2580.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="2684" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="2635" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">6.1</text>
+      <text x="2635" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2635" dy="0">E-Commerce</tspan><tspan x="2635" dy="15">Platform</tspan><tspan x="2635" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(602)">
+      <rect x="2704.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="2808" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="2759" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">6.2</text>
+      <text x="2759" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2759" dy="0">Digital</tspan><tspan x="2759" dy="15">Assortment</tspan><tspan x="2759" dy="15">Expansion</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(603)">
+      <rect x="2828.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="2932" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="2883" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">6.3</text>
+      <text x="2883" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="2883" dy="0">Digital</tspan><tspan x="2883" dy="15">Customer</tspan><tspan x="2883" dy="15">Experience</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(701)">
+      <rect x="2966.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="3070" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="3021" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">7.1</text>
+      <text x="3021" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3021" dy="0">Financial</tspan><tspan x="3021" dy="15">Planning and</tspan><tspan x="3021" dy="15">Analysis</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(702)">
+      <rect x="3090.25" y="268.25" width="109.5" height="92.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="3194" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="3145" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">7.2</text>
+      <text x="3145" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3145" dy="0">Capital</tspan><tspan x="3145" dy="15">Allocation</tspan><tspan x="3145" dy="15">and</tspan><tspan x="3145" dy="15">Investment</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(703)">
+      <rect x="3214.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="3269" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">7.3</text>
+      <text x="3269" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3269" dy="0">Shareholder</tspan><tspan x="3269" dy="15">Returns</tspan><tspan x="3269" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(704)">
+      <rect x="3338.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="3442" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="3393" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">7.4</text>
+      <text x="3393" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3393" dy="0">Treasury and</tspan><tspan x="3393" dy="15">Risk</tspan><tspan x="3393" dy="15">Management</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(801)">
+      <rect x="3476.25" y="268.25" width="109.5" height="92.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="3580" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="3531" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">8.1</text>
+      <text x="3531" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3531" dy="0">Talent</tspan><tspan x="3531" dy="15">Acquisition</tspan><tspan x="3531" dy="15">and</tspan><tspan x="3531" dy="15">Onboarding</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(802)">
+      <rect x="3600.25" y="268.25" width="109.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="3704" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="3655" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">8.2</text>
+      <text x="3655" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3655" dy="0">Learning and</tspan><tspan x="3655" dy="15">Development</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(803)">
+      <rect x="3724.25" y="268.25" width="109.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="3828" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="3779" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">8.3</text>
+      <text x="3779" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3779" dy="0">Inclusion and</tspan><tspan x="3779" dy="15">Diversity</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(804)">
+      <rect x="3848.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="3952" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="3903" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">8.4</text>
+      <text x="3903" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="3903" dy="0">Associate</tspan><tspan x="3903" dy="15">Compensation</tspan><tspan x="3903" dy="15">and Benefits</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(901)">
+      <rect x="3986.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="4090" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="4041" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">9.1</text>
+      <text x="4041" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4041" dy="0">Retail</tspan><tspan x="4041" dy="15">Technology</tspan><tspan x="4041" dy="15">Systems</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(902)">
+      <rect x="4110.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="4214" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="4165" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">9.2</text>
+      <text x="4165" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4165" dy="0">Data and</tspan><tspan x="4165" dy="15">Analytics</tspan><tspan x="4165" dy="15">Platform</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(903)">
+      <rect x="4234.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="4338" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="4289" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">9.3</text>
+      <text x="4289" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4289" dy="0">Cybersecurity</tspan><tspan x="4289" dy="15">and Data</tspan><tspan x="4289" dy="15">Protection</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(1001)">
+      <rect x="4372.25" y="268.25" width="109.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="4427" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">10.1</text>
+      <text x="4427" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4427" dy="0">Environmental</tspan><tspan x="4427" dy="15">Sustainability</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(1002)">
+      <rect x="4496.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      <circle cx="4600" cy="274" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"></circle>
+      <text x="4551" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">10.2</text>
+      <text x="4551" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4551" dy="0">Social</tspan><tspan x="4551" dy="15">Compliance</tspan><tspan x="4551" dy="15">and Ethics</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(1003)">
+      <rect x="4620.25" y="268.25" width="109.5" height="62.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="4675" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">10.3</text>
+      <text x="4675" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4675" dy="0">Community</tspan><tspan x="4675" dy="15">Engagement</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(1101)">
+      <rect x="4758.25" y="268.25" width="109.5" height="77.5" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"></rect>
+      
+      <text x="4813" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#0F6E56">11.1</text>
+      <text x="4813" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#085041"><tspan x="4813" dy="0">Organic Store</tspan><tspan x="4813" dy="15">Network</tspan><tspan x="4813" dy="15">Expansion</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(1102)">
+      <rect x="4882.75" y="268.75" width="108.5" height="61.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      
+      <text x="4937" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">11.2</text>
+      <text x="4937" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="4937" dy="0">New Market</tspan><tspan x="4937" dy="15">Entry</tspan></text>
+    </g><g style="cursor:pointer" onclick="openDrawer(1103)">
+      <rect x="5006.75" y="268.75" width="108.5" height="91.5" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"></rect>
+      
+      <text x="5061" y="287.9" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="#534AB7">11.3</text>
+      <text x="5061" y="303.65" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#3C3489"><tspan x="5061" dy="0">Strategic</tspan><tspan x="5061" dy="15">Partnerships</tspan><tspan x="5061" dy="15">and</tspan><tspan x="5061" dy="15">Investments</tspan></text>
+    </g></svg>
+    </div>
+  </div>
+</main>
+
+<div id="src-tooltip"></div>
+<div id="detail-drawer" class=""><div id="drawer-content">
+    <div class="drawer-header">
+      <div class="drawer-title"><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;font-size:12px;color:var(--cap);margin-right:6px;">1.1</span>Customer Insight and Analytics</div>
+      <button class="drawer-close-btn" id="drawer-x">✕</button>
+    </div>
+    <span class="drawer-level">L2</span>
+    <div class="drawer-field-label">Capability name</div>
+    <input type="text" id="edit-name" value="Customer Insight and Analytics">
+    <div class="drawer-field-label">Description</div>
+    <textarea id="edit-desc" style="min-height:80px;line-height:1.5;">The ability to gather, analyze, and act on customer data, preferences, and shopping behavior to inform experience design and merchandise decisions.</textarea>
+    <div class="drawer-field-label">Parent capability</div><select id="edit-parent"><option value="1" selected="">1  Customer Experience Management</option><option value="2">2  Merchandising and Buying</option><option value="3">3  Store Operations</option><option value="4">4  Supply Chain and Logistics</option><option value="5">5  Marketing and Brand Management</option><option value="6">6  Digital and E-Commerce</option><option value="7">7  Financial Management</option><option value="8">8  Human Capital Management</option><option value="9">9  Technology and Information Management</option><option value="10">10  Corporate Responsibility</option><option value="11">11  Global Expansion and Market Development</option></select>
+    <div class="diff-toggle" style="margin-top:12px;">
+      <input type="checkbox" id="edit-diff">
+      <label for="edit-diff">Differentiating capability</label>
+    </div>
+    <div class="drawer-field-label" style="margin-top:14px;">KPIs</div>
+    <div id="drawer-kpi-list"></div>
+    <button class="btn-add-kpi" id="drawer-add-kpi">+ Add KPI</button>
+    
+    
+    <div class="drawer-notice" id="drawer-notice"></div>
+    <div class="drawer-btn-row">
+      <button class="drawer-save-btn" id="drawer-save">Save changes</button>
+      <button class="drawer-edit-btn" id="drawer-cancel">Cancel</button>
+      <button class="drawer-delete-btn" id="drawer-delete">Delete</button>
+    </div></div></div>
+
+<div id="import-overlay" class="">
+  <div id="import-modal">
+    <h3>Import capability model</h3>
+    <p>Load a previously exported JSON file to restore or continue building a model. Existing capabilities will be replaced. Imported entries are revalidated on load.</p>
+    <div id="import-drop"><div>Drop a JSON file here or click to browse</div></div>
+    <input type="file" id="import-file" accept=".json">
+    <div id="import-status"></div>
+    <div class="import-btn-row">
+      <button class="drawer-edit-btn" id="import-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const state = {
+  capabilities: [],
+  nextId: 1,
+  pendingEntry: null,
+  pendingRewrite: null,
+  suppressedWarnings: new Set(),
+  businessName: '',
+  sources: []   // { label, url, type } — accumulated across imports and manual additions
+};
+
+// ── Utility (defined first — used throughout) ──────────────────────────
+function escHtml(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Validation ─────────────────────────────────────────────────────────
+const PROCESS_VERB_PATTERNS = [
+  { pattern:/\bsubmit\s+(a |an |the |for |request|form|issue|ticket|claim|report)/i, label:'submit' },
+  { pattern:/\b(execute|executes|executing)\b/i, label:'execute' },
+  { pattern:/\b(perform|performs|performing)\s+(the |a |an )?(?!well|better|best|poorly)/i, label:'perform' },
+  { pattern:/\brun\s+(the |a |an |this )?(process|workflow|report|job|task|batch)/i, label:'run' },
+  { pattern:/\b(process|processes)\s+(the |a |an )?(request|order|payment|transaction|claim|application)/i, label:'process' },
+  { pattern:/\b(approve|approves|approving)\b/i, label:'approve' },
+  { pattern:/\b(review|reviews|reviewing)\s+(the |a |an |each |all )?(request|application|submission|document|form)/i, label:'review' },
+  { pattern:/\b(send|sends|sending)\s+(the |a |an )?(notification|alert|email|message|report)/i, label:'send' },
+  { pattern:/\b(calculat|generat\s+report|track\s+the|monitor\s+the|log\s+the|creat\s+a\s+(?:request|ticket|task)|updat\s+the|delet\s+the|fetch\s+the|retriev\s+the|notif|trigger|schedul|dispatch|handl\s+the|coordinat\s+the|manag\s+request|workflow|step-by-step|procedure|task list|activity list)/i, label:'process activity' }
+];
+
+// Context-aware technology detection — require explicit product name context, not substring
+const TECH_PATTERNS = [
+  { pattern:/\bsap\b/i, label:'SAP' },
+  { pattern:/\boracle\b/i, label:'Oracle' },
+  { pattern:/\bsalesforce\b/i, label:'Salesforce' },
+  { pattern:/\bworkday\b/i, label:'Workday' },
+  { pattern:/\bservicenow\b/i, label:'ServiceNow' },
+  { pattern:/\bjira\b/i, label:'Jira' },
+  { pattern:/\bsharepoint\b/i, label:'SharePoint' },
+  // "excel" only as standalone word meaning the spreadsheet, not part of "excellence"
+  { pattern:/\bexcel\b(?!l)/i, label:'Excel' },
+  // "erp" only as acronym, not substring of "enterprise"
+  { pattern:/\berp\b/i, label:'ERP' },
+  // CRM as a generic category is acceptable — only flag named CRM products (Salesforce already caught above)
+  { pattern:/\b(salesforce|ms dynamics|microsoft dynamics|hubspot|zoho)\s*crm\b/i, label:'named CRM product' },
+  // "database" only as explicit standalone reference
+  { pattern:/\bdatabase\b/i, label:'database' },
+  // "system" fires only when referencing a discrete technology system as a product
+  // Excluded: "across the/our system" (=hotel/org network), "systems that/used/include" (generic plural)
+  // "system" fires only as a specific product reference
+  // Excluded: 'across the system', 'within the system', 'throughout the system' (=org/network),
+  //           'revenue management system(s)', 'management systems' (generic category, usually plural)
+  // "system" fires only for specific named technology systems — no lookbehind (browser compat)
+  { pattern:/\b(the|a|an|its)\s+system\b(?!s\b)/i,
+    validate(str) {
+      if (/\b(across|within|throughout)\s+(the|our|its)\s+system\b/i.test(str)) return false;
+      if (/\b(management|reservation|loyalty|property|information|operating|payment|legacy)\s+systems?\b/i.test(str)) return false;
+      return true;
+    }, label:'specific system' },
+  // "platform" only as a specific product reference, not conceptual capability name
+  { pattern:/\b(the|a|an|our|its|this)\s+platform\b/i, label:'specific platform' },
+  // "application" only as specific software reference
+  { pattern:/\b(the|a|an|our)\s+application\b/i, label:'specific application' },
+  { pattern:/\bsoftware\b(?!\s+(engineer|developer|development|architecture|design|testing|quality))/i, label:'software product' },
+  { pattern:/\b(the|a|specific)\s+tool\b/i, label:'specific tool' }
+];
+
+// Context-aware org scope detection — require clear org unit reference, not common words
+const ORG_PATTERNS = [
+  { pattern:/\b(a |the |our |specific |by |within a )(department|division|team|group|business unit)\b/i, label:'org unit' },
+  // "unit" only when preceding by org-context words, not in "communities" or "unit of measure"
+  { pattern:/\b(business|org|organizational|operating)\s+unit\b/i, label:'business unit' },
+  // Geography only flags when the region is the owning/limiting scope, not just listed as an expansion target
+  // Pattern requires geography to be followed or preceded by operational ownership context
+  { pattern:/\b(north america|emea|apac|latam)\b(?=\s*(team|segment|only|specific|function|office|region\b|headquarters|operations\b))/i, label:'geography' },
+  { pattern:/\b(corporate|headquarters)\s+(only|specific|team|function)\b/i, label:'HQ scope' }
+];
+
+// ORG_BOUNDARY_PATTERNS: only fire when region acronym stands alone as a geographic scope marker
+// \beu\b excluded inside words like 'value', 'revenue', 'continue', 'queue'
+const ORG_BOUNDARY_PATTERNS = [
+  /\bus\b(?!e|ed|er|ing|ual|age|ually|iness|tomers|tomary|ing)/i,
+  /\beu\b(?!ro|r[oa]|rop|que|r$|\s*(market|region|customer|partner|user|standard|regulatory|compliance))/i,
+  /\buk\b(?!\s*(gaap|standard|market|team|region|only))/i
+];
+
+function validate(name, desc, level, parentId, excludeId) {
+  const issues = [];
+  const combined = name + ' ' + desc;
+
+  // What not How
+  const procMatch = PROCESS_VERB_PATTERNS.find(p => p.pattern.test(combined));
+  if (procMatch) {
+    issues.push({ type:'warn', rule:'What not How',
+      msg:'The description contains activity language ("' + procMatch.label + '"). Capabilities define outcomes, not actions. Try describing what the business can do rather than the steps it takes.' });
+  }
+
+  // Outcome present
+  if (desc.trim().length < 20) {
+    issues.push({ type:'warn', rule:'Outcome missing',
+      msg:'The description is very short. Add enough detail to identify the business outcome this capability produces.' });
+  }
+
+  // Technology reference — context-aware
+  const techMatch = TECH_PATTERNS.find(p => p.pattern.test(combined) && (!p.validate || p.validate(combined)));
+  if (techMatch) {
+    issues.push({ type:'warn', rule:'Technology reference',
+      msg:'The name or description appears to reference a specific technology ("' + techMatch.label + '"). Capabilities should remain technology-neutral to survive system changes.' });
+  }
+
+  // Org/geography scope — context-aware
+  const orgMatch = ORG_PATTERNS.find(p => p.pattern.test(combined));
+  const orgBoundaryMatch = !orgMatch && ORG_BOUNDARY_PATTERNS.find(p => p.test(combined));
+  if (orgMatch || orgBoundaryMatch) {
+    const matched = orgMatch ? orgMatch.label : (combined.match(orgBoundaryMatch)||[''])[0];
+    issues.push({ type:'warn', rule:'Org or geography scope',
+      msg:'This appears scoped to a specific org unit or geography ("' + matched.trim() + '"). Enterprise capabilities should be cross-organizational.' });
+  }
+
+  // Overlap
+  if (!state.suppressedWarnings.has('overlap')) {
+    const parentIdInt = parentId ? parseInt(parentId) : null;
+    const excludedIds = new Set();
+    if (excludeId != null) excludedIds.add(parseInt(excludeId));
+    if (parentIdInt) {
+      excludedIds.add(parentIdInt);
+      state.capabilities.filter(c => c.parentId === parentIdInt).forEach(c => excludedIds.add(c.id));
+      let anc = state.capabilities.find(c => c.id === parentIdInt);
+      while (anc) { excludedIds.add(anc.id); anc = anc.parentId ? state.capabilities.find(c => c.id === anc.parentId) : null; }
+    }
+    const similar = state.capabilities.find(c => {
+      if (excludedIds.has(c.id)) return false;
+      const existing = (c.name + ' ' + c.desc).toLowerCase();
+      const words = name.toLowerCase().split(' ').filter(w => w.length > 4);
+      return words.filter(w => existing.includes(w)).length >= 2;
+    });
+    if (similar) {
+      issues.push({ type:'warn', rule:'Potential overlap',
+        msg:'This may overlap with "' + similar.name + '" already in the model. Review both before adding to ensure mutual exclusivity.' });
+    }
+  }
+
+  // Parent required
+  if ((level === 'L2' || level === 'L3') && !parentId) {
+    issues.push({ type:'fail', rule:'Parent required',
+      msg:'A ' + level + ' capability must have a parent. Select a parent capability before adding.' });
+  }
+
+  // L1 count — one-time advisory at 11
+  if (level === 'L1' && !state.suppressedWarnings.has('l1count')) {
+    const l1count = state.capabilities.filter(c => c.level === 'L1' && c.id !== excludeId).length;
+    if (l1count === 10) {
+      issues.push({ type:'warn', rule:'L1 count advisory',
+        msg:'You now have more than 10 L1 capabilities, which exceeds the recommended maximum. Consider whether any can be consolidated or moved to L2. This advisory will not appear again.' });
+    }
+  }
+
+  // Name empty
+  if (!name.trim()) {
+    issues.push({ type:'fail', rule:'Name required', msg:'Enter a capability name.' });
+  }
+
+  return issues;
+}
+
+// ── Form ───────────────────────────────────────────────────────────────
+function onLevelChange() {
+  const level = document.getElementById('cap-level').value;
+  document.getElementById('cap-parent').disabled = level === 'L1';
+  refreshParentOptions(level);
+}
+
+function refreshParentOptions(level, selectedId) {
+  const parentSel = document.getElementById('cap-parent');
+  if (level === 'L1') { parentSel.innerHTML = '<option value="">— not required —</option>'; return; }
+  const eligible = level === 'L2'
+    ? state.capabilities.filter(c => c.level === 'L1')
+    : state.capabilities.filter(c => c.level === 'L2');
+  if (!eligible.length) {
+    parentSel.innerHTML = `<option value="" disabled>${level==='L2'?'— no L1 defined yet —':'— no L2 defined yet —'}</option>`;
+    return;
+  }
+  parentSel.innerHTML = '<option value="">— select parent —</option>';
+  eligible.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = computeNumber(c) + '  ' + c.name;
+    if (selectedId && c.id === selectedId) opt.selected = true;
+    parentSel.appendChild(opt);
+  });
+}
+
+function clearForm() {
+  document.getElementById('cap-name').value = '';
+  document.getElementById('cap-desc').value = '';
+  document.getElementById('cap-level').value = 'L1';
+  document.getElementById('cap-diff').checked = false;
+  document.getElementById('kpi-list').innerHTML = '';
+  onLevelChange();
+  hideValidation();
+  state.pendingEntry = null;
+  state.pendingRewrite = null;
+  const keep = new Set([...state.suppressedWarnings].filter(w => w === 'l1count'));
+  state.suppressedWarnings = keep;
+}
+
+function hideValidation() {
+  const va = document.getElementById('validation-area');
+  va.style.display = 'none'; va.innerHTML = '';
+  document.getElementById('override-btn').classList.remove('visible');
+  document.getElementById('ai-rewrite').classList.remove('visible');
+  document.getElementById('ai-rewrite-text').value = '';
+  state.pendingRewrite = null;
+}
+
+function showValidation(issues, name, desc) {
+  const va = document.getElementById('validation-area');
+  if (!issues.length) { va.style.display='none'; return; }
+  const hasFail = issues.some(i => i.type==='fail');
+  va.className = hasFail ? 'fail' : 'warn';
+  va.style.display = 'block';
+  va.innerHTML = `
+    <div class="val-header ${hasFail?'fail':'warn'}">${hasFail?'Cannot add — fix required':'Review before adding'}</div>
+    <div class="val-body">${issues.map(i=>`
+      <div class="val-item">
+        <div class="val-dot ${i.type}"></div>
+        <div><strong style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink3)">${i.rule}</strong><br>${i.msg}</div>
+      </div>`).join('')}
+    </div>`;
+  if (!hasFail) {
+    document.getElementById('override-btn').classList.add('visible');
+    requestRewrite(name, desc);
+  } else {
+    document.getElementById('override-btn').classList.remove('visible');
+  }
+}
+
+function getKPIs(containerId) {
+  const kpis = [];
+  document.querySelectorAll('#' + (containerId||'kpi-list') + ' .kpi-row').forEach(r => {
+    const n = r.querySelector('.kpi-name-input').value.trim();
+    const t = r.querySelector('.kpi-target-input').value.trim();
+    if (n) kpis.push({ name:n, target:t });
+  });
+  return kpis;
+}
+
+function addKPIRow(name='', target='', containerId='kpi-list') {
+  const list = document.getElementById(containerId);
+  const row = document.createElement('div');
+  row.className = 'kpi-row';
+  row.innerHTML = `<input class="kpi-name-input" type="text" placeholder="KPI name" value="${escHtml(name)}" style="flex:2"><input class="kpi-target-input" type="text" placeholder="Target" value="${escHtml(target)}" style="flex:1"><button class="kpi-remove">✕</button>`;
+  row.querySelector('.kpi-remove').addEventListener('click', () => row.remove());
+  list.appendChild(row);
+}
+
+function submitCapability() {
+  const name = document.getElementById('cap-name').value.trim();
+  const desc = document.getElementById('cap-desc').value.trim();
+  const level = document.getElementById('cap-level').value;
+  const parentId = document.getElementById('cap-parent').value || null;
+  const diff = document.getElementById('cap-diff').checked;
+  const kpis = getKPIs();
+
+  if (state.pendingEntry &&
+      state.pendingEntry.name === name && state.pendingEntry.desc === desc &&
+      state.pendingEntry.level === level && String(state.pendingEntry.parentId) === String(parentId)) {
+    addCapability(name, desc, level, parentId, state.pendingEntry.flags, true, diff, kpis);
+    state.pendingEntry = null; state.suppressedWarnings = new Set([...state.suppressedWarnings].filter(w=>w==='l1count'));
+    return;
+  }
+
+  state.pendingEntry = null;
+  const issues = validate(name, desc, level, parentId);
+  const hasFail = issues.some(i => i.type==='fail');
+
+  if (issues.length > 0) {
+    showValidation(issues, name, desc);
+    if (!hasFail) {
+      state.pendingEntry = { name, desc, level, parentId, diff, kpis, flags: issues.map(i=>i.msg) };
+      issues.forEach(i => {
+        if (i.rule==='Potential overlap') state.suppressedWarnings.add('overlap');
+        if (i.rule==='L1 count advisory') state.suppressedWarnings.add('l1count');
+      });
+    }
+    return;
+  }
+  state.suppressedWarnings = new Set([...state.suppressedWarnings].filter(w=>w==='l1count'));
+  addCapability(name, desc, level, parentId, [], false, diff, kpis);
+}
+
+function addWithOverride() {
+  if (!state.pendingEntry) return;
+  const { name, desc, level, parentId, flags, diff, kpis } = state.pendingEntry;
+  addCapability(name, desc, level, parentId, flags, true, diff, kpis);
+  state.pendingEntry = null;
+}
+
+function addCapability(name, desc, level, parentId, flags, overridden, diff, kpis) {
+  state.capabilities.push({
+    id: state.nextId++, name, desc, level,
+    parentId: parentId ? parseInt(parentId) : null,
+    flags: flags||[], overridden:!!overridden,
+    differentiating:!!diff, kpis:kpis||[]
+  });
+  clearForm();
+  renderList(); renderGraph(); updateStats();
+}
+
+// ── Numbering ──────────────────────────────────────────────────────────
+function computeNumber(cap) {
+  if (cap.level==='L1') return String(state.capabilities.filter(c=>c.level==='L1').findIndex(c=>c.id===cap.id)+1);
+  const parent = state.capabilities.find(c=>c.id===cap.parentId);
+  if (!parent) return '?';
+  const siblings = state.capabilities.filter(c=>c.level===cap.level && c.parentId===cap.parentId);
+  return computeNumber(parent) + '.' + (siblings.findIndex(c=>c.id===cap.id)+1);
+}
+
+// ── List (depth-first sort) ────────────────────────────────────────────
+function depthFirstSort(caps) {
+  const sorted = [];
+  function walk(parentId) {
+    caps.filter(c=>c.parentId===parentId)
+      .sort((a,b)=>computeNumber(a).localeCompare(computeNumber(b),undefined,{numeric:true}))
+      .forEach(c=>{ sorted.push(c); walk(c.id); });
+  }
+  caps.filter(c=>c.level==='L1')
+    .sort((a,b)=>computeNumber(a).localeCompare(computeNumber(b),undefined,{numeric:true}))
+    .forEach(c=>{ sorted.push(c); walk(c.id); });
+  return sorted;
+}
+
+function renderList() {
+  const list = document.getElementById('cap-list');
+  if (!state.capabilities.length) { list.innerHTML='<div class="empty-state">No capabilities added yet.</div>'; return; }
+  list.innerHTML = '';
+  depthFirstSort(state.capabilities).forEach(c => {
+    const parent = c.parentId ? state.capabilities.find(x=>x.id===c.parentId) : null;
+    const num = computeNumber(c);
+    const div = document.createElement('div');
+    div.className = 'cap-item';
+    div.innerHTML = `
+      <span class="cap-level">${escHtml(num)}</span>
+      <span class="cap-name">${escHtml(c.name)}</span>
+      ${parent?`<span class="cap-parent">↳ ${escHtml(parent.name)}</span>`:''}
+      ${c.differentiating?'<span class="diff-badge">DIFF</span>':''}
+      ${c.flags&&c.flags.length?'<span class="cap-flag" title="Discrepancy noted"></span>':''}
+      ${!c.kpis.length?'<span class="cap-incomplete" title="No KPIs defined"></span>':''}`;
+    div.addEventListener('click', ()=>openDrawer(c.id));
+    list.appendChild(div);
+  });
+}
+
+function updateStats() {
+  document.getElementById('count-l1').textContent = state.capabilities.filter(c=>c.level==='L1').length;
+  document.getElementById('count-l2').textContent = state.capabilities.filter(c=>c.level==='L2').length;
+  document.getElementById('count-l3').textContent = state.capabilities.filter(c=>c.level==='L3').length;
+  document.getElementById('count-flags').textContent = state.capabilities.filter(c=>c.flags&&c.flags.length).length;
+  document.getElementById('total-count').textContent = state.capabilities.length;
+}
+
+// ── Graph — org-chart style hierarchical layout ────────────────────────
+const NODE_W = { L1:130, L2:110, L3:96 };
+const NODE_H_BASE = { L1:44, L2:38, L3:32 };
+const V_GAP = 80;    // vertical gap between levels
+const H_GAP = 14;    // horizontal gap between siblings
+const MARGIN = 30;
+
+function computeNodeHeight(c, nw) {
+  const maxChars = Math.floor((nw - 16) / 7);
+  const words = c.name.split(' ');
+  const lines = []; let cur = '';
+  words.forEach(w => { const t = cur?cur+' '+w:w; if(t.length<=maxChars){cur=t;}else{if(cur)lines.push(cur);cur=w;} });
+  if(cur) lines.push(cur);
+  const numH=14, lineH=15;
+  return Math.max(NODE_H_BASE[c.level]||38, numH+3+lines.length*lineH+16);
+}
+
+function layoutTree(caps) {
+  // Build tree structure
+  const byId = {};
+  caps.forEach(c => byId[c.id] = { cap:c, children:[], x:0, y:0, w:NODE_W[c.level]||110 });
+  const roots = [];
+  caps.forEach(c => {
+    if (c.parentId && byId[c.parentId]) byId[c.parentId].children.push(byId[c.id]);
+    else roots.push(byId[c.id]);
+  });
+
+  // Compute subtree width bottom-up
+  function subtreeWidth(node) {
+    const nw = node.w;
+    if (!node.children.length) { node.subtreeW = nw; return nw; }
+    const childTotal = node.children.reduce((sum,ch) => sum + subtreeWidth(ch), 0)
+                     + (node.children.length-1) * H_GAP;
+    node.subtreeW = Math.max(nw, childTotal);
+    return node.subtreeW;
+  }
+  roots.forEach(r => subtreeWidth(r));
+
+  // Assign x positions top-down
+  function assignX(node, leftEdge) {
+    node.x = leftEdge + (node.subtreeW - node.w) / 2;
+    let cx = leftEdge;
+    node.children.forEach(ch => { assignX(ch, cx); cx += ch.subtreeW + H_GAP; });
+  }
+  let cursor = MARGIN;
+  roots.forEach(r => { assignX(r, cursor); cursor += r.subtreeW + H_GAP * 2; });
+
+  // Assign y by level
+  const levelY = { L1: MARGIN, L2: MARGIN + NODE_H_BASE.L1 + V_GAP, L3: MARGIN + NODE_H_BASE.L1 + V_GAP + NODE_H_BASE.L2 + V_GAP };
+  Object.values(byId).forEach(node => { node.y = levelY[node.cap.level] || MARGIN; });
+
+  return byId;
+}
+
+function renderGraph() {
+  const svg = document.getElementById('graph-svg');
+  const caps = state.capabilities;
+  const bizName = (document.getElementById('biz-name').value.trim()) || 'Business';
+
+  if (!caps.length) {
+    svg.setAttribute('width', 800); svg.setAttribute('height', 400);
+    svg.innerHTML = `<text x="400" y="200" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" fill="#8a8a84">Add a capability to see the model</text>`;
+    return;
+  }
+
+  const byId = layoutTree(caps);
+  const allNodes = Object.values(byId);
+
+  // Root node: width auto-sized to fit full business name, min 160px
+  const ROOT_H = 44; const ROOT_V_GAP = 70;
+  const ROOT_FONT_W = 7.5; // approx px per char at 13px IBM Plex Sans bold
+  const ROOT_PAD = 32;
+  const ROOT_W = Math.max(160, Math.ceil(bizName.length * ROOT_FONT_W) + ROOT_PAD);
+  // Shift all capability nodes down for root
+  allNodes.forEach(n => { n.y += ROOT_H + ROOT_V_GAP; });
+
+  const svgW = Math.max(800, ...allNodes.map(n => n.x + n.w + MARGIN));
+  const svgH = Math.max(500, ...allNodes.map(n => { const nh=computeNodeHeight(n.cap,n.w); return n.y+nh+80; }));
+  svg.setAttribute('width', svgW); svg.setAttribute('height', svgH);
+
+  // Root position — centered over L1 span
+  const l1Nodes = caps.filter(c=>c.level==='L1').map(c=>byId[c.id]).filter(Boolean);
+  const l1Left = l1Nodes.length ? Math.min(...l1Nodes.map(n=>n.x)) : svgW/2-ROOT_W/2;
+  const l1Right = l1Nodes.length ? Math.max(...l1Nodes.map(n=>n.x+n.w)) : svgW/2+ROOT_W/2;
+  const rootX = Math.max(MARGIN, (l1Left+l1Right)/2 - ROOT_W/2);
+  const rootY = MARGIN;
+  const rootBX = rootX + ROOT_W/2;
+  const rootBY = rootY + ROOT_H;
+  const midY = rootBY + (l1Nodes.length ? (l1Nodes[0].y - rootBY)/2 : ROOT_V_GAP/2);
+
+  let html = `<defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+
+  // Root → L1 connectors
+  l1Nodes.forEach(n => {
+    const tx = n.x+n.w/2; const ty = n.y;
+    if (Math.abs(rootBX-tx)<2) {
+      html += `<line x1="${rootBX}" y1="${rootBY}" x2="${tx}" y2="${ty}" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)" fill="none"/>`;
+    } else {
+      html += `<path d="M${rootBX},${rootBY} L${rootBX},${midY} L${tx},${midY} L${tx},${ty}" fill="none" stroke="#1a1a18" stroke-width="1.2" marker-end="url(#arr)"/>`;
+    }
+  });
+
+  // Capability edges
+  caps.forEach(c => {
+    if (!c.parentId||!byId[c.parentId]||!byId[c.id]) return;
+    const p=byId[c.parentId]; const ch=byId[c.id];
+    const pnh=computeNodeHeight(p.cap,p.w);
+    const x1=p.x+p.w/2; const y1=p.y+pnh;
+    const x2=ch.x+ch.w/2; const y2=ch.y;
+    const emid=(y1+y2)/2;
+    const flagged=c.flags&&c.flags.length;
+    const color=flagged?'#E24B4A':'#1D9E75';
+    const dash=flagged?'4 3':'none';
+    if (Math.abs(x1-x2)<2) {
+      html+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="1.2" stroke-dasharray="${dash}" marker-end="url(#arr)" fill="none"/>`;
+    } else {
+      html+=`<path d="M${x1},${y1} L${x1},${emid} L${x2},${emid} L${x2},${y2}" fill="none" stroke="${color}" stroke-width="1.2" stroke-dasharray="${dash}" marker-end="url(#arr)"/>`;
+    }
+  });
+
+  // Open slot stubs
+  caps.filter(c=>c.level==='L1'&&!caps.some(x=>x.parentId===c.id)).forEach(c=>{
+    const node=byId[c.id]; if(!node) return;
+    const nh=computeNodeHeight(c,node.w);
+    const cx=node.x+node.w/2; const cy=node.y+nh;
+    html+=`<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy+34}" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+    <circle cx="${cx}" cy="${cy+38}" r="4" fill="none" stroke="#b4b2a9" stroke-width="1"/>
+    <text x="${cx}" y="${cy+52}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#b4b2a9">no L2 yet</text>`;
+  });
+
+  // Discrepancy labels
+  caps.filter(c=>c.flags&&c.flags.length).forEach(c=>{
+    const node=byId[c.id]; if(!node) return;
+    const nh=computeNodeHeight(c,node.w);
+    html+=`<rect x="${node.x}" y="${node.y+nh+4}" width="${node.w}" height="16" rx="3" fill="#FCEBEB" stroke="#E24B4A" stroke-width="0.5"/>
+    <text x="${node.x+node.w/2}" y="${node.y+nh+14}" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="9" fill="#A32D2D">discrepancy — click to review</text>`;
+  });
+
+  // Root node (drawn after connectors so it sits on top)
+  html+=`<g>
+    <rect x="${rootX}" y="${rootY}" width="${ROOT_W}" height="${ROOT_H}" rx="8" fill="#1a1a18" stroke="#1a1a18" stroke-width="0.5"/>
+    <text x="${rootX+ROOT_W/2}" y="${rootY+ROOT_H/2}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Sans,sans-serif" font-size="13" font-weight="500" fill="#ffffff">${escHtml(bizName)}</text>
+  </g>`;
+
+  // Capability nodes
+  caps.forEach(c=>{
+    const node=byId[c.id]; if(!node) return;
+    const flagged=c.flags&&c.flags.length;
+    const stroke=flagged?'#E24B4A':c.differentiating?'#534AB7':'#1D9E75';
+    const fill=flagged?'#FCEBEB':c.differentiating?'#EEEDFE':'#E1F5EE';
+    const textColor=flagged?'#A32D2D':c.differentiating?'#3C3489':'#085041';
+    const numColor=flagged?'#E24B4A':c.differentiating?'#534AB7':'#0F6E56';
+    const sw=(flagged||c.differentiating)?1.5:0.5;
+    const inset=sw/2;
+    const nw=node.w; const num=computeNumber(c);
+    const maxChars=Math.floor((nw-16)/7);
+    const words=c.name.split(' ');
+    const lines=[]; let cur='';
+    words.forEach(w=>{const t=cur?cur+' '+w:w;if(t.length<=maxChars){cur=t;}else{if(cur)lines.push(cur);cur=w;}});
+    if(cur)lines.push(cur);
+    const numH=14,lineH=15;
+    const textBlockH=numH+3+lines.length*lineH;
+    const nh=Math.max(NODE_H_BASE[c.level]||38,textBlockH+16);
+    const blockStartY=node.y+(nh-textBlockH)/2;
+    const numY=blockStartY+numH*0.85;
+    const nameY=numY+3+lineH*0.85;
+    const tspans=lines.map((ln,i)=>`<tspan x="${node.x+nw/2}" dy="${i===0?0:lineH}">${escHtml(ln)}</tspan>`).join('');
+    const missingKpi=!c.kpis.length;
+    html+=`<g style="cursor:pointer" onclick="openDrawer(${c.id})">
+      <rect x="${node.x+inset}" y="${node.y+inset}" width="${nw-sw}" height="${nh-sw}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
+      ${missingKpi?`<circle cx="${node.x+nw-6}" cy="${node.y+6}" r="4" fill="#EF9F27" stroke="#fff" stroke-width="1.5"/>`:''}
+      <text x="${node.x+nw/2}" y="${numY}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="500" fill="${numColor}">${escHtml(num)}</text>
+      <text x="${node.x+nw/2}" y="${nameY}" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="${textColor}">${tspans}</text>
+    </g>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ── Drawer ─────────────────────────────────────────────────────────────
+function openDrawer(id) {
+  const cap = state.capabilities.find(c=>c.id===id);
+  if(!cap) return;
+  const children = state.capabilities.filter(c=>c.parentId===id);
+  const num = computeNumber(cap);
+  const eligibleParents = cap.level==='L2'
+    ? state.capabilities.filter(c=>c.level==='L1'&&c.id!==id)
+    : cap.level==='L3' ? state.capabilities.filter(c=>c.level==='L2'&&c.id!==id) : [];
+  const parentOpts = eligibleParents.map(c=>`<option value="${c.id}" ${c.id===cap.parentId?'selected':''}>${computeNumber(c)}  ${escHtml(c.name)}</option>`).join('');
+  const kpiRows = (cap.kpis||[]).map((k,i)=>`
+    <div class="kpi-row" id="dkpi-${i}">
+      <input class="kpi-name-input" type="text" placeholder="KPI name" value="${escHtml(k.name)}" style="flex:2">
+      <input class="kpi-target-input" type="text" placeholder="Target" value="${escHtml(k.target)}" style="flex:1">
+      <button class="kpi-remove" data-idx="${i}">✕</button>
+    </div>`).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-header">
+      <div class="drawer-title"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--cap);margin-right:6px;">${escHtml(num)}</span>${escHtml(cap.name)}</div>
+      <button class="drawer-close-btn" id="drawer-x">✕</button>
+    </div>
+    <span class="drawer-level">${cap.level}</span>
+    <div class="drawer-field-label">Capability name</div>
+    <input type="text" id="edit-name" value="${escHtml(cap.name)}">
+    <div class="drawer-field-label">Description</div>
+    <textarea id="edit-desc" style="min-height:80px;line-height:1.5;">${escHtml(cap.desc)}</textarea>
+    ${cap.level!=='L1'?`<div class="drawer-field-label">Parent capability</div><select id="edit-parent">${parentOpts}</select>`:''}
+    <div class="diff-toggle" style="margin-top:12px;">
+      <input type="checkbox" id="edit-diff" ${cap.differentiating?'checked':''}>
+      <label for="edit-diff">Differentiating capability</label>
+    </div>
+    <div class="drawer-field-label" style="margin-top:14px;">KPIs</div>
+    <div id="drawer-kpi-list">${kpiRows}</div>
+    <button class="btn-add-kpi" id="drawer-add-kpi">+ Add KPI</button>
+    ${children.length?`<div class="drawer-field-label">Child capabilities (${children.length})</div><div class="drawer-field-value">${children.map(c=>computeNumber(c)+'  '+escHtml(c.name)).join('<br>')}</div>`:''}
+    ${cap.flags&&cap.flags.length ? cap.flags.map(f=>`<div class="drawer-flag"><strong>Discrepancy</strong>${escHtml(f)}</div>`).join('') : ''}
+    <div class="drawer-notice" id="drawer-notice"></div>
+    <div class="drawer-btn-row">
+      <button class="drawer-save-btn" id="drawer-save">Save changes</button>
+      <button class="drawer-edit-btn" id="drawer-cancel">Cancel</button>
+      <button class="drawer-delete-btn" id="drawer-delete">Delete</button>
+    </div>`;
+
+  document.getElementById('detail-drawer').classList.add('open');
+  document.getElementById('drawer-x').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-cancel').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-save').addEventListener('click', ()=>saveEdit(id));
+  document.getElementById('drawer-delete').addEventListener('click', ()=>deleteCapability(id));
+  document.getElementById('drawer-add-kpi').addEventListener('click', ()=>addKPIRow('','','drawer-kpi-list'));
+  document.querySelectorAll('#drawer-kpi-list .kpi-remove').forEach(btn=>btn.addEventListener('click',()=>btn.closest('.kpi-row').remove()));
+}
+
+function closeDrawer() { document.getElementById('detail-drawer').classList.remove('open'); }
+
+function saveEdit(id) {
+  const cap = state.capabilities.find(c=>c.id===id);
+  if(!cap) return;
+  const newName = document.getElementById('edit-name').value.trim();
+  const newDesc = document.getElementById('edit-desc').value.trim();
+  const parentSel = document.getElementById('edit-parent');
+  const newParentId = parentSel ? (parseInt(parentSel.value)||null) : cap.parentId;
+  const newDiff = document.getElementById('edit-diff').checked;
+  const newKpis = [];
+  document.querySelectorAll('#drawer-kpi-list .kpi-row').forEach(r=>{
+    const n=r.querySelector('.kpi-name-input').value.trim();
+    const t=r.querySelector('.kpi-target-input').value.trim();
+    if(n) newKpis.push({name:n,target:t});
+  });
+  if(!newName){showDrawerNotice('Capability name cannot be empty.',false);return;}
+  const issues = validate(newName, newDesc, cap.level, newParentId?String(newParentId):null, id);
+  const hardFails = issues.filter(i=>i.type==='fail'&&i.rule!=='Parent required');
+  if(hardFails.length){showDrawerNotice(hardFails[0].msg,false);return;}
+  cap.name=newName; cap.desc=newDesc;
+  if(newParentId!==undefined) cap.parentId=newParentId;
+  cap.differentiating=newDiff; cap.kpis=newKpis;
+  const warnIssues = issues.filter(i=>i.type==='warn');
+  cap.flags=warnIssues.map(i=>i.msg); cap.overridden=warnIssues.length>0;
+  closeDrawer(); renderList(); renderGraph(); updateStats();
+}
+
+function showDrawerNotice(msg, success) {
+  const el=document.getElementById('drawer-notice'); if(!el) return;
+  el.textContent=msg; el.className='drawer-notice visible'+(success?' success':'');
+}
+
+function deleteCapability(id) {
+  const cap=state.capabilities.find(c=>c.id===id); if(!cap) return;
+  const children=state.capabilities.filter(c=>c.parentId===id);
+  if(children.length){showDrawerNotice('Cannot delete — '+children.length+' child capability(s) exist. Remove or re-parent them first.',false);return;}
+  if(!confirm('Delete "'+cap.name+'"? This cannot be undone.')) return;
+  state.capabilities=state.capabilities.filter(c=>c.id!==id);
+  closeDrawer(); renderList(); renderGraph(); updateStats();
+}
+
+// ── Rewrite engine ─────────────────────────────────────────────────────
+const PROC_VERB_MAP = [
+  {pattern:/\b(perform and provide|perform|performs)\b/gi,replace:'deliver'},
+  {pattern:/\b(provide services to|providing services to)\b/gi,replace:'support'},
+  {pattern:/\b(execute|executes|executing)\b/gi,replace:'achieve'},
+  {pattern:/\b(process|processes|processing)\b/gi,replace:'manage'},
+  {pattern:/\b(submit|submits|submitting)\s+(a |an |the |for |request|form|issue|ticket|claim|report)/gi,replace:'raise '},
+  {pattern:/\b(approve|approves|approving)\b/gi,replace:'govern'},
+  {pattern:/\b(handle|handles|handling)\b/gi,replace:'manage'},
+  {pattern:/\b(track|tracks|tracking)\b/gi,replace:'maintain visibility into'},
+  {pattern:/\b(monitor|monitors|monitoring)\b/gi,replace:'maintain oversight of'},
+  {pattern:/\b(send|sends|sending)\b/gi,replace:'communicate'},
+  {pattern:/\b(receive|receives|receiving)\b/gi,replace:'capture'},
+  {pattern:/\b(create|creates|creating)\b/gi,replace:'establish'},
+  {pattern:/\b(update|updates|updating)\b/gi,replace:'maintain'},
+  {pattern:/\b(review|reviews|reviewing)\b/gi,replace:'evaluate'},
+  {pattern:/\b(schedule|schedules|scheduling)\b/gi,replace:'coordinate'},
+  {pattern:/\b(notify|notifies|notifying)\b/gi,replace:'communicate'},
+  {pattern:/\b(generate report[s]?)\b/gi,replace:'provide insight'},
+  {pattern:/\b(calculate|calculates|calculating)\b/gi,replace:'determine'},
+];
+
+function localRewrite(name, desc) {
+  let text = desc.trim(); const original = text;
+  PROC_VERB_MAP.forEach(({pattern,replace})=>{text=text.replace(pattern,replace);});
+  text=text.replace(/\s{2,}/g,' ').trim();
+  text=text.replace(/^(and|or|to|,)\s+/i,'').replace(/\s+(and|or),?\s*$/i,'');
+  const hasOpener=/^(the ability|ability to|the capacity|enables|ensures|provides the foundation|empowers)/i.test(text);
+  if(!hasOpener) text=`The ability to ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+  text=text.replace(/^Ability to /i,'The ability to ');
+  if(!/[.!?]$/.test(text)) text+='.';
+  const sentences=text.match(/[^.!?]+[.!?]+/g);
+  if(sentences&&sentences.length>2) text=sentences.slice(0,2).join(' ').trim();
+  const norm=s=>s.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+  if(norm(text)===norm(original)) return null;
+  return text;
+}
+
+function requestRewrite(name, desc) {
+  const rewriteEl=document.getElementById('ai-rewrite');
+  const suggestion=localRewrite(name,desc);
+  if(!suggestion){rewriteEl.classList.remove('visible');state.pendingRewrite=null;return;}
+  rewriteEl.classList.add('visible');
+  state.pendingRewrite=suggestion;
+  document.getElementById('ai-rewrite-text').value=suggestion;
+}
+
+function useRewrite() {
+  const rewriteText=document.getElementById('ai-rewrite-text').value.trim();
+  if(!rewriteText) return;
+  document.getElementById('cap-desc').value=rewriteText;
+  state.suppressedWarnings.add('overlap');
+  state.suppressedWarnings.add('org');
+  state.suppressedWarnings.add('proc');
+  state.pendingEntry=null; state.pendingRewrite=null;
+  hideValidation(); submitCapability();
+}
+
+// ── Export ─────────────────────────────────────────────────────────────
+function exportModel() {
+  const data={version:'4.0',phase:1,exported:new Date().toISOString(),
+    businessName: document.getElementById('biz-name').value.trim(),
+    sources: state.sources,
+    capabilities:state.capabilities.map(c=>({
+      id:c.id,name:c.name,description:c.desc,level:c.level,parentId:c.parentId,
+      differentiating:c.differentiating,kpis:c.kpis,aiFlags:c.flags,overridden:c.overridden
+    }))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='ea-capability-model-phase1.json'; a.click();
+}
+
+// ── Import ─────────────────────────────────────────────────────────────
+function openImport(){document.getElementById('import-overlay').classList.add('open');document.getElementById('import-status').textContent='';}
+function closeImport(){document.getElementById('import-overlay').classList.remove('open');}
+
+function loadImportFile(file) {
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try {
+      const data=JSON.parse(e.target.result);
+      if(!data.capabilities||!Array.isArray(data.capabilities)) throw new Error('Invalid format — no capabilities array found.');
+      state.capabilities=[]; state.nextId=1;
+
+      // Extract business name — handle empty string, missing field, and legacy format
+      let importedBizName = (data.businessName || '').trim();
+
+      // Fallback 1: derive from sources array primary document label
+      if (!importedBizName && Array.isArray(data.sources)) {
+        const primary = data.sources.find(s => s.role === 'primary' && s.label);
+        if (primary) {
+          importedBizName = primary.label
+            .replace(/\s*\(.*\)\s*$/, '')
+            .replace(/\s+\d{4}\s.*$/, '')
+            .replace(/\s+annual\s+report.*$/i, '')
+            .replace(/\s+10-k.*$/i, '')
+            .trim();
+        }
+      }
+
+      // Fallback 2: parse legacy "source" string — "Derived from X 2025 Annual Report..."
+      if (!importedBizName && data.source && typeof data.source === 'string') {
+        const m = data.source.match(/(?:derived from|based on)\s+(.+)/i);
+        if (m) {
+          importedBizName = m[1]
+            .replace(/\s*\(.*\)\s*$/, '')
+            .replace(/\s+\d{4}\s.*$/, '')
+            .replace(/\s+annual\s+report.*$/i, '')
+            .replace(/\s+10-k.*$/i, '')
+            .trim();
+        }
+      }
+
+      if (importedBizName) {
+        document.getElementById('biz-name').value = importedBizName;
+        renderGraph(); // update root node immediately
+      }
+
+      // Restore sources from exported JSON if present
+      if (Array.isArray(data.sources)) {
+        data.sources.forEach(s => {
+          if (!isDuplicateSource(s.label, s.url)) {
+            state.sources.push(s);
+          }
+        });
+      }
+
+      // Parse legacy "source" string field — extract named framework references and primary document name
+      if (data.source && typeof data.source === 'string') {
+        const rawSource = data.source;
+        const knownSources = [
+          { key:'APQC Retail PCF', url:'https://www.apqc.org/process-frameworks/industry-specific-process-frameworks' },
+          { key:'APQC Cross-Industry', url:'https://www.apqc.org/process-frameworks' },
+          { key:'BIAN', url:'https://bian.org/servicelandscape/' },
+          { key:'TOGAF', url:'https://www.opengroup.org/togaf' },
+          { key:'TM Forum', url:'https://www.tmforum.org/oda/business-architecture/business-process-framework/' },
+          { key:'MISMO', url:'https://www.mismo.org/' },
+        ];
+        let matched = false;
+        knownSources.forEach(ks => {
+          if (rawSource.toLowerCase().includes(ks.key.toLowerCase())) {
+            if (!isDuplicateSource(ks.key, ks.url)) {
+              state.sources.push({ label: ks.key, url: ks.url, type: 'framework', role: 'reference' });
+              matched = true;
+            }
+          }
+        });
+        const urlMatches = rawSource.match(/https?:\/\/[^\s,)]+/g) || [];
+        urlMatches.forEach(u => {
+          if (!state.sources.some(s => s.url === u)) {
+            state.sources.push({ label: u, url: u, type: 'url', role: 'primary' });
+          }
+        });
+        // Extract primary document name — text before "cross-referenced" or "derived from" clause
+        // e.g. "Derived from Fidelity Investments 2025 Annual Report..." → "Fidelity Investments 2025 Annual Report"
+        const primaryDocMatch = rawSource.match(/(?:derived from|based on)\s+([^,(]+(?:annual report|10-k|report)[^,(]*)/i);
+        if (primaryDocMatch) {
+          const docLabel = primaryDocMatch[1].trim();
+          if (!isDuplicateSource(docLabel, null)) {
+            state.sources.push({ label: docLabel, url: null, type: 'document', role: 'primary' });
+          }
+        } else if (!matched && !urlMatches.length && !isDuplicateSource(rawSource, null)) {
+          state.sources.push({ label: rawSource, url: null, type: 'note', role: 'reference' });
+        }
+      }
+      // NOTE: The JSON file itself is NOT added as a source — it is the artifact, not the source.
+
+      const sorted=[...data.capabilities].sort((a,b)=>({L1:0,L2:1,L3:2}[a.level]||0)-({L1:0,L2:1,L3:2}[b.level]||0));
+      sorted.forEach(c=>{
+        state.capabilities.push({
+          id:c.id||state.nextId, name:c.name||'', desc:c.description||'',
+          level:c.level||'L1', parentId:c.parentId||null,
+          differentiating:!!c.differentiating, kpis:Array.isArray(c.kpis)?c.kpis:[],
+          flags:Array.isArray(c.aiFlags)?c.aiFlags:[], overridden:!!c.overridden
+        });
+        if(c.id>=state.nextId) state.nextId=c.id+1;
+      });
+      // On import: only re-flag for technology and org scope
+      state.capabilities.forEach(c=>{
+        if(c.overridden) return;
+        const issues=validate(c.name,c.desc,c.level,c.parentId?String(c.parentId):null);
+        c.flags=issues.filter(i=>i.type==='warn'&&(i.rule==='Technology reference'||i.rule==='Org or geography scope')).map(i=>i.msg);
+      });
+      closeImport();
+      renderList(); renderGraph(); updateStats(); renderSources();
+    } catch(err){
+      document.getElementById('import-status').innerHTML=`<span style="color:var(--flag)">Error: ${escHtml(err.message)}</span>`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Bootstrap source UI ────────────────────────────────────────────────
+function toggleBootstrap() {
+  const body = document.getElementById('bootstrap-body');
+  const chevron = document.getElementById('bootstrap-chevron');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chevron.style.transform = open ? '' : 'rotate(180deg)';
+}
+function onBootstrapTypeChange() {
+  const type = document.getElementById('bootstrap-type').value;
+  document.getElementById('bootstrap-url-section').style.display = type==='url' ? 'block' : 'none';
+  document.getElementById('bootstrap-industry-section').style.display = type==='industry' ? 'block' : 'none';
+  document.getElementById('bootstrap-file-section').style.display = type==='file' ? 'block' : 'none';
+  document.getElementById('bootstrap-btn').style.display = type ? 'block' : 'none';
+}
+
+function addBootstrapUrlRow() {
+  const list = document.getElementById('bootstrap-url-list');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:6px;margin-top:4px;';
+  row.innerHTML = `<input type="text" placeholder="https://..." style="flex:1;font-size:12px;padding:5px 8px;"><button class="kpi-remove" style="flex-shrink:0;">✕</button>`;
+  row.querySelector('.kpi-remove').addEventListener('click', ()=>row.remove());
+  list.appendChild(row);
+}
+
+function showSourceTooltip(e, label) {
+  const tip = document.getElementById('src-tooltip');
+  tip.textContent = label;
+  tip.style.display = 'block';
+  const x = Math.min(e.clientX + 12, window.innerWidth - 295);
+  const y = e.clientY - 36;
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+}
+function hideSourceTooltip() {
+  const tip = document.getElementById('src-tooltip');
+  if (tip) tip.style.display = 'none';
+}
+
+function isDuplicateSource(label, url) {
+  return state.sources.some(s =>
+    s.label === label ||
+    (url && s.url && s.url === url)
+  );
+}
+
+function renderSources() {
+  const list = document.getElementById('sources-list');
+  if (!list) return;
+  const buildBtn = document.getElementById('build-hierarchy-btn');
+  if (!state.sources.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--ink3);font-style:italic;margin-bottom:6px;">No sources recorded yet.</div>';
+    if (buildBtn) buildBtn.classList.remove('visible');
+    return;
+  }
+  const hasPrimary = state.sources.some(s => s.role === 'primary');
+  if (buildBtn) buildBtn.classList.toggle('visible', hasPrimary);
+
+  list.innerHTML = state.sources.map((s, i) => {
+    const isPrimary = s.role === 'primary';
+    const nameHtml = s.url
+      ? `<a href="${escHtml(s.url)}" target="_blank" style="color:var(--cap);text-decoration:none;">${escHtml(s.label)}</a>`
+      : escHtml(s.label);
+    return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--line);font-size:12px;">
+      <button class="src-role-btn ${isPrimary ? 'primary' : 'reference'}"
+        onclick="toggleSourceRole(${i})"
+        title="${isPrimary ? 'Primary source — click to set as Reference' : 'Reference — click to set as Primary source'}">
+        ${isPrimary ? 'Primary' : 'Reference'}
+      </button>
+      <span style="flex:1;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;"
+        title="${escHtml(s.label)}"
+        onmouseenter="showSourceTooltip(event,'${escHtml(s.label).replace(/'/g,'&#39;')}')"
+        onmouseleave="hideSourceTooltip()">${nameHtml}</span>
+      <button onclick="removeSource(${i})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px;padding:0;flex-shrink:0;" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removeSource(idx) {
+  state.sources.splice(idx, 1);
+  renderSources();
+}
+
+function toggleSourceRole(idx) {
+  const s = state.sources[idx];
+  if (!s) return;
+  s.role = (s.role === 'primary') ? 'reference' : 'primary';
+  renderSources();
+}
+
+function runBootstrap() {
+  const type = document.getElementById('bootstrap-type').value;
+  if (!type) { setBootstrapStatus('Please select a source type.'); return; }
+
+  const KNOWN_URLS = {
+    'apqc-retail':  { label:'APQC Retail PCF', url:'https://www.apqc.org/process-frameworks/industry-specific-process-frameworks' },
+    'apqc-cross':   { label:'APQC Cross-Industry PCF', url:'https://www.apqc.org/process-frameworks' },
+    'togaf-bm':     { label:'TOGAF Business Architecture', url:'https://www.opengroup.org/togaf' },
+    'bian':         { label:'BIAN Service Landscape', url:'https://bian.org/servicelandscape/' },
+    'tmforum':      { label:'TM Forum eTOM', url:'https://www.tmforum.org/oda/business-architecture/business-process-framework/' },
+  };
+
+  let added = 0;
+  if (type === 'url') {
+    const urls = [document.getElementById('bootstrap-url').value.trim(),
+      ...Array.from(document.querySelectorAll('#bootstrap-url-list input')).map(i=>i.value.trim())
+    ].filter(Boolean);
+    if (!urls.length) { setBootstrapStatus('Please enter at least one URL.'); return; }
+    urls.forEach(u => {
+      if (!isDuplicateSource(u, u)) {
+        state.sources.push({ label: u, url: u, type: 'url', role: 'primary' }); added++;
+      }
+    });
+  } else if (type === 'industry') {
+    const checked = Array.from(document.querySelectorAll('#industry-list input[type="checkbox"]:checked'));
+    if (!checked.length) { setBootstrapStatus('Please select at least one framework.'); return; }
+    checked.forEach(cb => {
+      if (cb.value === 'custom-url') {
+        const u = document.getElementById('custom-framework-url').value.trim();
+        if (u && !isDuplicateSource(u, u)) {
+          state.sources.push({ label: u, url: u, type: 'framework', role: 'reference' }); added++;
+        }
+      } else if (KNOWN_URLS[cb.value]) {
+        const k = KNOWN_URLS[cb.value];
+        if (!isDuplicateSource(k.label, k.url)) {
+          state.sources.push({ label: k.label, url: k.url, type: 'framework', role: 'reference' }); added++;
+        }
+      }
+    });
+  } else if (type === 'file') {
+    const files = document.getElementById('bootstrap-file').files;
+    if (!files.length) { setBootstrapStatus('Please select at least one file.'); return; }
+    Array.from(files).forEach(f => {
+      if (!isDuplicateSource(f.name, null)) {
+        state.sources.push({ label: f.name, url: null, type: 'file', role: 'primary' }); added++;
+      }
+    });
+  }
+
+  if (added > 0) {
+    renderSources();
+    // Auto-open sources panel so user sees the result
+    const body = document.getElementById('bootstrap-body');
+    if (body.style.display === 'block') {
+      setBootstrapStatus(added + ' source(s) added.');
+    }
+  } else {
+    setBootstrapStatus('Source(s) already recorded.');
+  }
+  // Reset type selector
+  document.getElementById('bootstrap-type').value = '';
+  onBootstrapTypeChange();
+}
+
+function setBootstrapStatus(msg) {
+  document.getElementById('bootstrap-status').textContent = msg;
+}
+
+
+// ── Build hierarchy ────────────────────────────────────────────────────
+async function buildHierarchy() {
+  const primarySources = state.sources.filter(s => s.role === 'primary');
+  const refSources = state.sources.filter(s => s.role !== 'primary');
+
+  if (!primarySources.length) { setBuildStatus('Please mark at least one source as Primary.'); return; }
+
+  const btn = document.getElementById('build-hierarchy-btn');
+  btn.disabled = true;
+  btn.textContent = 'Building…';
+  setBuildStatus('Reading sources and generating hierarchy — this may take a moment…');
+
+  // Use whatever is in the biz-name field; if blank, the AI will infer it
+  const bizNameHint = document.getElementById('biz-name').value.trim();
+  const bizNameInstruction = bizNameHint
+    ? `The business name is "${bizNameHint}".`
+    : `Infer the business name from the primary source(s) and populate the "businessName" field accordingly.`;
+
+  const primaryDesc = primarySources.map(s => s.label).join(', ');
+  const refDesc = refSources.length ? refSources.map(s => s.label).join(', ') : 'none specified';
+
+  const prompt = `You are an enterprise architect building a business capability model.
+
+${bizNameInstruction}
+
+Primary sources (company-specific, used to derive the hierarchy):
+${primaryDesc}
+
+Reference frameworks (industry standards, used to validate and name capabilities correctly):
+${refDesc}
+
+Based on these sources, generate a complete business capability hierarchy as a JSON object matching this exact schema:
+{
+  "version": "2.0",
+  "phase": 1,
+  "businessName": "inferred or provided business name",
+  "capabilities": [
+    {
+      "id": 1,
+      "name": "string",
+      "level": "L1",
+      "parentId": null,
+      "description": "The ability to... (outcome-focused, no process verbs, no technology references)",
+      "differentiating": true or false,
+      "kpis": [{"name": "string", "target": "string"}],
+      "aiFlags": [],
+      "overridden": false
+    }
+  ]
+}
+
+Rules:
+- Derive the business name from the primary sources if not provided; use the official company name
+- Generate 7-10 L1 capabilities reflecting the actual business described in the primary sources
+- Generate 3-5 L2 capabilities under each L1
+- Descriptions must be outcome-focused ("The ability to..."), not process-oriented
+- Names must align with the reference framework terminology where applicable
+- Mark capabilities that are genuine competitive differentiators as differentiating: true
+- Include KPIs only where the primary source provides specific metrics
+- IDs must be unique integers; L2 parentId must match a valid L1 id
+- Return ONLY the JSON object, no explanation, no markdown code fences`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.find(b => b.type === 'text')?.text?.trim();
+    if (!text) throw new Error('No response received from AI.');
+
+    // Strip markdown fences if present
+    const clean = text.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/,'').trim();
+    const parsed = JSON.parse(clean);
+
+    if (!parsed.capabilities || !Array.isArray(parsed.capabilities)) throw new Error('Invalid JSON structure returned.');
+
+    // Populate business name from returned JSON if field was blank
+    if (parsed.businessName) {
+      const bizField = document.getElementById('biz-name');
+      if (!bizField.value.trim()) {
+        bizField.value = parsed.businessName;
+      }
+    }
+
+    // Load into state
+    state.capabilities = [];
+    state.nextId = 1;
+    const sorted = [...parsed.capabilities].sort((a,b) => ({L1:0,L2:1,L3:2}[a.level]||0)-({L1:0,L2:1,L3:2}[b.level]||0));
+    sorted.forEach(c => {
+      state.capabilities.push({
+        id: c.id || state.nextId, name: c.name || '', desc: c.description || '',
+        level: c.level || 'L1', parentId: c.parentId || null,
+        differentiating: !!c.differentiating, kpis: Array.isArray(c.kpis) ? c.kpis : [],
+        flags: [], overridden: false
+      });
+      if (c.id >= state.nextId) state.nextId = c.id + 1;
+    });
+
+    renderList(); renderGraph(); updateStats();
+    setBuildStatus('Hierarchy built successfully — ' + state.capabilities.length + ' capabilities loaded. Review and edit as needed.');
+    btn.textContent = 'Rebuild hierarchy';
+  } catch(err) {
+    setBuildStatus('Error: ' + err.message + '. Note: AI generation requires a hosted environment with API access.');
+  } finally {
+    btn.disabled = false;
+    if (btn.textContent === 'Building…') btn.textContent = 'Build initial capability hierarchy';
+  }
+}
+
+function setBuildStatus(msg) {
+  const el = document.getElementById('build-status');
+  if (el) el.textContent = msg;
+}
+
+// ── Print Graph ────────────────────────────────────────────────────────
+function printGraph() {
+  window.print();
+}
+
+// ── Print Detail Report ────────────────────────────────────────────────
+function printDetailReport() {
+  const bizName = document.getElementById('biz-name').value.trim() || 'Capability Model';
+  const sorted = depthFirstSort(state.capabilities);
+  const rows = sorted.map(c => {
+    const num = computeNumber(c);
+    const parent = c.parentId ? state.capabilities.find(x=>x.id===c.parentId) : null;
+    const kpiText = c.kpis.length ? c.kpis.map(k=>k.name+(k.target?' — '+k.target:'')).join('; ') : '—';
+    const flags = c.flags && c.flags.length ? c.flags.join('; ') : '—';
+    const indent = c.level==='L2' ? 16 : c.level==='L3' ? 32 : 0;
+    const weight = c.level==='L1' ? '700' : '400';
+    const star = c.differentiating ? '\u2605 ' : '';
+    return [
+      `<tr>`,
+      `<td style="white-space:nowrap;font-weight:600;color:#0F6E56;">${escHtml(num)}</td>`,
+      `<td style="padding-left:${indent}px;font-weight:${weight};">${star}${escHtml(c.name)}</td>`,
+      `<td style="color:#4a4a46;">${c.level}</td>`,
+      `<td style="color:#4a4a46;">${escHtml(parent ? parent.name : '—')}</td>`,
+      `<td style="color:#4a4a46;font-size:11px;">${escHtml(c.desc||'—')}</td>`,
+      `<td style="color:#4a4a46;font-size:11px;">${escHtml(kpiText)}</td>`,
+      `<td style="color:${c.flags&&c.flags.length?'#A32D2D':'#8a8a84'};font-size:11px;">${escHtml(flags)}</td>`,
+      `</tr>`
+    ].join('');
+  }).join('');
+
+  // Build report as array of strings — no embedded HTML structural tags in JS source
+  const parts = [
+    '<!DOCTYPE html>',
+    '<' + 'html><' + 'head><' + 'meta charset="UTF-8">',
+    '<' + 'title>' + escHtml(bizName) + ' \u2014 Capability Model</title>',
+    '<' + 'style>',
+    'body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#1a1a18;margin:20px}',
+    'h1{font-size:18px;margin-bottom:4px}',
+    '.meta{font-size:11px;color:#8a8a84;margin-bottom:16px}',
+    'table{border-collapse:collapse;width:100%}',
+    'th{background:#0F6E56;color:#fff;text-align:left;padding:7px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.05em}',
+    'td{padding:6px 10px;border-bottom:1px solid #e2e0d8;vertical-align:top}',
+    'tr:nth-child(even) td{background:#f7f6f2}',
+    '@page{size:landscape;margin:15mm}',
+    '</' + 'style></' + 'head><' + 'body>',
+    '<h1>' + escHtml(bizName) + ' \u2014 Business Capability Model</h1>',
+    '<div class="meta">Generated ' + new Date().toLocaleDateString() + ' \u00b7 ' + state.capabilities.length + ' capabilities \u00b7 L1: ' + state.capabilities.filter(c=>c.level==='L1').length + ' \u00b7 L2: ' + state.capabilities.filter(c=>c.level==='L2').length + '</div>',
+    '<table><thead><tr><th>#</th><th>Capability</th><th>Level</th><th>Parent</th><th>Description</th><th>KPIs</th><th>Discrepancies</th></tr></thead>',
+    '<tbody>' + rows + '</tbody></table>',
+    '<div style="margin-top:16px;font-size:10px;color:#8a8a84;">\u2605 = Differentiating capability</div>',
+    '</' + 'body></' + 'html>'
+  ];
+
+  const blob = new Blob([parts.join('\n')], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank', 'width=1100,height=800');
+  if (w) setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 600);
+}
+
+// ── Export CSV ─────────────────────────────────────────────────────────
+function exportCSV() {
+  const bizName = document.getElementById('biz-name').value.trim() || 'Capability Model';
+  const sorted = depthFirstSort(state.capabilities);
+  const esc = v => '"' + String(v||'').replace(/"/g,'""') + '"';
+  const headers = ['Number','Name','Level','Parent','Differentiating','Description','KPIs','Discrepancies'];
+  const rows = sorted.map(c => {
+    const num = computeNumber(c);
+    const parent = c.parentId ? (state.capabilities.find(x=>x.id===c.parentId)||{}).name||'' : '';
+    const kpiText = c.kpis.map(k=>k.name+(k.target?' ('+k.target+')':'')).join(' | ');
+    const flagText = (c.flags||[]).join(' | ');
+    return [num, c.name, c.level, parent, c.differentiating?'Yes':'No', c.desc||'', kpiText, flagText].map(esc).join(',');
+  });
+  const csv = [headers.map(esc).join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (bizName.replace(/[^a-z0-9]/gi,'-').toLowerCase() || 'capability-model') + '-capabilities.csv';
+  a.click();
+}
+
+// ── Enterprise Capability Library ──────────────────────────────────────
+const ENTERPRISE_LIBRARY = [
+  {
+    domain: 'Strategy and Planning',
+    icon: '🎯',
+    ref: 'APQC PCF 11 · TOGAF ADM',
+    caps: [
+      { name:'Enterprise Strategy Development', level:'L1', desc:'The ability to define, communicate, and sustain the long-term direction of the enterprise, including mission, vision, strategic objectives, and competitive positioning.' },
+      { name:'Strategic Planning and Goal Management', level:'L2', parentDomain:'Enterprise Strategy Development', desc:'The ability to translate strategic direction into annual and multi-year plans, cascading measurable goals across the enterprise and tracking progress against strategic targets.' },
+      { name:'Portfolio and Investment Management', level:'L2', parentDomain:'Enterprise Strategy Development', desc:'The ability to evaluate, prioritize, and govern investments across business initiatives, technology programs, and capital projects to maximize strategic return.' },
+      { name:'Mergers, Acquisitions and Partnerships', level:'L2', parentDomain:'Enterprise Strategy Development', desc:'The ability to identify, evaluate, negotiate, and integrate strategic acquisitions, divestitures, joint ventures, and alliance partnerships that advance enterprise objectives.' },
+      { name:'Business Performance Management', level:'L2', parentDomain:'Enterprise Strategy Development', desc:'The ability to measure, monitor, and report enterprise performance against strategic objectives using KPIs, scorecards, and management reporting disciplines.' },
+    ]
+  },
+  {
+    domain: 'Information Technology Management',
+    icon: '💻',
+    ref: 'COBIT 2019 · APQC PCF 7',
+    caps: [
+      { name:'IT Strategy and Governance', level:'L1', desc:'The ability to define the technology vision and govern IT investments, standards, and risk in alignment with enterprise strategy and regulatory obligations.' },
+      { name:'Application Development and Maintenance', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to design, build, test, deploy, and maintain software applications that support business operations and customer experiences.' },
+      { name:'IT Infrastructure and Cloud Operations', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to operate and continuously modernize the technology infrastructure — including compute, storage, networks, and cloud environments — that underpins enterprise systems.' },
+      { name:'IT Service Management and Support', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to deliver reliable IT services to internal users through incident management, service desk, problem resolution, and change management disciplines.' },
+      { name:'Enterprise Architecture', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to define and govern the target-state architecture of the enterprise — business, data, application, and technology — to guide technology investment and reduce complexity.' },
+      { name:'Technology Vendor Management', level:'L2', parentDomain:'IT Strategy and Governance', desc:'The ability to select, contract, manage, and evaluate third-party technology vendors and service providers against defined performance and cost expectations.' },
+    ]
+  },
+  {
+    domain: 'Financial Operations',
+    icon: '💰',
+    ref: 'APQC PCF 2',
+    caps: [
+      { name:'Financial Operations Management', level:'L1', desc:'The ability to manage the day-to-day financial operations of the enterprise, including accounting, reporting, tax compliance, and treasury activities.' },
+      { name:'General Accounting and Reporting', level:'L2', parentDomain:'Financial Operations Management', desc:'The ability to record, reconcile, and report financial transactions in compliance with applicable accounting standards, producing accurate financial statements on a timely basis.' },
+      { name:'Accounts Payable and Receivable', level:'L2', parentDomain:'Financial Operations Management', desc:'The ability to manage the full cycle of vendor payments and customer collections, including invoice processing, dispute resolution, and cash application.' },
+      { name:'Tax Compliance and Planning', level:'L2', parentDomain:'Financial Operations Management', desc:'The ability to meet all federal, state, and international tax filing obligations and to identify lawful tax planning opportunities that reduce enterprise tax burden.' },
+      { name:'Treasury and Cash Management', level:'L2', parentDomain:'Financial Operations Management', desc:'The ability to manage enterprise cash positions, banking relationships, debt obligations, foreign exchange exposures, and short-term liquidity needs.' },
+    ]
+  },
+  {
+    domain: 'Procurement and Supply Chain',
+    icon: '🔗',
+    ref: 'APQC PCF 4',
+    caps: [
+      { name:'Procurement and Vendor Management', level:'L1', desc:'The ability to source, evaluate, contract with, and manage suppliers of goods and services in a manner that delivers quality, cost efficiency, and supply continuity.' },
+      { name:'Strategic Sourcing', level:'L2', parentDomain:'Procurement and Vendor Management', desc:'The ability to analyze spend categories, assess supply markets, and negotiate contracts that deliver optimal total cost of ownership for the enterprise.' },
+      { name:'Purchase-to-Pay Operations', level:'L2', parentDomain:'Procurement and Vendor Management', desc:'The ability to manage the end-to-end procurement transaction cycle from requisition through purchase order, receipt, invoice matching, and payment.' },
+      { name:'Supplier Relationship Management', level:'L2', parentDomain:'Procurement and Vendor Management', desc:'The ability to develop and sustain productive, risk-managed relationships with strategic suppliers, including performance monitoring, development, and risk mitigation.' },
+    ]
+  },
+  {
+    domain: 'Legal and Compliance',
+    icon: '⚖️',
+    ref: 'APQC PCF 10',
+    caps: [
+      { name:'Legal and Regulatory Affairs', level:'L1', desc:'The ability to manage enterprise legal obligations, protect intellectual property, support regulatory compliance, and resolve disputes in a manner that minimizes legal risk and cost.' },
+      { name:'Contract Management', level:'L2', parentDomain:'Legal and Regulatory Affairs', desc:'The ability to draft, negotiate, execute, store, and monitor contracts across all enterprise relationships, ensuring obligations are met and rights are protected.' },
+      { name:'Regulatory Compliance Management', level:'L2', parentDomain:'Legal and Regulatory Affairs', desc:'The ability to identify applicable laws and regulations, implement controls that ensure compliance, and manage relationships with regulatory bodies across all jurisdictions.' },
+      { name:'Litigation and Dispute Management', level:'L2', parentDomain:'Legal and Regulatory Affairs', desc:'The ability to manage the enterprise\'s exposure to litigation, arbitration, and dispute resolution, including external counsel engagement and settlement strategy.' },
+      { name:'Intellectual Property Management', level:'L2', parentDomain:'Legal and Regulatory Affairs', desc:'The ability to register, protect, and enforce the enterprise\'s intellectual property portfolio — including patents, trademarks, copyrights, and trade secrets.' },
+    ]
+  },
+  {
+    domain: 'Enterprise Risk Management',
+    icon: '🛡️',
+    ref: 'APQC PCF 10 · COSO ERM',
+    caps: [
+      { name:'Enterprise Risk Management', level:'L1', desc:'The ability to identify, assess, monitor, and respond to risks across all enterprise domains in alignment with the board-defined risk appetite and regulatory expectations.' },
+      { name:'Risk Identification and Assessment', level:'L2', parentDomain:'Enterprise Risk Management', desc:'The ability to systematically identify, analyze, and prioritize risks — operational, strategic, financial, and compliance — across the enterprise on an ongoing basis.' },
+      { name:'Internal Audit and Controls', level:'L2', parentDomain:'Enterprise Risk Management', desc:'The ability to independently evaluate the effectiveness of internal controls, governance processes, and risk management activities, providing assurance to the board and management.' },
+      { name:'Business Continuity and Resilience', level:'L2', parentDomain:'Enterprise Risk Management', desc:'The ability to sustain critical business operations through disruptions — including technology failures, natural disasters, and cyber incidents — through tested continuity plans and recovery capabilities.' },
+    ]
+  },
+  {
+    domain: 'Corporate Communications',
+    icon: '📢',
+    ref: 'APQC PCF 9',
+    caps: [
+      { name:'Corporate Communications', level:'L1', desc:'The ability to manage the enterprise\'s internal and external communications in a manner that builds trust, protects reputation, and supports business objectives with all stakeholder groups.' },
+      { name:'Investor Relations', level:'L2', parentDomain:'Corporate Communications', desc:'The ability to communicate financial performance, strategy, and governance to shareholders, analysts, and the investment community through earnings calls, filings, and investor events.' },
+      { name:'Public and Media Relations', level:'L2', parentDomain:'Corporate Communications', desc:'The ability to shape and protect the enterprise\'s public reputation through proactive media engagement, crisis communications, and brand narrative management.' },
+      { name:'Internal Communications', level:'L2', parentDomain:'Corporate Communications', desc:'The ability to keep associates informed, aligned, and engaged through consistent messaging, leadership communications, and two-way dialogue channels across the enterprise.' },
+    ]
+  },
+  {
+    domain: 'Real Estate and Facilities',
+    icon: '🏢',
+    ref: 'APQC PCF 6',
+    caps: [
+      { name:'Real Estate and Facilities Management', level:'L1', desc:'The ability to acquire, maintain, and optimize the physical workspace portfolio that supports enterprise operations, balancing cost, location, employee experience, and sustainability objectives.' },
+      { name:'Workplace Strategy and Planning', level:'L2', parentDomain:'Real Estate and Facilities Management', desc:'The ability to plan and design the enterprise workplace portfolio — including owned, leased, and hybrid workspaces — in alignment with workforce needs and real estate cost targets.' },
+      { name:'Facilities Operations and Maintenance', level:'L2', parentDomain:'Real Estate and Facilities Management', desc:'The ability to operate and maintain enterprise facilities to a defined standard of safety, functionality, and sustainability, including building services, security, and space management.' },
+    ]
+  },
+];
+
+function openLibrary() {
+  const body = document.getElementById('library-modal-body');
+  body.innerHTML = ENTERPRISE_LIBRARY.map((domain, di) => {
+    const items = domain.caps.map((cap, ci) => `
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-${di}-${ci}" data-di="${di}" data-ci="${ci}" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">${cap.name}</div>
+          <div class="lib-cap-item-desc">${cap.desc}</div>
+        </div>
+        <span class="lib-cap-item-level">${cap.level}</span>
+      </div>`).join('');
+    return `<div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-${di}" class="lib-domain-chk"
+          style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;"
+          onclick="event.stopPropagation();toggleDomainAll(${di})"
+          title="Select all in ${domain.domain}">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(${di})">${domain.icon}</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(${di})">${domain.domain}</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(${di})">${domain.caps.length} caps · ${domain.ref}</span>
+        <span class="lib-domain-chevron" id="lib-chev-${di}" style="cursor:pointer;" onclick="toggleLibDomain(${di})">▼</span>
+      </div>
+      <div class="lib-cap-list" id="lib-list-${di}">${items}</div>
+    </div>`;
+  }).join('');
+  updateLibCount();
+  document.getElementById('library-overlay').classList.add('open');
+}
+
+function closeLibrary() {
+  document.getElementById('library-overlay').classList.remove('open');
+}
+
+function toggleLibDomain(di) {
+  const list = document.getElementById('lib-list-'+di);
+  const chev = document.getElementById('lib-chev-'+di);
+  const open = list.classList.contains('open');
+  list.classList.toggle('open', !open);
+  chev.classList.toggle('open', !open);
+}
+
+function updateLibCount() {
+  // Count only item checkboxes (not domain-level ones)
+  const checked = document.querySelectorAll('#library-modal-body input.lib-domain-chk ~ * input[type="checkbox"]:checked, #library-modal-body .lib-cap-list input[type="checkbox"]:checked').length;
+  document.getElementById('library-add-count').textContent = checked + ' capabilit' + (checked===1?'y':'ies') + ' selected';
+  // Sync domain checkboxes to reflect partial/full selection state
+  ENTERPRISE_LIBRARY.forEach((domain, di) => {
+    const domChk = document.getElementById('lib-all-'+di);
+    if (!domChk) return;
+    const all = document.querySelectorAll('#lib-list-'+di+' input[type="checkbox"]');
+    const chked = document.querySelectorAll('#lib-list-'+di+' input[type="checkbox"]:checked');
+    domChk.checked = chked.length === all.length && all.length > 0;
+    domChk.indeterminate = chked.length > 0 && chked.length < all.length;
+  });
+}
+
+function toggleDomainAll(di) {
+  const domChk = document.getElementById('lib-all-'+di);
+  const items = document.querySelectorAll('#lib-list-'+di+' input[type="checkbox"]');
+  items.forEach(cb => { cb.checked = domChk.checked; });
+  // Auto-expand the domain list when selecting
+  if (domChk.checked) {
+    const list = document.getElementById('lib-list-'+di);
+    const chev = document.getElementById('lib-chev-'+di);
+    if (list && !list.classList.contains('open')) {
+      list.classList.add('open');
+      if (chev) chev.classList.add('open');
+    }
+  }
+  updateLibCount();
+}
+
+function addLibrarySelection() {
+  const checked = Array.from(document.querySelectorAll('#library-modal-body input[type="checkbox"]:checked'));
+  if (!checked.length) { closeLibrary(); return; }
+
+  // Collect selected caps grouped by domain for L1→L2 parent linking
+  const toAdd = checked.map(cb => {
+    const di = parseInt(cb.dataset.di); const ci = parseInt(cb.dataset.ci);
+    return { domain: ENTERPRISE_LIBRARY[di], cap: ENTERPRISE_LIBRARY[di].caps[ci] };
+  });
+
+  // First pass: add any L1 caps and track domain→id mapping
+  const domainL1Map = {}; // domain title → new capability id
+  toAdd.filter(({cap})=>cap.level==='L1').forEach(({domain, cap}) => {
+    // Don't add if an identical name already exists
+    if (state.capabilities.some(c=>c.name===cap.name)) {
+      const existing = state.capabilities.find(c=>c.name===cap.name);
+      domainL1Map[domain.domain] = existing.id;
+      return;
+    }
+    const id = state.nextId++;
+    domainL1Map[domain.domain] = id;
+    state.capabilities.push({
+      id, name:cap.name, desc:cap.desc, level:'L1', parentId:null,
+      differentiating:false, kpis:[], flags:[], overridden:false, fromLibrary:true
+    });
+  });
+
+  // For L2 caps whose L1 was NOT explicitly selected, auto-create the L1 parent
+  toAdd.filter(({cap})=>cap.level==='L2').forEach(({domain}) => {
+    if (domainL1Map[domain.domain]) return;
+    const domainL1 = domain.caps.find(c=>c.level==='L1');
+    if (!domainL1) return;
+    if (state.capabilities.some(c=>c.name===domainL1.name)) {
+      domainL1Map[domain.domain] = state.capabilities.find(c=>c.name===domainL1.name).id;
+      return;
+    }
+    const id = state.nextId++;
+    domainL1Map[domain.domain] = id;
+    state.capabilities.push({
+      id, name:domainL1.name, desc:domainL1.desc, level:'L1', parentId:null,
+      differentiating:false, kpis:[], flags:[], overridden:false, fromLibrary:true
+    });
+  });
+
+  // Second pass: add L2 caps
+  toAdd.filter(({cap})=>cap.level==='L2').forEach(({domain, cap}) => {
+    if (state.capabilities.some(c=>c.name===cap.name)) return;
+    const parentId = domainL1Map[domain.domain] || null;
+    state.capabilities.push({
+      id:state.nextId++, name:cap.name, desc:cap.desc, level:'L2', parentId,
+      differentiating:false, kpis:[], flags:[], overridden:false, fromLibrary:true
+    });
+  });
+
+  closeLibrary();
+  renderList(); renderGraph(); updateStats();
+}
+
+
+
+// ── Init ───────────────────────────────────────────────────────────────
+document.getElementById('cap-level').addEventListener('change',onLevelChange);
+document.getElementById('clear-btn').addEventListener('click',clearForm);
+document.getElementById('validate-btn').addEventListener('click',submitCapability);
+document.getElementById('override-btn').addEventListener('click',addWithOverride);
+document.getElementById('use-rewrite-btn').addEventListener('click',useRewrite);
+document.getElementById('add-kpi-btn').addEventListener('click',()=>addKPIRow());
+document.getElementById('import-btn').addEventListener('click',openImport);
+document.getElementById('import-cancel-btn').addEventListener('click',closeImport);
+document.getElementById('bootstrap-add-url-btn').addEventListener('click', addBootstrapUrlRow);
+document.getElementById('library-btn').addEventListener('click', openLibrary);
+
+// Bootstrap file drop
+const bsDrop = document.getElementById('bootstrap-drop');
+const bsFile = document.getElementById('bootstrap-file');
+bsDrop.addEventListener('click', ()=>bsFile.click());
+bsFile.addEventListener('change', e=>{
+  const names = Array.from(e.target.files).map(f=>f.name);
+  document.getElementById('bootstrap-file-list').textContent = names.join(', ');
+});
+bsDrop.addEventListener('dragover', e=>{e.preventDefault();bsDrop.style.borderColor='var(--cap-md)';});
+bsDrop.addEventListener('dragleave', ()=>{bsDrop.style.borderColor='';});
+bsDrop.addEventListener('drop', e=>{
+  e.preventDefault(); bsDrop.style.borderColor='';
+  const names = Array.from(e.dataTransfer.files).map(f=>f.name);
+  document.getElementById('bootstrap-file-list').textContent = names.join(', ');
+});
+const importDrop=document.getElementById('import-drop');
+const importFile=document.getElementById('import-file');
+importDrop.addEventListener('click',()=>importFile.click());
+importFile.addEventListener('change',e=>loadImportFile(e.target.files[0]));
+importDrop.addEventListener('dragover',e=>{e.preventDefault();importDrop.classList.add('drag-over');});
+importDrop.addEventListener('dragleave',()=>importDrop.classList.remove('drag-over'));
+importDrop.addEventListener('drop',e=>{e.preventDefault();importDrop.classList.remove('drag-over');loadImportFile(e.dataTransfer.files[0]);});
+onLevelChange(); renderGraph(); renderSources();
+
+/* ── Zoom + Pan for graph canvas ── */
+(function() {
+  const canvas = document.getElementById('graph-canvas');
+  const svg = document.getElementById('graph-svg');
+  let scale = 1, panX = 0, panY = 0;
+  let isPanning = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+  let userHasInteracted = false;
+  const MIN_SCALE = 0.05, MAX_SCALE = 5, ZOOM_SPEED = 0.0015;
+
+  function applyTransform() {
+    svg.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  }
+
+  function fitToView() {
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    const sw = parseFloat(svg.getAttribute('width')) || 800;
+    const sh = parseFloat(svg.getAttribute('height')) || 500;
+    if (!cw || !ch) return;
+    scale = Math.min(cw / sw, ch / sh, 1) * 0.92;
+    panX = (cw - sw * scale) / 2;
+    panY = 10;
+    applyTransform();
+  }
+
+  // Mouse-wheel zoom centered on cursor
+  canvas.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    userHasInteracted = true;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const svgX = (mx - panX) / scale;
+    const svgY = (my - panY) / scale;
+    const delta = -e.deltaY * ZOOM_SPEED;
+    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * (1 + delta)));
+    panX = mx - svgX * newScale;
+    panY = my - svgY * newScale;
+    scale = newScale;
+    applyTransform();
+  }, { passive: false });
+
+  // Click+hold drag to pan
+  canvas.addEventListener('mousedown', function(e) {
+    if (e.target.closest('g[onclick]') || e.target.closest('g[style*="cursor:pointer"]')) return;
+    if (e.button !== 0) return;
+    isPanning = true;
+    userHasInteracted = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startPanX = panX;
+    startPanY = panY;
+    canvas.classList.add('panning');
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', function(e) {
+    if (!isPanning) return;
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', function() {
+    if (!isPanning) return;
+    isPanning = false;
+    canvas.classList.remove('panning');
+  });
+
+  // After any renderGraph call, re-apply transform (preserve user's zoom/pan)
+  // and auto-fit only on first render or if user hasn't interacted
+  const _svgObs = new MutationObserver(function() {
+    if (!userHasInteracted) {
+      requestAnimationFrame(fitToView);
+    } else {
+      applyTransform();
+    }
+  });
+  _svgObs.observe(svg, { childList: true, attributes: true });
+
+  // Initial fit + resize handler
+  requestAnimationFrame(fitToView);
+  window.addEventListener('resize', function() {
+    if (!userHasInteracted) fitToView();
+  });
+
+  // Double-click to reset view
+  canvas.addEventListener('dblclick', function(e) {
+    if (e.target.closest('g[onclick]') || e.target.closest('g[style*="cursor:pointer"]')) return;
+    userHasInteracted = false;
+    fitToView();
+  });
+})();
+</script>
+
+<!-- Enterprise Capability Library Modal -->
+<div id="library-overlay" class="">
+  <div id="library-modal">
+    <div id="library-modal-header">
+      <div>
+        <h3>Standard Enterprise Capability Library</h3>
+        <p>Select enabling capabilities common across all enterprises — drawn from APQC PCF, TOGAF, and COBIT 2019. These complement business-specific capabilities derived from primary sources.</p>
+      </div>
+      <button onclick="closeLibrary()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3);padding:0 0 0 16px;line-height:1;">✕</button>
+    </div>
+    <div id="library-modal-body"><div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-0" class="lib-domain-chk" style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;" onclick="event.stopPropagation();toggleDomainAll(0)" title="Select all in Strategy and Planning">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(0)">🎯</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(0)">Strategy and Planning</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(0)">5 caps · APQC PCF 11 · TOGAF ADM</span>
+        <span class="lib-domain-chevron open" id="lib-chev-0" style="cursor:pointer;" onclick="toggleLibDomain(0)">▼</span>
+      </div>
+      <div class="lib-cap-list open" id="lib-list-0">
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-0-0" data-di="0" data-ci="0" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Enterprise Strategy Development</div>
+          <div class="lib-cap-item-desc">The ability to define, communicate, and sustain the long-term direction of the enterprise, including mission, vision, strategic objectives, and competitive positioning.</div>
+        </div>
+        <span class="lib-cap-item-level">L1</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-0-1" data-di="0" data-ci="1" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Strategic Planning and Goal Management</div>
+          <div class="lib-cap-item-desc">The ability to translate strategic direction into annual and multi-year plans, cascading measurable goals across the enterprise and tracking progress against strategic targets.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-0-2" data-di="0" data-ci="2" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Portfolio and Investment Management</div>
+          <div class="lib-cap-item-desc">The ability to evaluate, prioritize, and govern investments across business initiatives, technology programs, and capital projects to maximize strategic return.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-0-3" data-di="0" data-ci="3" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Mergers, Acquisitions and Partnerships</div>
+          <div class="lib-cap-item-desc">The ability to identify, evaluate, negotiate, and integrate strategic acquisitions, divestitures, joint ventures, and alliance partnerships that advance enterprise objectives.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-0-4" data-di="0" data-ci="4" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Business Performance Management</div>
+          <div class="lib-cap-item-desc">The ability to measure, monitor, and report enterprise performance against strategic objectives using KPIs, scorecards, and management reporting disciplines.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div></div>
+    </div><div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-1" class="lib-domain-chk" style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;" onclick="event.stopPropagation();toggleDomainAll(1)" title="Select all in Information Technology Management">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(1)">💻</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(1)">Information Technology Management</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(1)">6 caps · COBIT 2019 · APQC PCF 7</span>
+        <span class="lib-domain-chevron open" id="lib-chev-1" style="cursor:pointer;" onclick="toggleLibDomain(1)">▼</span>
+      </div>
+      <div class="lib-cap-list open" id="lib-list-1">
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-1-0" data-di="1" data-ci="0" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">IT Strategy and Governance</div>
+          <div class="lib-cap-item-desc">The ability to define the technology vision and govern IT investments, standards, and risk in alignment with enterprise strategy and regulatory obligations.</div>
+        </div>
+        <span class="lib-cap-item-level">L1</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-1-1" data-di="1" data-ci="1" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Application Development and Maintenance</div>
+          <div class="lib-cap-item-desc">The ability to design, build, test, deploy, and maintain software applications that support business operations and customer experiences.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-1-2" data-di="1" data-ci="2" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">IT Infrastructure and Cloud Operations</div>
+          <div class="lib-cap-item-desc">The ability to operate and continuously modernize the technology infrastructure — including compute, storage, networks, and cloud environments — that underpins enterprise systems.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-1-3" data-di="1" data-ci="3" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">IT Service Management and Support</div>
+          <div class="lib-cap-item-desc">The ability to deliver reliable IT services to internal users through incident management, service desk, problem resolution, and change management disciplines.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-1-4" data-di="1" data-ci="4" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Enterprise Architecture</div>
+          <div class="lib-cap-item-desc">The ability to define and govern the target-state architecture of the enterprise — business, data, application, and technology — to guide technology investment and reduce complexity.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-1-5" data-di="1" data-ci="5" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Technology Vendor Management</div>
+          <div class="lib-cap-item-desc">The ability to select, contract, manage, and evaluate third-party technology vendors and service providers against defined performance and cost expectations.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div></div>
+    </div><div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-2" class="lib-domain-chk" style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;" onclick="event.stopPropagation();toggleDomainAll(2)" title="Select all in Financial Operations">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(2)">💰</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(2)">Financial Operations</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(2)">5 caps · APQC PCF 2</span>
+        <span class="lib-domain-chevron" id="lib-chev-2" style="cursor:pointer;" onclick="toggleLibDomain(2)">▼</span>
+      </div>
+      <div class="lib-cap-list" id="lib-list-2">
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-2-0" data-di="2" data-ci="0" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Financial Operations Management</div>
+          <div class="lib-cap-item-desc">The ability to manage the day-to-day financial operations of the enterprise, including accounting, reporting, tax compliance, and treasury activities.</div>
+        </div>
+        <span class="lib-cap-item-level">L1</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-2-1" data-di="2" data-ci="1" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">General Accounting and Reporting</div>
+          <div class="lib-cap-item-desc">The ability to record, reconcile, and report financial transactions in compliance with applicable accounting standards, producing accurate financial statements on a timely basis.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-2-2" data-di="2" data-ci="2" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Accounts Payable and Receivable</div>
+          <div class="lib-cap-item-desc">The ability to manage the full cycle of vendor payments and customer collections, including invoice processing, dispute resolution, and cash application.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-2-3" data-di="2" data-ci="3" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Tax Compliance and Planning</div>
+          <div class="lib-cap-item-desc">The ability to meet all federal, state, and international tax filing obligations and to identify lawful tax planning opportunities that reduce enterprise tax burden.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-2-4" data-di="2" data-ci="4" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Treasury and Cash Management</div>
+          <div class="lib-cap-item-desc">The ability to manage enterprise cash positions, banking relationships, debt obligations, foreign exchange exposures, and short-term liquidity needs.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div></div>
+    </div><div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-3" class="lib-domain-chk" style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;" onclick="event.stopPropagation();toggleDomainAll(3)" title="Select all in Procurement and Supply Chain">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(3)">🔗</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(3)">Procurement and Supply Chain</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(3)">4 caps · APQC PCF 4</span>
+        <span class="lib-domain-chevron" id="lib-chev-3" style="cursor:pointer;" onclick="toggleLibDomain(3)">▼</span>
+      </div>
+      <div class="lib-cap-list" id="lib-list-3">
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-3-0" data-di="3" data-ci="0" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Procurement and Vendor Management</div>
+          <div class="lib-cap-item-desc">The ability to source, evaluate, contract with, and manage suppliers of goods and services in a manner that delivers quality, cost efficiency, and supply continuity.</div>
+        </div>
+        <span class="lib-cap-item-level">L1</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-3-1" data-di="3" data-ci="1" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Strategic Sourcing</div>
+          <div class="lib-cap-item-desc">The ability to analyze spend categories, assess supply markets, and negotiate contracts that deliver optimal total cost of ownership for the enterprise.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-3-2" data-di="3" data-ci="2" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Purchase-to-Pay Operations</div>
+          <div class="lib-cap-item-desc">The ability to manage the end-to-end procurement transaction cycle from requisition through purchase order, receipt, invoice matching, and payment.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-3-3" data-di="3" data-ci="3" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Supplier Relationship Management</div>
+          <div class="lib-cap-item-desc">The ability to develop and sustain productive, risk-managed relationships with strategic suppliers, including performance monitoring, development, and risk mitigation.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div></div>
+    </div><div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-4" class="lib-domain-chk" style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;" onclick="event.stopPropagation();toggleDomainAll(4)" title="Select all in Legal and Compliance">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(4)">⚖️</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(4)">Legal and Compliance</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(4)">5 caps · APQC PCF 10</span>
+        <span class="lib-domain-chevron" id="lib-chev-4" style="cursor:pointer;" onclick="toggleLibDomain(4)">▼</span>
+      </div>
+      <div class="lib-cap-list" id="lib-list-4">
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-4-0" data-di="4" data-ci="0" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Legal and Regulatory Affairs</div>
+          <div class="lib-cap-item-desc">The ability to manage enterprise legal obligations, protect intellectual property, support regulatory compliance, and resolve disputes in a manner that minimizes legal risk and cost.</div>
+        </div>
+        <span class="lib-cap-item-level">L1</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-4-1" data-di="4" data-ci="1" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Contract Management</div>
+          <div class="lib-cap-item-desc">The ability to draft, negotiate, execute, store, and monitor contracts across all enterprise relationships, ensuring obligations are met and rights are protected.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-4-2" data-di="4" data-ci="2" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Regulatory Compliance Management</div>
+          <div class="lib-cap-item-desc">The ability to identify applicable laws and regulations, implement controls that ensure compliance, and manage relationships with regulatory bodies across all jurisdictions.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-4-3" data-di="4" data-ci="3" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Litigation and Dispute Management</div>
+          <div class="lib-cap-item-desc">The ability to manage the enterprise's exposure to litigation, arbitration, and dispute resolution, including external counsel engagement and settlement strategy.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-4-4" data-di="4" data-ci="4" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Intellectual Property Management</div>
+          <div class="lib-cap-item-desc">The ability to register, protect, and enforce the enterprise's intellectual property portfolio — including patents, trademarks, copyrights, and trade secrets.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div></div>
+    </div><div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-5" class="lib-domain-chk" style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;" onclick="event.stopPropagation();toggleDomainAll(5)" title="Select all in Enterprise Risk Management">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(5)">🛡️</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(5)">Enterprise Risk Management</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(5)">4 caps · APQC PCF 10 · COSO ERM</span>
+        <span class="lib-domain-chevron" id="lib-chev-5" style="cursor:pointer;" onclick="toggleLibDomain(5)">▼</span>
+      </div>
+      <div class="lib-cap-list" id="lib-list-5">
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-5-0" data-di="5" data-ci="0" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Enterprise Risk Management</div>
+          <div class="lib-cap-item-desc">The ability to identify, assess, monitor, and respond to risks across all enterprise domains in alignment with the board-defined risk appetite and regulatory expectations.</div>
+        </div>
+        <span class="lib-cap-item-level">L1</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-5-1" data-di="5" data-ci="1" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Risk Identification and Assessment</div>
+          <div class="lib-cap-item-desc">The ability to systematically identify, analyze, and prioritize risks — operational, strategic, financial, and compliance — across the enterprise on an ongoing basis.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-5-2" data-di="5" data-ci="2" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Internal Audit and Controls</div>
+          <div class="lib-cap-item-desc">The ability to independently evaluate the effectiveness of internal controls, governance processes, and risk management activities, providing assurance to the board and management.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-5-3" data-di="5" data-ci="3" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Business Continuity and Resilience</div>
+          <div class="lib-cap-item-desc">The ability to sustain critical business operations through disruptions — including technology failures, natural disasters, and cyber incidents — through tested continuity plans and recovery capabilities.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div></div>
+    </div><div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-6" class="lib-domain-chk" style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;" onclick="event.stopPropagation();toggleDomainAll(6)" title="Select all in Corporate Communications">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(6)">📢</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(6)">Corporate Communications</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(6)">4 caps · APQC PCF 9</span>
+        <span class="lib-domain-chevron" id="lib-chev-6" style="cursor:pointer;" onclick="toggleLibDomain(6)">▼</span>
+      </div>
+      <div class="lib-cap-list" id="lib-list-6">
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-6-0" data-di="6" data-ci="0" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Corporate Communications</div>
+          <div class="lib-cap-item-desc">The ability to manage the enterprise's internal and external communications in a manner that builds trust, protects reputation, and supports business objectives with all stakeholder groups.</div>
+        </div>
+        <span class="lib-cap-item-level">L1</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-6-1" data-di="6" data-ci="1" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Investor Relations</div>
+          <div class="lib-cap-item-desc">The ability to communicate financial performance, strategy, and governance to shareholders, analysts, and the investment community through earnings calls, filings, and investor events.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-6-2" data-di="6" data-ci="2" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Public and Media Relations</div>
+          <div class="lib-cap-item-desc">The ability to shape and protect the enterprise's public reputation through proactive media engagement, crisis communications, and brand narrative management.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-6-3" data-di="6" data-ci="3" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Internal Communications</div>
+          <div class="lib-cap-item-desc">The ability to keep associates informed, aligned, and engaged through consistent messaging, leadership communications, and two-way dialogue channels across the enterprise.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div></div>
+    </div><div class="lib-domain">
+      <div class="lib-domain-header">
+        <input type="checkbox" id="lib-all-7" class="lib-domain-chk" style="width:15px;height:15px;accent-color:var(--cap);flex-shrink:0;cursor:pointer;" onclick="event.stopPropagation();toggleDomainAll(7)" title="Select all in Real Estate and Facilities">
+        <span style="font-size:16px;cursor:pointer;" onclick="toggleLibDomain(7)">🏢</span>
+        <span class="lib-domain-title" style="cursor:pointer;" onclick="toggleLibDomain(7)">Real Estate and Facilities</span>
+        <span class="lib-domain-count" style="cursor:pointer;" onclick="toggleLibDomain(7)">3 caps · APQC PCF 6</span>
+        <span class="lib-domain-chevron" id="lib-chev-7" style="cursor:pointer;" onclick="toggleLibDomain(7)">▼</span>
+      </div>
+      <div class="lib-cap-list" id="lib-list-7">
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-7-0" data-di="7" data-ci="0" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Real Estate and Facilities Management</div>
+          <div class="lib-cap-item-desc">The ability to acquire, maintain, and optimize the physical workspace portfolio that supports enterprise operations, balancing cost, location, employee experience, and sustainability objectives.</div>
+        </div>
+        <span class="lib-cap-item-level">L1</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-7-1" data-di="7" data-ci="1" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Workplace Strategy and Planning</div>
+          <div class="lib-cap-item-desc">The ability to plan and design the enterprise workplace portfolio — including owned, leased, and hybrid workspaces — in alignment with workforce needs and real estate cost targets.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div>
+      <div class="lib-cap-item">
+        <input type="checkbox" id="lib-7-2" data-di="7" data-ci="2" onchange="updateLibCount()">
+        <div class="lib-cap-item-body">
+          <div class="lib-cap-item-name">Facilities Operations and Maintenance</div>
+          <div class="lib-cap-item-desc">The ability to operate and maintain enterprise facilities to a defined standard of safety, functionality, and sustainability, including building services, security, and space management.</div>
+        </div>
+        <span class="lib-cap-item-level">L2</span>
+      </div></div>
+    </div></div>
+    <div id="library-modal-footer">
+      <span id="library-add-count">5 capabilities selected</span>
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeLibrary()" class="drawer-edit-btn">Cancel</button>
+        <button onclick="addLibrarySelection()" class="btn btn-primary" style="flex:none;padding:7px 20px;">Add to model</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body></html>
