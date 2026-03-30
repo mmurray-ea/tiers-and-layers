@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rate the Legends — 70s, 80s &amp; 90s Artists</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F4EF;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #1A1714;
+    --text-muted: #7A7570;
+    --text-faint: #B0ABA5;
+    --like-bg: #E1F5EE;
+    --like-border: #1D9E75;
+    --like-text: #085041;
+    --dislike-bg: #FAECE7;
+    --dislike-border: #D85A30;
+    --dislike-text: #4A1B0C;
+    --accent: #3C3489;
+    --accent-light: #EEEDFE;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--text);
+    color: var(--bg);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #B0ABA5;
+    margin-bottom: 0.75rem;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+  .hero p {
+    font-size: 15px;
+    color: #B0ABA5;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .decade-pills {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .decade-pill {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .decade-pill:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+  .decade-pill.active { background: #fff; color: var(--text); border-color: #fff; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .stats-row { display: flex; gap: 1.25rem; }
+  .stat-item { font-size: 13px; color: var(--text-muted); }
+  .stat-item strong { font-weight: 500; color: var(--text); }
+  .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .search-box {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 6px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--text);
+    width: 200px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .results-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 18px;
+    border-radius: 999px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .results-btn:hover { opacity: 0.85; }
+
+  /* ── MAIN ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .decade-block { margin-bottom: 2.5rem; }
+  .decade-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .decade-heading span { color: var(--text); }
+
+  .artist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 8px;
+  }
+
+  .artist-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: border-color 0.15s, background 0.15s;
+    gap: 8px;
+  }
+  .artist-card.liked { background: var(--like-bg); border-color: var(--like-border); }
+  .artist-card.disliked { background: var(--dislike-bg); border-color: var(--dislike-border); }
+
+  .artist-name {
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .artist-card.liked .artist-name { color: var(--like-text); }
+  .artist-card.disliked .artist-name { color: var(--dislike-text); }
+
+  .vote-btns { display: flex; gap: 4px; flex-shrink: 0; }
+  .vote-btn {
+    width: 28px;
+    height: 26px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: all 0.12s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .vote-btn:hover { background: var(--bg); }
+  .vote-btn.active-like { background: var(--like-border); border-color: var(--like-border); color: #fff; }
+  .vote-btn.active-dislike { background: var(--dislike-border); border-color: var(--dislike-border); color: #fff; }
+
+  /* ── RESULTS MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 16px;
+    max-width: 680px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 2rem;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+  .modal-header h2 { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; }
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .result-section { margin-bottom: 1.5rem; }
+  .result-section h3 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 12px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-weight: 400;
+  }
+  .chip-like { background: var(--like-bg); color: var(--like-text); }
+  .chip-dislike { background: var(--dislike-bg); color: var(--dislike-text); }
+  .result-meta { font-size: 13px; color: var(--text-muted); padding-top: 0.75rem; border-top: 1px solid var(--border); }
+  .result-meta strong { color: var(--text); }
+
+  .no-results { font-size: 13px; color: var(--text-faint); font-style: italic; }
+
+  /* ── SHARE STRIP ── */
+  .share-strip {
+    text-align: center;
+    padding: 1rem 0 0;
+  }
+  .share-strip p { font-size: 12px; color: var(--text-muted); margin-bottom: 0.4rem; }
+  .copy-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .copy-btn:hover { background: var(--bg); }
+
+  @media (max-width: 600px) {
+    .toolbar { padding: 0.6rem 1rem; }
+    main { padding: 1.25rem 1rem 3rem; }
+    .search-box { width: 130px; }
+    .stats-row { gap: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">Music nostalgia survey</div>
+  <h1>Rate the Legends</h1>
+  <p>200+ artists from the 70s, 80s &amp; 90s — thumbs up or down for everyone you know</p>
+  <div class="decade-pills">
+    <button class="decade-pill active" onclick="filterDecade('all',this)">All decades</button>
+    <button class="decade-pill" onclick="filterDecade('70s',this)">70s</button>
+    <button class="decade-pill" onclick="filterDecade('80s',this)">80s</button>
+    <button class="decade-pill" onclick="filterDecade('90s',this)">90s</button>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="stats-row">
+    <div class="stat-item"><strong id="liked-count">0</strong> liked</div>
+    <div class="stat-item"><strong id="disliked-count">0</strong> disliked</div>
+    <div class="stat-item" id="rated-of"></div>
+  </div>
+  <div class="toolbar-right">
+    <input class="search-box" type="text" id="search" placeholder="Search…" oninput="renderArtists()">
+    <button class="results-btn" onclick="openModal()">See my results →</button>
+  </div>
+</div>
+
+<main id="artist-list"></main>
+
+<!-- Results Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Your results</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div class="share-strip">
+      <p>Share this page with friends</p>
+      <button class="copy-btn" onclick="copyLink()">Copy link</button>
+      <span id="copy-confirm" style="font-size:12px;color:#1D9E75;margin-left:8px;display:none;">Copied!</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const ARTISTS = {
+  "70s": [
+    "ABBA","Aerosmith","Bad Company","Billy Joel","Black Sabbath","Blondie","Bob Dylan","Bob Marley",
+    "Boston","Bruce Springsteen","Carole King","Cat Stevens","Chicago","Crosby Stills Nash & Young",
+    "David Bowie","Deep Purple","Dire Straits","Eagles","Elton John","Fleetwood Mac","Foreigner",
+    "Genesis","Grand Funk Railroad","Heart","James Brown","James Taylor","Jefferson Airplane",
+    "Jethro Tull","Jimmy Buffett","John Denver","Johnny Cash","Journey","Kansas","Led Zeppelin",
+    "Lynyrd Skynyrd","Neil Young","Paul McCartney","Peter Frampton","Pink Floyd","Queen",
+    "REO Speedwagon","Rod Stewart","Rolling Stones","Rush","Santana","Simon & Garfunkel",
+    "Steely Dan","Steve Miller Band","The Bee Gees","The Cars","The Doobie Brothers",
+    "The Jackson 5","The Kinks","The Who","Tom Petty","Van Halen","War","Wings","Yes",
+    "ZZ Top","Al Green","Chic","Earth Wind & Fire","Donna Summer","Marvin Gaye","Stevie Wonder"
+  ],
+  "80s": [
+    "A-ha","AC/DC","Adam Ant","Bangles","Billy Idol","Bon Jovi","Bryan Adams","Cheap Trick",
+    "Cinderella","Culture Club","The Cure","Cyndi Lauper","Hall & Oates","Def Leppard",
+    "Depeche Mode","Dire Straits","Duran Duran","Elvis Costello","Europe","Fine Young Cannibals",
+    "Flock of Seagulls","Foreigner","George Michael","Guns N Roses","Heart","Human League",
+    "Huey Lewis & the News","INXS","Janet Jackson","John Mellencamp","Judas Priest",
+    "Kenny Loggins","Loverboy","Madness","Madonna","Men at Work","Metallica","Michael Jackson",
+    "Mötley Crüe","New Order","Nena","OMD","Ozzy Osbourne","Pat Benatar",
+    "Phil Collins","The Police","Prince","R.E.M.","Rick Springfield","Run-D.M.C.","Simple Minds",
+    "Siouxsie & the Banshees","Slayer","Squeeze","Steve Winwood","Sting","Talking Heads",
+    "Tears for Fears","Thompson Twins","Tiffany","Tina Turner","Tom Waits",
+    "Twisted Sister","U2","Wham!","Whitney Houston","Whitesnake","ZZ Top","LL Cool J","Beastie Boys"
+  ],
+  "90s": [
+    "Ace of Base","Alice in Chains","Alanis Morissette","Backstreet Boys","Beck","Björk","Blur",
+    "Boyz II Men","Britney Spears","Bush","Counting Crows","The Cranberries","Dave Matthews Band",
+    "Destiny's Child","Daft Punk","Dr. Dre","Eminem","En Vogue","Everclear","Foo Fighters",
+    "Garbage","Green Day","Hanson","Hootie & the Blowfish","Ice Cube","Jewel","Lauryn Hill",
+    "Live","Liz Phair","Mariah Carey","Matchbox 20","Maxwell","Metallica","Missy Elliott",
+    "Natalie Merchant","Nine Inch Nails","Nirvana","No Doubt","Oasis","The Offspring","Our Lady Peace",
+    "Pearl Jam","Phish","Prodigy","Rage Against the Machine","Red Hot Chili Peppers",
+    "Seal","Sheryl Crow","Silverchair","Smashing Pumpkins","Soundgarden","Spice Girls","Stone Temple Pilots",
+    "Sublime","Sugar Ray","Third Eye Blind","TLC","Tracy Chapman",
+    "2Pac","Weezer","White Zombie","Wu-Tang Clan","Jay-Z","Blink-182","Savage Garden","Barenaked Ladies"
+  ]
+};
+
+const votes = {};
+let activeDecade = 'all';
+
+function filterDecade(d, btn) {
+  activeDecade = d;
+  document.querySelectorAll('.decade-pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderArtists();
+}
+
+function vote(id, v) {
+  const safe = id.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  votes[id] = votes[id] === v ? null : v;
+  updateStats();
+  // re-render just this card
+  const card = document.querySelector(`[data-artist="${CSS.escape(id)}"]`);
+  if (card) {
+    const vv = votes[id];
+    card.className = 'artist-card' + (vv==='like'?' liked':vv==='dislike'?' disliked':'');
+    card.querySelector('.artist-name').className = 'artist-name';
+    card.querySelector('.btn-like').className = 'vote-btn btn-like' + (vv==='like'?' active-like':'');
+    card.querySelector('.btn-dislike').className = 'vote-btn btn-dislike' + (vv==='dislike'?' active-dislike':'');
+  }
+}
+
+function updateStats() {
+  const keys = Object.keys(votes).filter(k => votes[k]);
+  document.getElementById('liked-count').textContent = keys.filter(k=>votes[k]==='like').length;
+  document.getElementById('disliked-count').textContent = keys.filter(k=>votes[k]==='dislike').length;
+  const total = new Set(Object.values(ARTISTS).flat()).size;
+  const rated = keys.length;
+  document.getElementById('rated-of').innerHTML = `<strong>${rated}</strong> of ${total} rated`;
+}
+
+function renderArtists() {
+  const query = document.getElementById('search').value.toLowerCase().trim();
+  const decades = activeDecade === 'all' ? ['70s','80s','90s'] : [activeDecade];
+  const container = document.getElementById('artist-list');
+  let html = '';
+
+  decades.forEach(dec => {
+    let artists = [...new Set(ARTISTS[dec])].sort();
+    if (query) artists = artists.filter(a => a.toLowerCase().includes(query));
+    if (!artists.length) return;
+
+    html += `<div class="decade-block"><h2 class="decade-heading"><span>${dec}</span> artists</h2><div class="artist-grid">`;
+    artists.forEach(a => {
+      const v = votes[a];
+      const cardClass = v === 'like' ? ' liked' : v === 'dislike' ? ' disliked' : '';
+      const likeClass = v === 'like' ? ' active-like' : '';
+      const dislikeClass = v === 'dislike' ? ' active-dislike' : '';
+      const esc = a.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      html += `<div class="artist-card${cardClass}" data-artist="${a.replace(/"/g,'&quot;')}">
+        <span class="artist-name" title="${a.replace(/"/g,'&quot;')}">${a}</span>
+        <div class="vote-btns">
+          <button class="vote-btn btn-like${likeClass}" onclick="vote('${esc}','like')" title="Like" aria-label="Like ${a}">👍</button>
+          <button class="vote-btn btn-dislike${dislikeClass}" onclick="vote('${esc}','dislike')" title="Dislike" aria-label="Dislike ${a}">👎</button>
+        </div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+
+  if (!html) {
+    html = '<p style="color:#B0ABA5;font-size:14px;padding:2rem 0;text-align:center;">No artists match your search.</p>';
+  }
+  container.innerHTML = html;
+  updateStats();
+}
+
+function openModal() {
+  const liked = Object.keys(votes).filter(k=>votes[k]==='like').sort();
+  const disliked = Object.keys(votes).filter(k=>votes[k]==='dislike').sort();
+  const total = new Set(Object.values(ARTISTS).flat()).size;
+  const rated = liked.length + disliked.length;
+  const pct = total ? Math.round(rated/total*100) : 0;
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="result-section">
+      <h3>Liked (${liked.length})</h3>
+      <div class="chips">${liked.length ? liked.map(a=>`<span class="chip chip-like">${a}</span>`).join('') : '<span class="no-results">None selected yet</span>'}</div>
+    </div>
+    <div class="result-section">
+      <h3>Disliked (${disliked.length})</h3>
+      <div class="chips">${disliked.length ? disliked.map(a=>`<span class="chip chip-dislike">${a}</span>`).join('') : '<span class="no-results">None selected yet</span>'}</div>
+    </div>
+    <div class="result-meta">You rated <strong>${rated} of ${total} artists</strong> (${pct}% complete)</div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const el = document.getElementById('copy-confirm');
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 2000);
+  });
+}
+
+renderArtists();
+</script>
+</body>
+</html>
